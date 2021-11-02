@@ -52,8 +52,13 @@ export class BasicPektinClient {
             if (!this.vaultToken) throw Error("Couldn't obtain vault token while getting config");
         }
 
-        this.pektinConfig = await getPektinConfig(this.vaultEndpoint, this.vaultToken);
-        this.pektinApiEndpoint = getPektinApiEndpoint(this.pektinConfig);
+        if (!this.pektinConfig) {
+            this.pektinConfig = await getPektinConfig(this.vaultEndpoint, this.vaultToken);
+        }
+
+        if (!this.pektinApiEndpoint) {
+            this.pektinApiEndpoint = getPektinApiEndpoint(this.pektinConfig);
+        }
     };
 
     // get whether or not the pektin setup is healthy
