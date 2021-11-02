@@ -81,7 +81,9 @@ export class BasicPektinClient {
                 throw Error("Couldn't obtain vault token while getting pektin api token");
             }
         }
-        this.pektinApiToken = await getPektinApiToken(this.vaultEndpoint, this.vaultToken);
+        if (!this.pektinApiToken) {
+            this.pektinApiToken = await getPektinApiToken(this.vaultEndpoint, this.vaultToken);
+        }
     };
 
     // get records from the api/redis based on their key
@@ -203,8 +205,55 @@ export class ExtendedPektinApiClient extends BasicPektinClient {
         await this.setupMainSOA(pektinConfig);
         return await Promise.all([
             this.setupMainNameServers(pektinConfig),
-            this.setupMainNameServerIps(pektinConfig)
+            this.setupMainNameServerIps(pektinConfig),
+            this.setupPektinSubdomains(pektinConfig)
         ]);
+    };
+
+    // setup the pektin subdomains like vault.pektin.pektin.xyz and api.pektin.pektin.xyz
+    setupPektinSubdomains = async (pektinConfig?: PektinConfig) => {
+        if (pektinConfig === undefined) {
+            if (!this.pektinConfig) {
+                await this.getPektinConfig();
+                if (!this.pektinConfig) throw Error("Failed to obtain pektinConfig");
+            }
+            pektinConfig = this.pektinConfig;
+        }
+        const domains = [
+            pektinConfig.uiSubDomain,
+            pektinConfig.apiSubDomain,
+            pektinConfig.vaultSubDomain,
+            pektinConfig.recursorDomain
+        ];
+        const records = [] as RedisEntry[];
+
+        domains.forEach((subDomain: string) => {
+            if (pektinConfig?.nameServers[0].ips.length) {
+                records.push({
+                    name: absoluteName(subDomain + "." + pektinConfig?.domain) + ":AAAA",
+                    rr_set: pektinConfig?.nameServers[0].ips.map(ip => {
+                        return {
+                            ttl: 60,
+                            value: { AAAA: ip }
+                        };
+                    })
+                });
+            }
+            if (pektinConfig?.nameServers[0].legacyIps.length) {
+                records.push({
+                    name: absoluteName(subDomain + "." + pektinConfig?.domain) + ":A",
+                    rr_set: pektinConfig?.nameServers[0].legacyIps.map(legacyIp => {
+                        return {
+                            ttl: 60,
+                            value: { A: legacyIp }
+                        };
+                    })
+                });
+            }
+        });
+
+        if (!records.length) throw Error("No address set for primary nameserver");
+        return await this.set(records);
     };
 
     setupMainSOA = async (pektinConfig?: PektinConfig) => {

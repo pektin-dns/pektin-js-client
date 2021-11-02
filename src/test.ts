@@ -1,14 +1,12 @@
 import { ExtendedPektinApiClient } from "./index.js";
 
 const pc = new ExtendedPektinApiClient({
-    username: "ui-lzMh07R7i71oFg",
+    username: "ui-j-6samfz_r1OTQ",
     password:
-        "TA8b8An9RP2dPkwQIAWk_vG--WDd2e-I-m28kk_yV4UDXldufkT_gucfXeavWlZi_wgz8s_TtqtyUIpFzcjc2mqiQL6Co-u5m-aRTudr8xsVQ0XKuK5PZAAauhHD3yHi78_b0Q",
+        "Bq9Wvf4_FeDtKNoxdFLJweZzYhKVnN4Ll9SiQniyBRQIu2c_1BIHqGihFr6KlQproTrMndkSA50aUQY_HS8VRJNWBdveGAeoWWwcGrECPBwgIygDbKUjeXHaGE2FOvXeWTmbHg",
     vaultEndpoint: "http://127.0.0.1:8200"
 });
 
 console.log(await pc.setupMainDomain());
 
 console.log(await pc.getDomains());
-
-console.log(await pc.deleteZone("example.com"));
