@@ -1,11 +1,25 @@
 {
     "name": "pektin",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "description": "A client to facilitate the control of pektin dns servers",
     "main": "dist/index.js",
     "types": "src/index.ts",
     "license": "MIT",
     "type": "module",
+    "author": {
+        "name": "Paul Colin Hennig",
+        "url": "https://y.gy",
+        "email": "pektin@y.gy"
+    },
+    "keywords": [
+        "pektin",
+        "dns",
+        "server",
+        "client",
+        "domain",
+        "name",
+        "system"
+    ],
     "devDependencies": {
         "typescript": "^4.4.4"
     },

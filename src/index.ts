@@ -34,9 +34,9 @@ export class BasicPektinClient {
         this.vaultPassword = credentials.password;
         this.vaultToken = null;
 
-        this.pektinApiEndpoint = null;
-        this.pektinApiToken = null;
-        this.pektinConfig = null;
+        this.pektinApiEndpoint = credentials.override?.pektinApiEndpoint || null;
+        this.pektinApiToken = credentials.override?.pektinApiToken || null;
+        this.pektinConfig = credentials.override?.pektinConfig || null;
     }
 
     init = async () => {

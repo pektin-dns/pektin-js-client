@@ -2,6 +2,12 @@ export interface PektinClientCredentials {
     vaultEndpoint: string;
     username: string;
     password: string;
+    override?: OverrideClientCredentials;
+}
+export interface OverrideClientCredentials {
+    pektinApiEndpoint: string;
+    pektinApiToken: string;
+    pektinConfig: PektinConfig;
 }
 
 export type PektinApiMethod = "get" | "set" | "search" | "delete" | "get-zone-records";
