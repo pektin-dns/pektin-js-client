@@ -1,0 +1,13 @@
+image: node:latest
+
+stages:
+    - publish
+
+publish:
+    stage: publish
+    script:
+        #publish to npm
+        - yarn
+        - yarn build
+        - echo '//registry.npmjs.org/:_authToken=${NPM_TOKEN}'>.npmrc
+        - npm publish --verbose --access public

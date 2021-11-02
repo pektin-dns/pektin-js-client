@@ -1,4 +1,6 @@
 import {
+    MainNameServer,
+    NameServer,
     PektinApiDeleteRequestBody,
     PektinApiGetRequestBody,
     PektinApiGetZoneRecordsRequestBody,
@@ -51,15 +53,7 @@ export class BasicPektinClient {
         }
 
         this.pektinConfig = await getPektinConfig(this.vaultEndpoint, this.vaultToken);
-        this.pektinApiEndpoint = this.getPektinApiEndpoint(this.pektinConfig);
-    };
-
-    // get the pektin api endpoint from  the pektin config
-    getPektinApiEndpoint = (pektinConfig: PektinConfig): string => {
-        const protocol = ["insecure-online", "local"].includes(pektinConfig.dev)
-            ? "http://"
-            : "https://";
-        return protocol + pektinConfig.apiSubDomain + "." + pektinConfig.domain;
+        this.pektinApiEndpoint = getPektinApiEndpoint(this.pektinConfig);
     };
 
     // get whether or not the pektin setup is healthy
@@ -172,19 +166,64 @@ export class BasicPektinClient {
 }
 
 export class ExtendedPektinApiClient extends BasicPektinClient {
-    getDomains = async () => {
-        await this.search("*.:SOA");
+    getDomains = async (): Promise<string[]> => {
+        return (await this.search("*.:SOA")).data.map((name: string) => name.replace(":SOA", ""));
     };
 
-    setupMainSOA = async () => {
-        if (!this.pektinConfig) {
-            await this.getPektinConfig();
-            if (!this.pektinConfig) throw Error("Failed to obtain pektinConfig");
+    // returns number of removed keys
+    deleteZone = async (name: string): Promise<number> => {
+        const records = await this.getZoneRecords([name]);
+        const tbd = records.data[absoluteName(name)];
+        return (await this.deleteRecords(tbd)).data.keys_removed;
+    };
+
+    // fully setup a domain with soa record and nameservers
+    setupDomain = async (domain: string, nameServers: NameServer[]) => {
+        await this.setupSOA(domain, nameServers);
+        return await Promise.all([
+            this.setupNameServers(domain, nameServers),
+            this.setupNameServerIps(domain, nameServers)
+        ]);
+    };
+
+    // fully setup the main domain specified in a d
+    setupMainDomain = async (pektinConfig?: PektinConfig) => {
+        if (pektinConfig === undefined) {
+            if (!this.pektinConfig) {
+                await this.getPektinConfig();
+                if (!this.pektinConfig) throw Error("Failed to obtain pektinConfig");
+            }
+            pektinConfig = this.pektinConfig;
         }
-        const domain = this.pektinConfig.domain;
-        const mainSubdomain = this.pektinConfig.nameServers.map(
-            ns => ns.subDomain + "." + domain
-        )[0];
+        await this.setupMainSOA(pektinConfig);
+        return await Promise.all([
+            this.setupMainNameServers(pektinConfig),
+            this.setupMainNameServerIps(pektinConfig)
+        ]);
+    };
+
+    setupMainSOA = async (pektinConfig?: PektinConfig) => {
+        if (pektinConfig === undefined) {
+            if (!this.pektinConfig) {
+                await this.getPektinConfig();
+                if (!this.pektinConfig) throw Error("Failed to obtain pektinConfig");
+            }
+            pektinConfig = this.pektinConfig;
+        }
+        return await this.setupSOA(
+            pektinConfig.domain,
+            pektinConfig.nameServers.map((mns: MainNameServer) => {
+                return {
+                    domain: mns.subDomain + "." + pektinConfig?.domain,
+                    ips: mns.ips,
+                    legacyIps: mns.legacyIps
+                };
+            })
+        );
+    };
+
+    setupSOA = async (domain: string, nameServers: NameServer[]) => {
+        const mainSubdomain = nameServers.map(ns => ns.domain)[0];
 
         const rr_set = [
             {
@@ -202,35 +241,67 @@ export class ExtendedPektinApiClient extends BasicPektinClient {
                 }
             }
         ];
-        await this.set([{ name: absoluteName(domain) + "SOA", rr_set }]);
+        return await this.set([{ name: absoluteName(domain) + ":SOA", rr_set }]);
     };
 
-    setupMainNameServers = async () => {
-        if (!this.pektinConfig) {
-            await this.getPektinConfig();
-            if (!this.pektinConfig) throw Error("Failed to obtain pektinConfig");
+    setupMainNameServers = async (pektinConfig?: PektinConfig) => {
+        if (pektinConfig === undefined) {
+            if (!this.pektinConfig) {
+                await this.getPektinConfig();
+                if (!this.pektinConfig) throw Error("Failed to obtain pektinConfig");
+            }
+            pektinConfig = this.pektinConfig;
         }
-        const domain = this.pektinConfig.domain;
-        const subDomains = this.pektinConfig.nameServers.map(ns => ns.subDomain + "." + domain);
+        return await this.setupNameServers(
+            pektinConfig.domain,
+            pektinConfig.nameServers.map((mns: MainNameServer) => {
+                return {
+                    domain: mns.subDomain + "." + pektinConfig?.domain,
+                    ips: mns.ips,
+                    legacyIps: mns.legacyIps
+                };
+            })
+        );
+    };
+
+    setupNameServers = async (domain: string, nameServers: NameServer[]) => {
+        const subDomains = nameServers.map(ns => ns.domain);
         const rr_set: PektinRRset = subDomains.map(subDomain => {
             return {
                 ttl: 60,
                 value: { NS: absoluteName(subDomain) }
             };
         });
-        await this.set([{ name: absoluteName(domain) + "NS", rr_set }]);
+        return await this.set([{ name: absoluteName(domain) + ":NS", rr_set }]);
     };
-    setupMainNameServerIps = async () => {
-        if (!this.pektinConfig) {
-            await this.getPektinConfig();
-            if (!this.pektinConfig) throw Error("Failed to obtain pektinConfig");
+
+    setupMainNameServerIps = async (pektinConfig?: PektinConfig) => {
+        if (pektinConfig === undefined) {
+            if (!this.pektinConfig) {
+                await this.getPektinConfig();
+                if (!this.pektinConfig) throw Error("Failed to obtain pektinConfig");
+            }
+            pektinConfig = this.pektinConfig;
         }
-        const domain = this.pektinConfig.domain;
+
+        return await this.setupNameServerIps(
+            pektinConfig.domain,
+            pektinConfig.nameServers.map((mns: MainNameServer) => {
+                return {
+                    domain: mns.subDomain + "." + pektinConfig?.domain,
+                    ips: mns.ips,
+                    legacyIps: mns.legacyIps
+                };
+            })
+        );
+    };
+
+    setupNameServerIps = async (domain: string, nameServers: NameServer[]) => {
         const records: RedisEntry[] = [];
-        this.pektinConfig.nameServers.forEach(ns => {
+        nameServers.forEach(ns => {
             if (ns.ips && ns.ips.length) {
                 records.push({
-                    name: absoluteName(ns.subDomain + "." + domain) + ":AAAA",
+                    name: absoluteName(ns.domain) + ":AAAA",
                     rr_set: ns.ips.map(ip => {
                         return {
                             ttl: 60,
@@ -241,7 +312,7 @@ export class ExtendedPektinApiClient extends BasicPektinClient {
             }
             if (ns.legacyIps && ns.legacyIps.length) {
                 records.push({
-                    name: absoluteName(ns.subDomain + "." + domain) + ":A",
+                    name: absoluteName(ns.domain) + ":A",
                     rr_set: ns.legacyIps.map(legacyIp => {
                         return {
                             ttl: 60,
@@ -252,9 +323,22 @@ export class ExtendedPektinApiClient extends BasicPektinClient {
             }
         });
 
-        await this.set(records);
+        return await this.set(records);
     };
 }
+
+// get the pektin api endpoint from  the pektin config
+export const getPektinApiEndpoint = (pektinConfig: PektinConfig): string => {
+    const protocol = ["insecure-online", "local"].includes(pektinConfig.dev)
+        ? "http://"
+        : "https://";
+    const endpoint = ["insecure-online", "local"].includes(pektinConfig.dev)
+        ? pektinConfig.dev === "local"
+            ? "127.0.0.1:3001"
+            : pektinConfig.insecureDevIp + ":3001"
+        : pektinConfig.apiSubDomain + "." + pektinConfig.domain;
+    return protocol + endpoint;
+};
 
 export const absoluteName = (name: string) => {
     if (!name?.length) return "";
@@ -404,6 +488,15 @@ export const pektinApiRequest = async (
     const json = await res.json().catch(e => {
         throw Error("Couldn't parse JSON response: " + e);
     });
+    body.token = "";
+    if (json.error === true) {
+        throw Error(
+            "API Error: " +
+                JSON.stringify(json, null, "    ") +
+                "\n while trying to set: \n" +
+                JSON.stringify(body, null, "    ")
+        );
+    }
 
     return json;
 };

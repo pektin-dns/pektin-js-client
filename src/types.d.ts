@@ -35,7 +35,7 @@ export interface PektinApiGetZoneRecordsRequestBody extends PektinApiRequestBody
 
 export interface PektinConfig {
     domain: string;
-    nameServers: Nameserver[];
+    nameServers: MainNameServer[];
     uiSubDomain: string;
     apiSubDomain: string;
     vaultSubDomain: string;
@@ -54,8 +54,14 @@ export interface PektinConfig {
     insecureDevIp: string;
 }
 
-export interface Nameserver {
+export interface MainNameServer {
     subDomain: string;
+    ips: string[];
+    legacyIps: string[];
+}
+
+export interface NameServer {
+    domain: string;
     ips: string[];
     legacyIps: string[];
 }

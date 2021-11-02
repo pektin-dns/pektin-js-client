@@ -7,4 +7,8 @@ const pc = new ExtendedPektinApiClient({
     vaultEndpoint: "http://127.0.0.1:8200"
 });
 
-pc.setupMainSOA();
+console.log(await pc.setupMainDomain());
+
+console.log(await pc.getDomains());
+
+console.log(await pc.deleteZone("example.com"));
