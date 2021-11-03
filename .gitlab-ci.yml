@@ -1,6 +1,7 @@
 image: node:latest
 
 stages:
+    - mirror
     - publish
 
 publish:
@@ -11,3 +12,18 @@ publish:
         - yarn build
         - echo '//registry.npmjs.org/:_authToken=${NPM_TOKEN}'>.npmrc
         - npm publish --verbose --access public
+mirror:
+    stage: mirror
+    script:
+        #github
+        - USERNAME=pektin-dolly
+        - git config --global user.email "runner@${CI_SERVER_HOST}"
+        - git config --global user.name "runner"
+        - git fetch --unshallow origin || true
+        - git remote remove origin
+        - git remote add origin https://${USERNAME}:${GITHUB_TOKEN}@github.com/pektin-dns/${CI_PROJECT_NAME}.git
+        - git push --set-upstream origin HEAD:refs/heads/main -f || true
+        #gitlab
+        - git remote remove origin
+        - git remote add origin https://${USERNAME}:${GITLAB_TOKEN}@gitlab.com/${CI_PROJECT_PATH}.git
+        - git push --set-upstream origin HEAD:refs/heads/main -f

@@ -223,7 +223,7 @@ export class ExtendedPektinApiClient extends BasicPektinClient {
             pektinConfig.uiSubDomain,
             pektinConfig.apiSubDomain,
             pektinConfig.vaultSubDomain,
-            pektinConfig.recursorDomain
+            pektinConfig.recursorSubDomain
         ];
         const records = [] as RedisEntry[];
 

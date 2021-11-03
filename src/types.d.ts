@@ -45,7 +45,7 @@ export interface PektinConfig {
     uiSubDomain: string;
     apiSubDomain: string;
     vaultSubDomain: string;
-    recursorDomain: string;
+    recursorSubDomain: string;
     enableUi: boolean;
     enableApi: boolean;
     enableRecursor: boolean;
