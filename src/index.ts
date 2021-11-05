@@ -460,7 +460,7 @@ export const getPektinApiToken = async (vaultEndpoint: string, vaultToken: strin
             token: vaultToken,
             key: "gss_token"
         })
-    ).token;
+    )?.token;
 };
 
 // get the advanced pektin api token
