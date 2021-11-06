@@ -12,7 +12,8 @@
         "strict": true,
         "forceConsistentCasingInFileNames": true,
         "noFallthroughCasesInSwitch": true,
-        "strictNullChecks": true
+        "strictNullChecks": true,
+        "lib": ["dom", "dom.iterable", "esnext"]
     },
     "include": ["src"]
 }
