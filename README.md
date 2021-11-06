@@ -5,11 +5,11 @@
 ## Install
 
 ```shell
-yarn add pektin
+yarn add @pektin/client
 ```
 
 ```shell
-npm i pektin
+npm i @pektin/client
 ```
 
 ## Basic Use
