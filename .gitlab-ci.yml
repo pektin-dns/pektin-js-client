@@ -25,5 +25,6 @@ mirror:
         - git push --set-upstream origin HEAD:refs/heads/main -f || true
         #gitlab
         - git remote remove origin
+        - git commit --allow-empty -m "[skip ci]"
         - git remote add origin https://${USERNAME}:${GITLAB_TOKEN}@gitlab.com/${CI_PROJECT_PATH}.git
         - git push --set-upstream origin HEAD:refs/heads/main -f
