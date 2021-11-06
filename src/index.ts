@@ -15,10 +15,13 @@ import {
     VaultAuthJSON
 } from "./types";
 
-const f =
-    typeof window === "object"
-        ? fetch
-        : (await import(/* webpackMode: "eager" */ "node-fetch")).default;
+import fetch from "node-fetch";
+
+if (typeof window === undefined) {
+    //@ts-ignore
+    global.f = fetch;
+}
+const f = fetch;
 
 export class BasicPektinClient {
     vaultEndpoint: string;
@@ -438,7 +441,7 @@ export const getVaultToken = async (auth: VaultAuthJSON): Promise<string> => {
         throw Error("Couldn't fetch: " + e);
     });
 
-    const json = await res.json().catch(e => {
+    const json: any = await res.json().catch(e => {
         throw Error("Couldn't parse JSON response: " + e);
     });
 
@@ -505,7 +508,7 @@ export const getVaultValue = async ({
     }).catch(e => {
         throw Error("Couldn't fetch: " + e);
     });
-    const json = await res.json().catch(e => {
+    const json: any = await res.json().catch(e => {
         throw Error("Couldn't parse JSON response: " + e);
     });
     return json?.data?.data;
@@ -555,7 +558,7 @@ export const pektinApiRequest = async (
         throw Error("Couldn't fetch: " + e);
     });
 
-    const json = await res.json().catch(e => {
+    const json: any = await res.json().catch(e => {
         throw Error("Couldn't parse JSON response: " + e);
     });
     body.token = "";
