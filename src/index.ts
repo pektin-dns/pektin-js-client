@@ -394,6 +394,19 @@ export const getPektinApiEndpoint = (pektinConfig: PektinConfig): string => {
     return protocol + endpoint;
 };
 
+// get the pektin api endpoint from  the pektin config
+export const getPektinRecursorEndpoint = (pektinConfig: PektinConfig): string => {
+    const protocol = ["insecure-online", "local"].includes(pektinConfig.dev)
+        ? "http://"
+        : "https://";
+    const endpoint = ["insecure-online", "local"].includes(pektinConfig.dev)
+        ? pektinConfig.dev === "local"
+            ? "127.0.0.1"
+            : pektinConfig.insecureDevIp
+        : pektinConfig.apiSubDomain + "." + pektinConfig.domain;
+    return protocol + endpoint;
+};
+
 export const absoluteName = (name: string) => {
     if (!name?.length) return "";
     name = name.replaceAll(/\s+/g, "");
