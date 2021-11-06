@@ -1,7 +1,7 @@
 {
     "compilerOptions": {
         "outDir": "./dist",
-        "target": "es2021",
+        "target": "es6",
         "esModuleInterop": true,
         "moduleResolution": "node",
         "resolveJsonModule": true,
@@ -12,7 +12,8 @@
         "strict": true,
         "forceConsistentCasingInFileNames": true,
         "noFallthroughCasesInSwitch": true,
-        "strictNullChecks": true
+        "strictNullChecks": true,
+        "lib": ["ES2021"]
     },
     "include": ["src"]
 }
