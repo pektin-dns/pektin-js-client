@@ -1,5 +1,5 @@
 {
-    "name": "pektin",
+    "name": "@pektin/client",
     "version": "1.0.5",
     "description": "A client to facilitate the control of pektin dns servers",
     "main": "dist/index.js",

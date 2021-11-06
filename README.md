@@ -1,6 +1,6 @@
 # JavaScript / TypeScript
 
-[git.y.gy](https://git.y.gy/pektin/pektin-js-client) | [GitLab](https://gitlab.com/pektin/pektin-js-client) | [GitHub](https://github.com/pektin-dns/pektin-js-client)| [NPM](https://www.npmjs.com/package/pektin)
+[git.y.gy](https://git.y.gy/pektin/pektin-js-client) | [GitLab](https://gitlab.com/pektin/pektin-js-client) | [GitHub](https://github.com/pektin-dns/pektin-js-client)| [NPM](https://www.npmjs.com/package/@pektin/client)
 
 ## Install
 
@@ -17,7 +17,7 @@ npm i pektin
 **Normaly you should NEVER store your credentials in a code file but use something like a .env file. Have a look at [dotenv](https://www.npmjs.com/package/dotenv) for Node.js.**
 
 ```ts
-import { ExtendedPektinApiClient } from "pektin";
+import { ExtendedPektinApiClient } from "@pektin/client";
 
 const pc = new ExtendedPektinApiClient({
     username: "ui-j-6samfz_r1OTQ",
