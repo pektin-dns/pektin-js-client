@@ -15,7 +15,10 @@ import {
     VaultAuthJSON
 } from "./types";
 
-const f = typeof window === "object" ? fetch : (await import("node-fetch")).default;
+const f =
+    typeof window === "object"
+        ? fetch
+        : (await import(/* webpackMode: "eager" */ "node-fetch")).default;
 
 export class BasicPektinClient {
     vaultEndpoint: string;
