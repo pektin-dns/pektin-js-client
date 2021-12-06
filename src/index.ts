@@ -11,11 +11,11 @@ import {
     PektinClientCredentials,
     PektinConfig,
     PektinRRset,
-    RedisEntry,
-    VaultAuthJSON
+    RedisEntry
 } from "./types";
 
 import f from "cross-fetch";
+import { getVaultToken, getVaultValue } from "./vault/vault.js";
 
 export class BasicPektinClient {
     vaultEndpoint: string;
@@ -42,7 +42,6 @@ export class BasicPektinClient {
     init = async () => {
         await this.getVaultToken();
         await this.getPektinConfig();
-        await this.getPektinApiToken();
     };
 
     // get the pektin config from vault
@@ -73,19 +72,6 @@ export class BasicPektinClient {
         });
     };
 
-    // get the pektin api token from vault
-    getPektinApiToken = async () => {
-        if (!this.vaultToken) {
-            await this.getVaultToken();
-            if (!this.vaultToken) {
-                throw Error("Couldn't obtain vault token while getting pektin api token");
-            }
-        }
-        if (!this.pektinApiToken) {
-            this.pektinApiToken = await getPektinApiToken(this.vaultEndpoint, this.vaultToken);
-        }
-    };
-
     // get records from the api/redis based on their key
     get = async (keys: string[]) => {
         if (!this.pektinApiEndpoint) {
@@ -94,13 +80,13 @@ export class BasicPektinClient {
                 throw Error("Couldn't obtain pektinApiEndpoint");
             }
         }
-        if (!this.pektinApiToken) {
-            this.getPektinApiToken();
-            if (!this.pektinApiToken) {
-                throw Error("Couldn't obtain pektinApiToken");
+        if (!this.vaultToken) {
+            await this.getVaultToken();
+            if (!this.vaultToken) {
+                throw Error("Couldn't obtain vaultToken");
             }
         }
-        return await get(this.pektinApiEndpoint, { token: this.pektinApiToken, keys });
+        return await get(this.pektinApiEndpoint, { token: this.vaultToken, keys });
     };
 
     // set records via the api in redis
@@ -111,13 +97,13 @@ export class BasicPektinClient {
                 throw Error("Couldn't obtain pektinApiEndpoint");
             }
         }
-        if (!this.pektinApiToken) {
-            await this.getPektinApiToken();
-            if (!this.pektinApiToken) {
-                throw Error("Couldn't obtain pektinApiToken");
+        if (!this.vaultToken) {
+            await this.getVaultToken();
+            if (!this.vaultToken) {
+                throw Error("Couldn't obtain vaultToken");
             }
         }
-        return await set(this.pektinApiEndpoint, { token: this.pektinApiToken, records });
+        return await set(this.pektinApiEndpoint, { token: this.vaultToken, records });
     };
 
     // search for records in redis by providing a glob search string
@@ -128,13 +114,13 @@ export class BasicPektinClient {
                 throw Error("Couldn't obtain pektinApiEndpoint");
             }
         }
-        if (!this.pektinApiToken) {
-            await this.getPektinApiToken();
-            if (!this.pektinApiToken) {
-                throw Error("Couldn't obtain pektinApiToken");
+        if (!this.vaultToken) {
+            await this.getVaultToken();
+            if (!this.vaultToken) {
+                throw Error("Couldn't obtain vaultToken");
             }
         }
-        return await search(this.pektinApiEndpoint, { token: this.pektinApiToken, glob });
+        return await search(this.pektinApiEndpoint, { token: this.vaultToken, glob });
     };
 
     // delete records based on their keys
@@ -145,13 +131,13 @@ export class BasicPektinClient {
                 throw Error("Couldn't obtain pektinApiEndpoint");
             }
         }
-        if (!this.pektinApiToken) {
-            await this.getPektinApiToken();
-            if (!this.pektinApiToken) {
-                throw Error("Couldn't obtain pektinApiToken");
+        if (!this.vaultToken) {
+            await this.getVaultToken();
+            if (!this.vaultToken) {
+                throw Error("Couldn't obtain vaultToken");
             }
         }
-        return await deleteRecords(this.pektinApiEndpoint, { token: this.pektinApiToken, keys });
+        return await deleteRecords(this.pektinApiEndpoint, { token: this.vaultToken, keys });
     };
 
     // get all records for zones
@@ -162,13 +148,13 @@ export class BasicPektinClient {
                 throw Error("Couldn't obtain pektinApiEndpoint");
             }
         }
-        if (!this.pektinApiToken) {
-            await this.getPektinApiToken();
-            if (!this.pektinApiToken) {
-                throw Error("Couldn't obtain pektinApiToken");
+        if (!this.vaultToken) {
+            await this.getVaultToken();
+            if (!this.vaultToken) {
+                throw Error("Couldn't obtain vaultToken");
             }
         }
-        return await getZoneRecords(this.pektinApiEndpoint, { token: this.pektinApiToken, names });
+        return await getZoneRecords(this.pektinApiEndpoint, { token: this.vaultToken, names });
     };
 }
 
@@ -416,96 +402,14 @@ export const absoluteName = (name: string) => {
 
 export const isAbsolute = (name: string): boolean => name[name.length - 1] === ".";
 
-export const unsealVault = async (vaultEndpoint: string, vaultKey: string) => {
-    const vaultRes = await f(`${vaultEndpoint}/v1/sys/unseal`, {
-        method: "PUT",
-        body: JSON.stringify({ key: vaultKey })
-    });
-    return await vaultRes.json();
-};
-
-// obtain the vault token by sending username and password to the vault endpoint
-export const getVaultToken = async (auth: VaultAuthJSON): Promise<string> => {
-    const res = await f(`${auth.vaultEndpoint}/v1/auth/userpass/login/${auth.username}`, {
-        method: "POST",
-        body: JSON.stringify({
-            password: auth.password
-        })
-    }).catch(e => {
-        throw Error("Couldn't fetch: " + e);
-    });
-
-    const json = await res.json().catch(e => {
-        throw Error("Couldn't parse JSON response: " + e);
-    });
-
-    if (json.errors) {
-        if (json.errors[0] === "Vault is sealed") {
-            throw Error(
-                `Vault is sealed
-You can unseal it here: ${auth.vaultEndpoint}/ui/vault/unseal
-or with the unsealVault() function
-
-For compose setups the key can be found in the in the pektin-compose/secrets/.env file in the V_KEY constant.
-It looks like  this: V_KEY="3ad0e26a9248a2ee6a07bc2c4a4d967589e74f02319d0f7ccb169918cd1e5b89"
-                `
-            );
-        }
-        throw Error("Couldn't obtain vault token: " + json.errors);
-    }
-    return json.auth.client_token;
-};
-
 // get the pektin config
 export const getPektinConfig = async (vaultEndpoint: string, vaultToken: string) => {
-    return (await getVaultValue({
-        endpoint: vaultEndpoint,
-        token: vaultToken,
-        key: "pektin-config"
-    })) as PektinConfig;
-};
-
-// get the basic pektin api token
-export const getPektinApiToken = async (vaultEndpoint: string, vaultToken: string) => {
-    return (
-        await getVaultValue({
-            endpoint: vaultEndpoint,
-            token: vaultToken,
-            key: "gss_token"
-        })
-    )?.token;
-};
-
-// get the advanced pektin api token
-export const getAdvancedPektinApiToken = async (vaultEndpoint: string, vaultToken: string) => {
-    return (await getVaultValue({
-        endpoint: vaultEndpoint,
-        token: vaultToken,
-        key: "gssr_token"
-    })) as PektinConfig;
-};
-
-// get value for a key from vault
-export const getVaultValue = async ({
-    endpoint,
-    token,
-    key
-}: {
-    endpoint: string;
-    token: string;
-    key: string;
-}) => {
-    const res = await f(`${endpoint}/v1/pektin-kv/data/${key}`, {
-        headers: {
-            "X-Vault-Token": token
-        }
-    }).catch(e => {
-        throw Error("Couldn't fetch: " + e);
-    });
-    const json = await res.json().catch(e => {
-        throw Error("Couldn't parse JSON response: " + e);
-    });
-    return json?.data?.data;
+    return (await getVaultValue(
+        vaultEndpoint,
+        vaultToken,
+        "pektin-config",
+        "pektin-kv"
+    )) as PektinConfig;
 };
 
 // get records from the api/redis based on their key
