@@ -383,7 +383,7 @@ export const envSetValues = async (
 };
 
 export const createStartScript = async (pektinConfig: PektinConfig, dir: string) => {
-    const p = path.join(dir, "stop.sh");
+    const p = path.join(dir, "start.sh");
     let file = `#!/bin/sh\n`;
     // create pektin compose command with different options
     let composeCommand = `docker-compose --env-file secrets/.env`;
@@ -417,7 +417,7 @@ export const createStopScript = async (pektinConfig: PektinConfig, dir: string) 
 };
 
 export const createUpdateScript = async (pektinConfig: PektinConfig, dir: string) => {
-    const p = path.join(dir, "stop.sh");
+    const p = path.join(dir, "update.sh");
     let file = `#!/bin/sh\n`;
     let composeCommand = `docker-compose --env-file secrets/.env`;
     composeCommand += activeComposeFiles(pektinConfig);
