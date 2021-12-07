@@ -1,6 +1,6 @@
 import { promises as fs } from "fs";
 import path from "path";
-import { chownRecursive, chown, chmod, randomString } from "./utils";
+import { chownRecursive, chown, chmod, randomString } from "./utils.js";
 import crypto from "crypto";
 
 import {
