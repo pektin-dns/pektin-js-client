@@ -43,10 +43,6 @@ export const createPektinSigner = async (
         mount_accessor: authMethods["userpass/"].accessor
     });
 
-    // check if userpass is present if not create it
-    // check if transit is present if not create it
-    // check if signer policy is present
-
     /*
     path "pektin-transit/sign/{{identity.entity.metadata.domain}}/sha2-256" {
         capabilities = ["update"]

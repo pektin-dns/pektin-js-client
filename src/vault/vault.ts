@@ -192,8 +192,20 @@ export const unsealVault = async (vaultEndpoint: string, vaultKey: string) => {
     return await vaultRes.json();
 };
 
+export const initVault = async (vaultEndpoint: string) => {
+    const vaultRes = await f(`${vaultEndpoint}/v1/sys/init`, {
+        method: "PUT",
+        body: JSON.stringify({ secret_shares: 1, secret_threshold: 1 })
+    });
+    const vaultTokens = await vaultRes.json();
+    if (!vaultTokens || !vaultTokens.keys) {
+        throw new Error("Error: Vault has already been initialized");
+    }
+    return { key: vaultTokens.keys[0], rootToken: vaultTokens.root_token };
+};
+
 // obtain the vault token by sending username and password to the vault endpoint
-export const getVaultToken = async (auth: VaultAuthJSON): Promise<string> => {
+export const vaultLoginUserpass = async (auth: VaultAuthJSON): Promise<string> => {
     const res = await f(`${auth.vaultEndpoint}/v1/auth/userpass/login/${auth.username}`, {
         method: "POST",
         body: JSON.stringify({
@@ -244,11 +256,11 @@ export const getVaultValue = async (
     return json?.data?.data;
 };
 
-export const updatePektinKvValue = async (
+export const updateKvValue = async (
     endpoint: string,
     token: string,
     key: string,
-    value: string,
+    value: object,
     kvEngine: string
 ) => {
     await f(`${endpoint}/v1/${kvEngine}/metadata/${key}`, {
@@ -262,8 +274,6 @@ export const updatePektinKvValue = async (
         headers: {
             "X-Vault-Token": token
         },
-        body: JSON.stringify({
-            value
-        })
+        body: JSON.stringify({ value }) // WARNING MAY NOT NEED WRAPPING IN BRACKETS
     });
 };

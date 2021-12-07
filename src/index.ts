@@ -1,5 +1,4 @@
 import {
-    MainNameServer,
     NameServer,
     PektinApiDeleteRequestBody,
     PektinApiGetRequestBody,
@@ -15,7 +14,7 @@ import {
 } from "./types";
 
 import f from "cross-fetch";
-import { getVaultToken, getVaultValue } from "./vault/vault.js";
+import { vaultLoginUserpass, getVaultValue } from "./vault/vault.js";
 
 export class BasicPektinClient {
     vaultEndpoint: string;
@@ -24,7 +23,6 @@ export class BasicPektinClient {
     vaultToken: string | null;
 
     pektinApiEndpoint: string | null;
-    pektinApiToken: string | null;
 
     pektinConfig: PektinConfig | null;
 
@@ -35,7 +33,6 @@ export class BasicPektinClient {
         this.vaultToken = null;
 
         this.pektinApiEndpoint = credentials.override?.pektinApiEndpoint || null;
-        this.pektinApiToken = credentials.override?.pektinApiToken || null;
         this.pektinConfig = credentials.override?.pektinConfig || null;
     }
 
@@ -65,7 +62,7 @@ export class BasicPektinClient {
 
     // obtain the vault token by sending username and password to the vault endpoint
     getVaultToken = async () => {
-        this.vaultToken = await getVaultToken({
+        this.vaultToken = await vaultLoginUserpass({
             vaultEndpoint: this.vaultEndpoint,
             username: this.vaultUsername,
             password: this.vaultPassword
@@ -171,7 +168,10 @@ export class ExtendedPektinApiClient extends BasicPektinClient {
     };
 
     // fully setup a domain with soa record and nameservers
-    setupDomain = async (domain: string, nameServers: NameServer[]) => {
+    setupDomain = async (
+        domain: string,
+        nameServers: { domain: string; ips: string[]; legacyIps: string[] }[]
+    ) => {
         await this.setupSOA(domain, nameServers);
         return await Promise.all([
             this.setupNameServers(domain, nameServers),
@@ -252,7 +252,7 @@ export class ExtendedPektinApiClient extends BasicPektinClient {
         }
         return await this.setupSOA(
             pektinConfig.domain,
-            pektinConfig.nameServers.map((mns: MainNameServer) => {
+            pektinConfig.nameServers.map((mns: NameServer) => {
                 return {
                     domain: mns.subDomain + "." + pektinConfig?.domain,
                     ips: mns.ips,
@@ -262,7 +262,10 @@ export class ExtendedPektinApiClient extends BasicPektinClient {
         );
     };
 
-    setupSOA = async (domain: string, nameServers: NameServer[]) => {
+    setupSOA = async (
+        domain: string,
+        nameServers: { domain: string; ips: string[]; legacyIps: string[] }[]
+    ) => {
         const mainSubdomain = nameServers.map(ns => ns.domain)[0];
 
         const rr_set = [
@@ -294,7 +297,7 @@ export class ExtendedPektinApiClient extends BasicPektinClient {
         }
         return await this.setupNameServers(
             pektinConfig.domain,
-            pektinConfig.nameServers.map((mns: MainNameServer) => {
+            pektinConfig.nameServers.map((mns: NameServer) => {
                 return {
                     domain: mns.subDomain + "." + pektinConfig?.domain,
                     ips: mns.ips,
@@ -304,7 +307,10 @@ export class ExtendedPektinApiClient extends BasicPektinClient {
         );
     };
 
-    setupNameServers = async (domain: string, nameServers: NameServer[]) => {
+    setupNameServers = async (
+        domain: string,
+        nameServers: { domain: string; ips: string[]; legacyIps: string[] }[]
+    ) => {
         const subDomains = nameServers.map(ns => ns.domain);
         const rr_set: PektinRRset = subDomains.map(subDomain => {
             return {
@@ -326,7 +332,7 @@ export class ExtendedPektinApiClient extends BasicPektinClient {
 
         return await this.setupNameServerIps(
             pektinConfig.domain,
-            pektinConfig.nameServers.map((mns: MainNameServer) => {
+            pektinConfig.nameServers.map((mns: NameServer) => {
                 return {
                     domain: mns.subDomain + "." + pektinConfig?.domain,
                     ips: mns.ips,
@@ -336,7 +342,10 @@ export class ExtendedPektinApiClient extends BasicPektinClient {
         );
     };
 
-    setupNameServerIps = async (domain: string, nameServers: NameServer[]) => {
+    setupNameServerIps = async (
+        domain: string,
+        nameServers: { domain: string; ips: string[]; legacyIps: string[] }[]
+    ) => {
         const records: RedisEntry[] = [];
         nameServers.forEach(ns => {
             if (ns.ips && ns.ips.length) {
@@ -369,27 +378,31 @@ export class ExtendedPektinApiClient extends BasicPektinClient {
 
 // get the pektin api endpoint from  the pektin config
 export const getPektinApiEndpoint = (pektinConfig: PektinConfig): string => {
-    const protocol = ["insecure-online", "local"].includes(pektinConfig.dev)
-        ? "http://"
-        : "https://";
-    const endpoint = ["insecure-online", "local"].includes(pektinConfig.dev)
-        ? pektinConfig.dev === "local"
-            ? "127.0.0.1:3001"
-            : pektinConfig.insecureDevIp + ":3001"
-        : pektinConfig.apiSubDomain + "." + pektinConfig.domain;
+    const protocol =
+        pektinConfig.dev !== undefined && ["insecure-online", "local"].includes(pektinConfig.dev)
+            ? "http://"
+            : "https://";
+    const endpoint =
+        pektinConfig.dev !== undefined && ["insecure-online", "local"].includes(pektinConfig.dev)
+            ? pektinConfig.dev === "local"
+                ? "127.0.0.1:3001"
+                : pektinConfig.insecureDevIp + ":3001"
+            : pektinConfig.apiSubDomain + "." + pektinConfig.domain;
     return protocol + endpoint;
 };
 
 // get the pektin api endpoint from  the pektin config
 export const getPektinRecursorEndpoint = (pektinConfig: PektinConfig): string => {
-    const protocol = ["insecure-online", "local"].includes(pektinConfig.dev)
-        ? "http://"
-        : "https://";
-    const endpoint = ["insecure-online", "local"].includes(pektinConfig.dev)
-        ? pektinConfig.dev === "local"
-            ? "127.0.0.1"
-            : pektinConfig.insecureDevIp
-        : pektinConfig.apiSubDomain + "." + pektinConfig.domain;
+    const protocol =
+        pektinConfig.dev !== undefined && ["insecure-online", "local"].includes(pektinConfig.dev)
+            ? "http://"
+            : "https://";
+    const endpoint =
+        pektinConfig.dev !== undefined && ["insecure-online", "local"].includes(pektinConfig.dev)
+            ? pektinConfig.dev === "local"
+                ? "127.0.0.1"
+                : pektinConfig.insecureDevIp
+            : pektinConfig.apiSubDomain + "." + pektinConfig.domain;
     return protocol + endpoint;
 };
 

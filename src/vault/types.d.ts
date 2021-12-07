@@ -3,7 +3,7 @@ export type VaultAuthenticationMethods = "approle" | "jwt" | "token" | "userpass
 
 export interface VaultSecretEngineOptions {
     type: VaultSecretEngines;
-    options: {
+    options?: {
         version: number;
     };
 }
