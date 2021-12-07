@@ -13,7 +13,7 @@ import {
     enableCors,
     createUserPassAccount,
     updateKvValue
-} from "./vault/vault";
+} from "./vault/vault.js";
 import { PektinConfig } from "./types";
 
 export const installPektinCompose = async (
