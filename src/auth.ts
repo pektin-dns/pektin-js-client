@@ -63,20 +63,30 @@ export const createPektinAuthVaultPolicies = async (endpoint: string, token: str
     });
 };
 
-export const createPektinVaultEngines = (
+export const createPektinVaultEngines = async (
     endpoint: string,
     token: string,
     secretEngines: VaultSecretEngine[],
     authEngines: VaultAuthEngine[]
 ) => {
-    secretEngines.map(async engine => {
+    for (let i = 0; i < secretEngines.length; i++) {
+        const engine = secretEngines[i];
         await enableSecretEngine(endpoint, token, engine.path, engine.options);
-    });
+    }
 
-    authEngines.map(async engine => {
+    for (let i = 0; i < authEngines.length; i++) {
+        const engine = authEngines[i];
         await enableAuthMethod(endpoint, token, engine.options.type, engine.path);
-    });
+    }
 };
+
+export const updatePektinAuthPassword = async (
+    endpoint: string,
+    token: string,
+    type: "officer" | "signer",
+    password: string,
+    authName: string /* authName is either the client name for the officer or the domain name for the signer */
+) => {};
 
 export const createFullUserPass = async (
     endpoint: string,

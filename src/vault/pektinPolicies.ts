@@ -1,4 +1,4 @@
-import { deAbsolute } from "..";
+import { deAbsolute } from "../index.js";
 
 export const pektinSignerPolicy = `
 path "pektin-transit/sign/{{identity.entity.metadata.domain}}/sha2-256" {

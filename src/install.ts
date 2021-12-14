@@ -8,14 +8,17 @@ import {
     initVault,
     createVaultPolicy,
     enableAuthMethod,
-    enableSecretEngine,
     createAppRole,
     enableCors,
     createUserPassAccount,
     updateKvValue
 } from "./vault/vault.js";
 import { PektinConfig } from "./types";
-import { createPektinSigner } from "./auth.js";
+import {
+    createPektinAuthVaultPolicies,
+    createPektinSigner,
+    createPektinVaultEngines
+} from "./auth.js";
 
 export const installPektinCompose = async (
     dir: string = "/pektin-compose/",
@@ -23,10 +26,13 @@ export const installPektinCompose = async (
 ) => {
     if (process.env.UID === undefined || process.env.GID === undefined)
         throw Error(
-            "No UID and/or GID defined: UID: " + process.env.UID + ", GID: " + process.env.GID
+            "No UID and/or GID defined. Current is: UID: " +
+                process.env.UID +
+                ", GID: " +
+                process.env.GID
         );
 
-    const pektinConfig = JSON.parse(
+    const pektinConfig: PektinConfig = JSON.parse(
         await fs.readFile(path.join(dir, "pektin-config.json"), { encoding: "utf-8" })
     );
 
@@ -38,19 +44,46 @@ export const installPektinCompose = async (
     await unsealVault(internalVaultUrl, vaultTokens.key);
 
     // create resources on vault
+    // OLD-AUTH
     await createPektinVaultPolicies(internalVaultUrl, vaultTokens.rootToken, dir);
 
+    //OLD-AUTH
     await enableAuthMethod(internalVaultUrl, vaultTokens.rootToken, "approle");
-    await enableAuthMethod(internalVaultUrl, vaultTokens.rootToken, "userpass");
 
-    await enableSecretEngine(internalVaultUrl, vaultTokens.rootToken, "pektin-kv", {
-        type: "kv",
-        options: { version: 2 }
-    });
-    await enableSecretEngine(internalVaultUrl, vaultTokens.rootToken, "pektin-transit", {
-        type: "transit"
-    });
+    await createPektinVaultEngines(
+        internalVaultUrl,
+        vaultTokens.rootToken,
+        [
+            { path: "pektin-transit", options: { type: "transit" } },
+            { path: "pektin-kv", options: { type: "kv", options: { version: 2 } } },
+            { path: "pektin-signer-passwords-1", options: { type: "kv", options: { version: 2 } } },
+            { path: "pektin-signer-passwords-2", options: { type: "kv", options: { version: 2 } } },
+            { path: "pektin-signer-passwords", options: { type: "kv", options: { version: 2 } } },
+            {
+                path: "pektin-officer-passwords-1",
+                options: { type: "kv", options: { version: 2 } }
+            },
+            {
+                path: "pektin-officer-passwords-2",
+                options: { type: "kv", options: { version: 2 } }
+            },
+            { path: "pektin-officer-passwords", options: { type: "kv", options: { version: 2 } } }
+        ],
+        [{ path: "userpass", options: { type: "userpass" } }]
+    );
 
+    // create the 2 not domain or client related
+    await createPektinAuthVaultPolicies(internalVaultUrl, vaultTokens.rootToken);
+    {
+        const mainDomainSignerPassword = randomString();
+        await createPektinSigner(
+            internalVaultUrl,
+            vaultTokens.rootToken,
+            pektinConfig.domain,
+            mainDomainSignerPassword
+        );
+    }
+    //OLD-AUTH
     const { role_id, secret_id } = await createAppRole(
         internalVaultUrl,
         vaultTokens.rootToken,
@@ -77,6 +110,7 @@ export const installPektinCompose = async (
 
         await enableCors(internalVaultUrl, vaultTokens.rootToken);
 
+        //OLD-AUTH
         await createUserPassAccount(
             internalVaultUrl,
             vaultTokens.rootToken,
@@ -84,6 +118,8 @@ export const installPektinCompose = async (
             "v-pektin-high-privilege-client",
             pektinUiConnectionConfig.password
         );
+
+        //OLD-AUTH
         await fs.writeFile(
             path.join(dir, "secrets", "ui-access.json"),
             JSON.stringify(pektinUiConnectionConfig)
@@ -184,7 +220,6 @@ export const createPektinVaultPolicies = async (
 ) => {
     return await Promise.all(
         [
-            "pektin-signer",
             "v-pektin-api",
             "v-pektin-low-privilege-client",
             "v-pektin-high-privilege-client",
