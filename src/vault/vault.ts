@@ -2,7 +2,7 @@ import f from "cross-fetch";
 import { VaultAuthJSON } from "../types";
 import {
     VaultSecretEngineOptions,
-    VaultAuthenticationMethods,
+    VaultAuthEngineType,
     IdentityEntityDataRequestBody,
     IdentityEntityAliasRequestBody
 } from "./types";
@@ -155,9 +155,10 @@ export const enableSecretEngine = async (
 export const enableAuthMethod = async (
     endpoint: string,
     token: string,
-    type: VaultAuthenticationMethods
+    type: VaultAuthEngineType,
+    path: string = type
 ) => {
-    const vaultRes = await f(`${endpoint}/v1/sys/auth/${type}`, {
+    const vaultRes = await f(`${endpoint}/v1/sys/auth/${path}`, {
         method: "POST",
         headers: {
             "X-Vault-Token": token
@@ -227,7 +228,7 @@ You can unseal it here: ${auth.vaultEndpoint}/ui/vault/unseal
 or with the unsealVault() function
 
 For compose setups the key can be found in the in the pektin-compose/secrets/.env file in the V_KEY constant.
-It looks like  this: V_KEY="3ad0e26a9248a2ee6a07bc2c4a4d967589e74f02319d0f7ccb169918cd1e5b89"
+It looks like this: V_KEY="3ad0e26a9248a2ee6a07bc2c4a4d967589e74f02319d0f7ccb169918cd1e5b89" (copy without quotes)
                 `
             );
         }

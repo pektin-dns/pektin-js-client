@@ -1,3 +1,9 @@
+export interface PektinOfficerMeta {
+    [policy: string]: string;
+    pearTree: string; // Where to find the policy for the officer
+}
+export type PearPolicy = string; // A valid OPA/Pektin policy
+
 export interface PektinClientCredentials {
     vaultEndpoint: string;
     username: string;

@@ -484,3 +484,8 @@ export const pektinApiRequest = async (
 
     return json;
 };
+
+export const deAbsolute = (domainName: string) => {
+    const absDomain = absoluteName(domainName);
+    return absDomain.substring(0, absDomain.length - 1);
+};

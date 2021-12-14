@@ -1,8 +1,23 @@
-export type VaultSecretEngines = "kv" | "transit";
-export type VaultAuthenticationMethods = "approle" | "jwt" | "token" | "userpass";
+export interface VaultAuthEngine {
+    path: string;
+    options: VaultAuthEngineOptions;
+}
+
+export interface VaultAuthEngineOptions {
+    type: VaultAuthEngineType;
+    options?: {};
+}
+export type VaultAuthEngineType = "approle" | "jwt" | "token" | "userpass";
+
+export type VaultSecretEngineType = "kv" | "transit";
+
+export interface VaultSecretEngine {
+    path: string;
+    options: VaultSecretEngineOptions;
+}
 
 export interface VaultSecretEngineOptions {
-    type: VaultSecretEngines;
+    type: VaultSecretEngineType;
     options?: {
         version: number;
     };

@@ -15,6 +15,7 @@ import {
     updateKvValue
 } from "./vault/vault.js";
 import { PektinConfig } from "./types";
+import { createPektinSigner } from "./auth.js";
 
 export const installPektinCompose = async (
     dir: string = "/pektin-compose/",
@@ -113,6 +114,14 @@ export const installPektinCompose = async (
         "pektin-kv"
     );
 
+    const pektinSignerPassword = randomString();
+    await createPektinSigner(
+        internalVaultUrl,
+        vaultTokens.rootToken,
+        pektinConfig.domain,
+        pektinSignerPassword
+    );
+
     // init redis access control
     const R_PEKTIN_API_PASSWORD = randomString();
     const R_PEKTIN_SERVER_PASSWORD = randomString();
@@ -175,6 +184,7 @@ export const createPektinVaultPolicies = async (
 ) => {
     return await Promise.all(
         [
+            "pektin-signer",
             "v-pektin-api",
             "v-pektin-low-privilege-client",
             "v-pektin-high-privilege-client",
