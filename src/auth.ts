@@ -40,13 +40,7 @@ export const createFullPektinClient = async (
 ) => {
     const officerPassword = randomString();
 
-    await updatePektinAuthPasswords(
-        endpoint,
-        token,
-        "officer",
-        officerPassword,
-        `pektin-officer-${clientName}`
-    );
+    await updatePektinAuthPasswords(endpoint, token, "officer", officerPassword, clientName);
 
     await createPektinOfficer(endpoint, token, clientName, officerPassword, pearPolicy);
 
@@ -78,7 +72,7 @@ export const createPektinClient = async (
     clientName: string,
     password: string
 ) => {
-    createFullUserPass(endpoint, token, clientName, password, {}, ["pektin-client"]);
+    createFullUserPass(endpoint, token, clientName, password, {}, [clientName]);
 };
 
 export const createPektinApiAccount = async (endpoint: string, token: string, password: string) => {
