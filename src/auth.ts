@@ -1,11 +1,11 @@
-import { absoluteName, deAbsolute } from "./index.js";
-import { PearPolicy, PektinOfficerMeta } from "./types.js";
-import { randomString } from "./utils.js";
+import { deAbsolute } from "./index.js";
+import { PearPolicy } from "./types.js";
 import { pektinApiPolicy, pektinClientPolicy, pektinSignerPolicy } from "./vault/pektinPolicies.js";
 import { VaultAuthEngine, VaultSecretEngine } from "./vault/types.js";
 import {
     createEntity,
     createEntityAlias,
+    createSigningKey,
     createUserPassAccount,
     createVaultPolicy,
     enableAuthMethod,
@@ -21,12 +21,14 @@ export const createPektinSigner = async (
     domainName: string,
     password: string
 ) => {
-    const absDomain = absoluteName(domainName);
-    const name = `pektin-signer-${absDomain.substring(0, absDomain.length - 1)}`;
+    domainName = deAbsolute(domainName);
+    const name = `pektin-signer-${domainName}`;
 
-    const metadata = { domain: absDomain.substring(0, absDomain.length - 1) };
+    const metadata = { domain: domainName };
 
     createFullUserPass(endpoint, token, name, password, metadata, ["pektin-signer"]);
+
+    createSigningKey(endpoint, token, domainName);
 };
 
 export const createFullPektinClient = async (
@@ -38,41 +40,37 @@ export const createFullPektinClient = async (
     allowedSigningDomains: string[],
     allowAllSigningDomains?: boolean
 ) => {
-    const officerPassword = randomString();
-
-    await updatePektinAuthPasswords(endpoint, token, "officer", officerPassword, clientName);
-
-    await createPektinOfficer(endpoint, token, clientName, officerPassword, pearPolicy);
+    await createPektinPearPolicy(endpoint, token, clientName, pearPolicy);
 
     await createVaultPolicy(
         endpoint,
         token,
         clientName,
-        pektinClientPolicy(clientName, allowedSigningDomains, allowAllSigningDomains)
+        pektinClientPolicy(allowedSigningDomains, allowAllSigningDomains)
     );
 
-    await createPektinClient(endpoint, token, clientName, clientPassword);
+    await createPektinClient(endpoint, token, clientName, clientPassword, {
+        pearPolicyLocation: "default"
+    }); // default means in the "pektin-pear-policies" kv store
 };
 
-export const createPektinOfficer = async (
+export const createPektinPearPolicy = async (
     endpoint: string,
     token: string,
-    clientName: string,
-    password: string,
-    pearPolicy: PearPolicy
+    policyName: string,
+    policy: PearPolicy
 ) => {
-    const name = `pektin-officer-${clientName}`;
-    const metadata: PektinOfficerMeta = { pearPolicy, pearTree: "meta/pearPolicy" };
-    createFullUserPass(endpoint, token, name, password, metadata, []);
+    updateKvValue(endpoint, token, policyName, { policy }, "pektin-pear-policies");
 };
 
 export const createPektinClient = async (
     endpoint: string,
     token: string,
     clientName: string,
-    password: string
+    password: string,
+    metadata: object
 ) => {
-    createFullUserPass(endpoint, token, clientName, password, {}, [clientName]);
+    createFullUserPass(endpoint, token, clientName, password, metadata, [clientName]);
 };
 
 export const createPektinApiAccount = async (endpoint: string, token: string, password: string) => {
@@ -110,19 +108,17 @@ export const createPektinVaultEngines = async (
 export const updatePektinAuthPasswords = async (
     endpoint: string,
     token: string,
-    type: "officer" | "signer",
+    type: "signer",
     password: string,
-    authName: string /* authName is either the client name for the officer or the domain name for the signer */
+    domainName: string
 ) => {
     const updatePassword = await updateKvValue(
         endpoint,
         token,
-        deAbsolute(authName),
+        deAbsolute(domainName),
         { password },
         `pektin-${type}-passwords`
     );
-
-    console.log(updatePassword);
 
     for (let i = 1; i < 3; i++) {
         if (password.length % 2 !== 0) throw new Error("Password must have a even length");
@@ -133,7 +129,7 @@ export const updatePektinAuthPasswords = async (
         const updatePasswordHalf = await updateKvValue(
             endpoint,
             token,
-            deAbsolute(authName),
+            deAbsolute(domainName),
             { password: passwordHalf },
             `pektin-${type}-passwords-${i}`
         );

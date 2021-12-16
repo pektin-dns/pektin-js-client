@@ -286,3 +286,28 @@ export const updateKvValue = async (
         return res.status;
     }
 };
+
+export const createSigningKey = async (endpoint: string, token: string, domainName: string) => {
+    await f(`${endpoint}/v1/pektin-transit/keys/${domainName}`, {
+        method: "POST",
+        headers: {
+            "X-Vault-Token": token
+        },
+        body: JSON.stringify({ type: "ecdsa-p256" })
+    });
+};
+
+// get keys for a domain with vault metadata
+export const getPubVaultKeys = async (endpoint: string, token: string, domainName: string) => {
+    const getPubKeyRes = await f(`${process.env.VAULT_URL}/v1/pektin-transit/keys/${domainName}`, {
+        method: "GET",
+        headers: {
+            "X-Vault-Token": token
+        }
+    });
+    try {
+        return (await getPubKeyRes.json()).data.keys;
+    } catch (error) {
+        return getPubKeyRes.status;
+    }
+};

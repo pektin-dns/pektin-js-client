@@ -3,13 +3,7 @@ import path from "path";
 import { chownRecursive, chown, chmod, randomString } from "./utils.js";
 import crypto from "crypto";
 
-import {
-    unsealVault,
-    initVault,
-    createVaultPolicy,
-    enableVaultCors,
-    updateKvValue
-} from "./vault/vault.js";
+import { unsealVault, initVault, enableVaultCors, updateKvValue } from "./vault/vault.js";
 import { PektinConfig } from "./types";
 import {
     createFullPektinClient,
@@ -46,25 +40,19 @@ export const installPektinCompose = async (
     await unsealVault(internalVaultUrl, vaultTokens.key);
 
     // create resources on vault
-
     await createPektinVaultEngines(
         internalVaultUrl,
         vaultTokens.rootToken,
         [
             { path: "pektin-transit", options: { type: "transit" } },
-            { path: "pektin-config", options: { type: "kv", options: { version: 2 } } },
+            { path: "pektin-kv", options: { type: "kv", options: { version: 2 } } },
             { path: "pektin-signer-passwords-1", options: { type: "kv", options: { version: 2 } } },
             { path: "pektin-signer-passwords-2", options: { type: "kv", options: { version: 2 } } },
             { path: "pektin-signer-passwords", options: { type: "kv", options: { version: 2 } } },
             {
-                path: "pektin-officer-passwords-1",
+                path: "pektin-pear-policies",
                 options: { type: "kv", options: { version: 2 } }
-            },
-            {
-                path: "pektin-officer-passwords-2",
-                options: { type: "kv", options: { version: 2 } }
-            },
-            { path: "pektin-officer-passwords", options: { type: "kv", options: { version: 2 } } }
+            }
         ],
         [{ path: "userpass", options: { type: "userpass" } }]
     );
@@ -92,7 +80,6 @@ export const installPektinCompose = async (
     }
 
     // create the vault infra for the api
-
     const V_PEKTIN_API_PASSWORD = randomString();
     createPektinApiAccount(internalVaultUrl, vaultTokens.rootToken, V_PEKTIN_API_PASSWORD);
 
@@ -106,6 +93,7 @@ export const installPektinCompose = async (
     }
     await enableVaultCors(internalVaultUrl, vaultTokens.rootToken);
 
+    // create admin account
     const pektinAdminConnectionConfig = {
         username: `pektin-admin-${randomString(10)}`,
         password: randomString(),
@@ -122,7 +110,6 @@ export const installPektinCompose = async (
         true
     );
 
-    //TODO: create ui account
     await fs.writeFile(
         path.join(dir, "secrets", "admin-access.json"),
         JSON.stringify(pektinAdminConnectionConfig)
@@ -140,7 +127,7 @@ export const installPektinCompose = async (
         {
             basicAuth: genBasicAuthString(RECURSOR_USER, RECURSOR_PASSWORD)
         },
-        "pektin-config"
+        "pektin-kv"
     );
 
     // set the pektin config on vault for easy service discovery
@@ -149,7 +136,7 @@ export const installPektinCompose = async (
         vaultTokens.rootToken,
         "pektin-config",
         pektinConfig,
-        "pektin-config"
+        "pektin-kv"
     );
 
     const pektinSignerPassword = randomString();
