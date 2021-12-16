@@ -7,17 +7,16 @@ import {
     unsealVault,
     initVault,
     createVaultPolicy,
-    enableAuthMethod,
-    createAppRole,
     enableCors,
-    createUserPassAccount,
     updateKvValue
 } from "./vault/vault.js";
 import { PektinConfig } from "./types";
 import {
+    createPektinApiAccount,
     createPektinAuthVaultPolicies,
     createPektinSigner,
-    createPektinVaultEngines
+    createPektinVaultEngines,
+    updatePektinAuthPasswords
 } from "./auth.js";
 
 export const installPektinCompose = async (
@@ -39,23 +38,19 @@ export const installPektinCompose = async (
     // creates secrets directory
     await fs.mkdir(path.join(dir, "secrets")).catch(() => {});
 
+    // HTTP API CALL RELATED
     // init vault
     const vaultTokens = await initVault(internalVaultUrl);
     await unsealVault(internalVaultUrl, vaultTokens.key);
 
     // create resources on vault
-    // OLD-AUTH
-    await createPektinVaultPolicies(internalVaultUrl, vaultTokens.rootToken, dir);
-
-    //OLD-AUTH
-    await enableAuthMethod(internalVaultUrl, vaultTokens.rootToken, "approle");
 
     await createPektinVaultEngines(
         internalVaultUrl,
         vaultTokens.rootToken,
         [
             { path: "pektin-transit", options: { type: "transit" } },
-            { path: "pektin-kv", options: { type: "kv", options: { version: 2 } } },
+            { path: "pektin-config", options: { type: "kv", options: { version: 2 } } },
             { path: "pektin-signer-passwords-1", options: { type: "kv", options: { version: 2 } } },
             { path: "pektin-signer-passwords-2", options: { type: "kv", options: { version: 2 } } },
             { path: "pektin-signer-passwords", options: { type: "kv", options: { version: 2 } } },
@@ -72,8 +67,10 @@ export const installPektinCompose = async (
         [{ path: "userpass", options: { type: "userpass" } }]
     );
 
-    // create the 2 not domain or client related
+    // create the 2 not domain or client related policies
     await createPektinAuthVaultPolicies(internalVaultUrl, vaultTokens.rootToken);
+
+    // create the signer vault infra for the main domain
     {
         const mainDomainSignerPassword = randomString();
         await createPektinSigner(
@@ -82,14 +79,20 @@ export const installPektinCompose = async (
             pektinConfig.domain,
             mainDomainSignerPassword
         );
+
+        await updatePektinAuthPasswords(
+            internalVaultUrl,
+            vaultTokens.rootToken,
+            "signer",
+            mainDomainSignerPassword,
+            pektinConfig.domain
+        );
     }
-    //OLD-AUTH
-    const { role_id, secret_id } = await createAppRole(
-        internalVaultUrl,
-        vaultTokens.rootToken,
-        "v-pektin-api",
-        ["v-pektin-api"]
-    );
+
+    // create the vault infra for the api
+
+    const V_PEKTIN_API_PASSWORD = randomString();
+    createPektinApiAccount(internalVaultUrl, vaultTokens.rootToken, V_PEKTIN_API_PASSWORD);
 
     if (pektinConfig.enableUi) {
         // create ui account and access config for it
@@ -110,20 +113,11 @@ export const installPektinCompose = async (
 
         await enableCors(internalVaultUrl, vaultTokens.rootToken);
 
-        //OLD-AUTH
-        await createUserPassAccount(
-            internalVaultUrl,
-            vaultTokens.rootToken,
-            pektinUiConnectionConfig.username,
-            "v-pektin-high-privilege-client",
-            pektinUiConnectionConfig.password
-        );
-
-        //OLD-AUTH
-        await fs.writeFile(
+        //TODO: create ui account
+        /*        await fs.writeFile(
             path.join(dir, "secrets", "ui-access.json"),
             JSON.stringify(pektinUiConnectionConfig)
-        );
+        );*/
     }
 
     // create basic auth for recursor
@@ -138,7 +132,7 @@ export const installPektinCompose = async (
         {
             basicAuth: genBasicAuthString(RECURSOR_USER, RECURSOR_PASSWORD)
         },
-        "pektin-kv"
+        "pektin-config"
     );
 
     // set the pektin config on vault for easy service discovery
@@ -147,7 +141,7 @@ export const installPektinCompose = async (
         vaultTokens.rootToken,
         "pektin-config",
         pektinConfig,
-        "pektin-kv"
+        "pektin-config"
     );
 
     const pektinSignerPassword = randomString();
@@ -157,6 +151,8 @@ export const installPektinCompose = async (
         pektinConfig.domain,
         pektinSignerPassword
     );
+
+    // HARD DRIVE RELATED
 
     // init redis access control
     const R_PEKTIN_API_PASSWORD = randomString();
@@ -190,8 +186,7 @@ export const installPektinCompose = async (
             vaultTokens,
             R_PEKTIN_API_PASSWORD,
             R_PEKTIN_SERVER_PASSWORD,
-            role_id,
-            secret_id,
+            V_PEKTIN_API_PASSWORD,
             pektinConfig,
             recursorBasicAuthHashed
         },
@@ -365,10 +360,9 @@ const addAllowedConnectSources = (connectSources: string) => {
 export const envSetValues = async (
     v: {
         pektinConfig: PektinConfig;
-        role_id: string;
-        secret_id: string;
         R_PEKTIN_API_PASSWORD: string;
         R_PEKTIN_SERVER_PASSWORD: string;
+        V_PEKTIN_API_PASSWORD: string;
         vaultTokens: {
             key: string;
             rootToken: string;
@@ -391,8 +385,7 @@ export const envSetValues = async (
     CSP_CONNECT_SRC = addAllowedConnectSources(CSP_CONNECT_SRC);
 
     const repls = [
-        ["V_PEKTIN_API_ROLE_ID", v.role_id],
-        ["V_PEKTIN_API_SECRET_ID", v.secret_id],
+        ["V_PEKTIN_API_PASSWORD", v.V_PEKTIN_API_PASSWORD],
         ["R_PEKTIN_API_PASSWORD", v.R_PEKTIN_API_PASSWORD],
         ["R_PEKTIN_SERVER_PASSWORD", v.R_PEKTIN_SERVER_PASSWORD],
         ["V_KEY", v.vaultTokens.key],

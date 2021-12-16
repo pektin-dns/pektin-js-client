@@ -1,6 +1,6 @@
 # JavaScript / TypeScript
 
-[git.y.gy](https://git.y.gy/pektin/pektin-js-client) | [GitLab](https://gitlab.com/pektin/pektin-js-client) | [GitHub](https://github.com/pektin-dns/pektin-js-client)| [NPM](https://www.npmjs.com/package/@pektin/client)
+[git.y.gy](https://git.y.gy/pektin/pektin-js-client) | [GitLab](https://gitlab.com/pektin/pektin-js-client) | [GitHub](https://github.com/pektin-dns/pektin-js-client) | [NPM](https://www.npmjs.com/package/@pektin/client)
 
 ## Install
 

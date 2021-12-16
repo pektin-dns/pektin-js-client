@@ -66,10 +66,11 @@ export const createEntity = async (
         },
         body: JSON.stringify(identityEntityData)
     });
-
-    if (res.status === 200) return await res.json();
-
-    return res.status;
+    try {
+        return await res.json();
+    } catch (error) {
+        return res.status;
+    }
 };
 
 export const getEntityByName = async (endpoint: string, token: string, entityName: string) => {
@@ -270,11 +271,17 @@ export const updateKvValue = async (
             "X-Vault-Token": token
         }
     });
-    await f(`${endpoint}/v1/${kvEngine}/data/${key}`, {
+    const res = await f(`${endpoint}/v1/${kvEngine}/data/${key}`, {
         method: "POST",
         headers: {
             "X-Vault-Token": token
         },
-        body: JSON.stringify({ value }) // WARNING MAY NOT NEED WRAPPING IN BRACKETS
+        body: JSON.stringify({ data: value })
     });
+
+    try {
+        return await res.json();
+    } catch (error) {
+        return res.status;
+    }
 };

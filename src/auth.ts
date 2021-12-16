@@ -1,4 +1,4 @@
-import { absoluteName } from "./index.js";
+import { absoluteName, deAbsolute } from "./index.js";
 import { PearPolicy, PektinOfficerMeta } from "./types.js";
 import { pektinApiPolicy, pektinSignerPolicy } from "./vault/pektinPolicies.js";
 import { VaultAuthEngine, VaultSecretEngine } from "./vault/types.js";
@@ -10,7 +10,8 @@ import {
     enableAuthMethod,
     enableSecretEngine,
     getAuthMethods,
-    getEntityByName
+    getEntityByName,
+    updateKvValue
 } from "./vault/vault.js";
 
 export const createPektinSigner = async (
@@ -80,13 +81,38 @@ export const createPektinVaultEngines = async (
     }
 };
 
-export const updatePektinAuthPassword = async (
+export const updatePektinAuthPasswords = async (
     endpoint: string,
     token: string,
     type: "officer" | "signer",
     password: string,
     authName: string /* authName is either the client name for the officer or the domain name for the signer */
-) => {};
+) => {
+    const updatePassword = await updateKvValue(
+        endpoint,
+        token,
+        deAbsolute(authName),
+        { password },
+        `pektin-${type}-passwords`
+    );
+
+    console.log(updatePassword);
+
+    for (let i = 1; i < 3; i++) {
+        if (password.length % 2 !== 0) throw new Error("Password must have a even length");
+        const passwordHalf =
+            i === 1
+                ? password.substring(0, password.length / 2)
+                : password.substring(password.length / 2);
+        const updatePasswordHalf = await updateKvValue(
+            endpoint,
+            token,
+            deAbsolute(authName),
+            { password: passwordHalf },
+            `pektin-${type}-passwords-${i}`
+        );
+    }
+};
 
 export const createFullUserPass = async (
     endpoint: string,
@@ -106,6 +132,9 @@ export const createFullUserPass = async (
         entityResponse?.data?.id === undefined
             ? await getEntityByName(endpoint, token, name)
             : entityResponse?.data;
+
+    if (!entity?.id)
+        throw new Error(`Entity couldn't be created: ${JSON.stringify(entityResponse)}`);
 
     const authMethods = await getAuthMethods(endpoint, token);
 
