@@ -1,28 +1,29 @@
 import { deAbsolute } from "../index.js";
+import { VaultPolicy } from "./types.js";
 
-export const pektinSignerPolicy = `
+export const pektinSignerPolicy: VaultPolicy = `
 path "pektin-transit/sign/{{identity.entity.metadata.domain}}/sha2-256" {
     capabilities = ["update"]
 }`;
 
 export const pektinClientPolicy = (
     clientName: string,
-    allowedDomains: string[],
-    allowAllDomains: boolean = false
+    allowedSigningDomains: string[],
+    allowAllSigningDomains: boolean = false
 ) => {
     let policy = `
 path "pektin-officer-passwords-1/${clientName}" {
     capabilities = ["read"]
 }
 `;
-    if (allowAllDomains) {
+    if (allowAllSigningDomains) {
         policy += `
     path "pektin-signer-passwords-1/*" {
         capabilities = ["read"]
     }
     `;
     } else {
-        allowedDomains.map(domain => {
+        allowedSigningDomains.map(domain => {
             policy += `
         path "pektin-signer-passwords-1/${deAbsolute(domain)}" {
             capabilities = ["read"]
@@ -31,9 +32,9 @@ path "pektin-officer-passwords-1/${clientName}" {
         });
     }
 
-    return policy;
+    return policy as VaultPolicy;
 };
-export const pektinApiPolicy = `
+export const pektinApiPolicy: VaultPolicy = `
 path "pektin-signer-passwords-2/*" {
     capabilities = ["read"]
 }

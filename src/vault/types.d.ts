@@ -1,3 +1,5 @@
+export type VaultPolicy = string;
+
 export interface VaultAuthEngine {
     path: string;
     options: VaultAuthEngineOptions;

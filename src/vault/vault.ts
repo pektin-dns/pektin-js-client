@@ -4,7 +4,8 @@ import {
     VaultSecretEngineOptions,
     VaultAuthEngineType,
     IdentityEntityDataRequestBody,
-    IdentityEntityAliasRequestBody
+    IdentityEntityAliasRequestBody,
+    VaultPolicy
 } from "./types";
 
 export const getAuthMethods = async (endpoint: string, token: string) => {
@@ -22,7 +23,7 @@ export const getAuthMethods = async (endpoint: string, token: string) => {
     return json;
 };
 
-export const enableCors = async (endpoint: string, token: string) => {
+export const enableVaultCors = async (endpoint: string, token: string) => {
     return await f(`${endpoint}/v1/sys/config/cors`, {
         method: "PUT",
         headers: {
@@ -173,7 +174,7 @@ export const createVaultPolicy = async (
     endpoint: string,
     token: string,
     policyName: string,
-    policy: string
+    policy: VaultPolicy
 ) => {
     const vaultRes = await f(`${endpoint}/v1/sys/policies/acl/${policyName}`, {
         method: "PUT",

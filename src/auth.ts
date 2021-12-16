@@ -1,6 +1,7 @@
 import { absoluteName, deAbsolute } from "./index.js";
 import { PearPolicy, PektinOfficerMeta } from "./types.js";
-import { pektinApiPolicy, pektinSignerPolicy } from "./vault/pektinPolicies.js";
+import { randomString } from "./utils.js";
+import { pektinApiPolicy, pektinClientPolicy, pektinSignerPolicy } from "./vault/pektinPolicies.js";
 import { VaultAuthEngine, VaultSecretEngine } from "./vault/types.js";
 import {
     createEntity,
@@ -26,6 +27,37 @@ export const createPektinSigner = async (
     const metadata = { domain: absDomain.substring(0, absDomain.length - 1) };
 
     createFullUserPass(endpoint, token, name, password, metadata, ["pektin-signer"]);
+};
+
+export const createFullPektinClient = async (
+    endpoint: string,
+    token: string,
+    clientName: string,
+    clientPassword: string,
+    pearPolicy: PearPolicy,
+    allowedSigningDomains: string[],
+    allowAllSigningDomains?: boolean
+) => {
+    const officerPassword = randomString();
+
+    await updatePektinAuthPasswords(
+        endpoint,
+        token,
+        "officer",
+        officerPassword,
+        `pektin-officer-${clientName}`
+    );
+
+    await createPektinOfficer(endpoint, token, clientName, officerPassword, pearPolicy);
+
+    await createVaultPolicy(
+        endpoint,
+        token,
+        clientName,
+        pektinClientPolicy(clientName, allowedSigningDomains, allowAllSigningDomains)
+    );
+
+    await createPektinClient(endpoint, token, clientName, clientPassword);
 };
 
 export const createPektinOfficer = async (

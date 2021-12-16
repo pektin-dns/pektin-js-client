@@ -7,17 +7,19 @@ import {
     unsealVault,
     initVault,
     createVaultPolicy,
-    enableCors,
+    enableVaultCors,
     updateKvValue
 } from "./vault/vault.js";
 import { PektinConfig } from "./types";
 import {
+    createFullPektinClient,
     createPektinApiAccount,
     createPektinAuthVaultPolicies,
     createPektinSigner,
     createPektinVaultEngines,
     updatePektinAuthPasswords
 } from "./auth.js";
+import { pektinAdminPearPolicy } from "./pearPolicies/pektinAdmin.js";
 
 export const installPektinCompose = async (
     dir: string = "/pektin-compose/",
@@ -94,31 +96,37 @@ export const installPektinCompose = async (
     const V_PEKTIN_API_PASSWORD = randomString();
     createPektinApiAccount(internalVaultUrl, vaultTokens.rootToken, V_PEKTIN_API_PASSWORD);
 
-    if (pektinConfig.enableUi) {
-        // create ui account and access config for it
-        let vaultEndpoint = "";
-        if (pektinConfig.dev === "local") {
-            vaultEndpoint = `http://127.0.0.1:8200`;
-        } else if (pektinConfig.dev === "insecure-online") {
-            vaultEndpoint = `http://${pektinConfig.insecureDevIp}:8200`;
-        } else {
-            vaultEndpoint = `https://${pektinConfig.vaultSubDomain}.${pektinConfig.domain}`;
-        }
-
-        const pektinUiConnectionConfig = {
-            username: `ui-${randomString(10)}`,
-            password: randomString(),
-            vaultEndpoint
-        };
-
-        await enableCors(internalVaultUrl, vaultTokens.rootToken);
-
-        //TODO: create ui account
-        /*        await fs.writeFile(
-            path.join(dir, "secrets", "ui-access.json"),
-            JSON.stringify(pektinUiConnectionConfig)
-        );*/
+    let vaultEndpoint = "";
+    if (pektinConfig.dev === "local") {
+        vaultEndpoint = `http://127.0.0.1:8200`;
+    } else if (pektinConfig.dev === "insecure-online") {
+        vaultEndpoint = `http://${pektinConfig.insecureDevIp}:8200`;
+    } else {
+        vaultEndpoint = `https://${pektinConfig.vaultSubDomain}.${pektinConfig.domain}`;
     }
+    await enableVaultCors(internalVaultUrl, vaultTokens.rootToken);
+
+    const pektinAdminConnectionConfig = {
+        username: `pektin-admin-${randomString(10)}`,
+        password: randomString(),
+        vaultEndpoint
+    };
+
+    await createFullPektinClient(
+        internalVaultUrl,
+        vaultTokens.rootToken,
+        pektinAdminConnectionConfig.username,
+        pektinAdminConnectionConfig.password,
+        pektinAdminPearPolicy,
+        [],
+        true
+    );
+
+    //TODO: create ui account
+    await fs.writeFile(
+        path.join(dir, "secrets", "admin-access.json"),
+        JSON.stringify(pektinAdminConnectionConfig)
+    );
 
     // create basic auth for recursor
     const RECURSOR_USER = randomString(20);
@@ -206,29 +214,6 @@ export const installPektinCompose = async (
     await chmod(path.join(dir, `secrets`), `700`);
     await chmod(path.join(dir, `secrets`, `.env`), `700`);
     await chmod(path.join(dir, `secrets`, `ui-access.json`), `700`);
-};
-
-export const createPektinVaultPolicies = async (
-    endpoint: string,
-    vaultToken: string,
-    dir: string
-) => {
-    return await Promise.all(
-        [
-            "v-pektin-api",
-            "v-pektin-low-privilege-client",
-            "v-pektin-high-privilege-client",
-            "v-pektin-rotate-client"
-        ].map(async policyName => {
-            const policy = await fs.readFile(
-                path.join(dir, "scripts/install/policies", policyName + ".hcl"),
-                {
-                    encoding: "utf-8"
-                }
-            );
-            return createVaultPolicy(endpoint, vaultToken, policyName, policy);
-        })
-    );
 };
 
 export const genBasicAuthHashed = (username: string, password: string) => {
