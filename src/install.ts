@@ -13,7 +13,6 @@ import {
     createPektinVaultEngines,
     updatePektinAuthPasswords
 } from "./auth.js";
-import { pektinAdminPearPolicy } from "./pearPolicies/pektinAdmin.js";
 
 export const installPektinCompose = async (
     dir: string = "/pektin-compose/",
@@ -50,7 +49,16 @@ export const installPektinCompose = async (
             { path: "pektin-signer-passwords-2", options: { type: "kv", options: { version: 2 } } },
             { path: "pektin-signer-passwords", options: { type: "kv", options: { version: 2 } } },
             {
-                path: "pektin-pear-policies",
+                path: "pektin-officer-passwords-1",
+                options: { type: "kv", options: { version: 2 } }
+            },
+            {
+                path: "pektin-officer-passwords-2",
+                options: { type: "kv", options: { version: 2 } }
+            },
+            { path: "pektin-officer-passwords", options: { type: "kv", options: { version: 2 } } },
+            {
+                path: "pektin-ribston-policies",
                 options: { type: "kv", options: { version: 2 } }
             }
         ],
@@ -100,12 +108,17 @@ export const installPektinCompose = async (
         vaultEndpoint
     };
 
+    const pektinAdminRibstonPolicy = await fs.readFile(
+        "./src/ribston-policies/pektin-admin.ts",
+        "utf-8"
+    );
+
     await createFullPektinClient(
         internalVaultUrl,
         vaultTokens.rootToken,
         pektinAdminConnectionConfig.username,
         pektinAdminConnectionConfig.password,
-        pektinAdminPearPolicy,
+        pektinAdminRibstonPolicy,
         [],
         true
     );

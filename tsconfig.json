@@ -7,6 +7,7 @@
         "resolveJsonModule": true,
         "isolatedModules": true,
         "skipLibCheck": true,
+
         "allowSyntheticDefaultImports": true,
         "module": "esnext",
         "strict": true,
@@ -15,5 +16,6 @@
         "strictNullChecks": true,
         "lib": ["dom", "dom.iterable", "esnext"]
     },
-    "include": ["src"]
+    "include": ["src"],
+    "exclude": ["src/ribston-policies"]
 }

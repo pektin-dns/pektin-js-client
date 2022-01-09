@@ -1,6 +1,10 @@
 import { deAbsolute } from "./index.js";
-import { PearPolicy } from "./types.js";
-import { pektinApiPolicy, pektinClientPolicy, pektinSignerPolicy } from "./vault/pektinPolicies.js";
+import { PektinOfficerMeta, RibstonPolicy } from "./types.js";
+import {
+    pektinApiPolicy,
+    pektinClientPolicy,
+    pektinSignerPolicy
+} from "./vault/pektinVaultPolicies.js";
 import { VaultAuthEngine, VaultSecretEngine } from "./vault/types.js";
 import {
     createEntity,
@@ -31,16 +35,31 @@ export const createPektinSigner = async (
     createSigningKey(endpoint, token, domainName);
 };
 
+export const createPektinOfficer = async (
+    endpoint: string,
+    token: string,
+    clientName: string,
+    password: string,
+    ribstonPolicy: RibstonPolicy
+) => {
+    const name = `pektin-officer-${clientName}`;
+    const metadata: PektinOfficerMeta = {
+        ribstonPolicy: ribstonPolicy,
+        ribstonTree: "meta/ribstonPolicy"
+    };
+    createFullUserPass(endpoint, token, name, password, metadata, []);
+};
+
 export const createFullPektinClient = async (
     endpoint: string,
     token: string,
     clientName: string,
     clientPassword: string,
-    pearPolicy: PearPolicy,
+    ribstonPolicy: RibstonPolicy,
     allowedSigningDomains: string[],
     allowAllSigningDomains?: boolean
 ) => {
-    await createPektinPearPolicy(endpoint, token, clientName, pearPolicy);
+    await createPektinRibstonPolicy(endpoint, token, clientName, ribstonPolicy);
 
     await createVaultPolicy(
         endpoint,
@@ -50,17 +69,17 @@ export const createFullPektinClient = async (
     );
 
     await createPektinClient(endpoint, token, clientName, clientPassword, {
-        pearPolicyLocation: "default"
-    }); // default means in the "pektin-pear-policies" kv store
+        ribstonPolicyLocation: "default"
+    }); // default means in the "pektin-ribston-policies" kv store
 };
 
-export const createPektinPearPolicy = async (
+export const createPektinRibstonPolicy = async (
     endpoint: string,
     token: string,
     policyName: string,
-    policy: PearPolicy
+    policy: RibstonPolicy
 ) => {
-    updateKvValue(endpoint, token, policyName, { policy }, "pektin-pear-policies");
+    updateKvValue(endpoint, token, policyName, { policy }, "pektin-ribston-policies");
 };
 
 export const createPektinClient = async (

@@ -34,7 +34,7 @@ path "pektin-signer-passwords-2/*" {
     capabilities = ["read"]
 }
 
-path "pektin-pear-policies/*" {
+path "pektin-ribston-policies/*" {
     capabilities = ["read"]
 }
 `;
