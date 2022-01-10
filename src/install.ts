@@ -103,12 +103,12 @@ export const installPektinCompose = async (
         password: randomString(),
         vaultEndpoint
     };
-    console.log(`${__dirname}`);
 
     const pektinAdminRibstonPolicy = await fs.readFile(
-        `${__dirname}/node_modules/@pektin/client/dist/ribston-policies/pektin-admin.js`,
+        `/app/node_modules/@pektin/client/dist/ribston-policies/pektin-admin.js`,
         "utf-8"
     );
+    console.log(pektinAdminRibstonPolicy);
 
     await createFullPektinClient(
         internalVaultUrl,
