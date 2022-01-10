@@ -10,6 +10,7 @@ publish:
         #publish to npm
         - yarn
         - yarn build
+        - yarn compile-policies
         - echo '//registry.npmjs.org/:_authToken=${NPM_TOKEN}'>.npmrc
         - npm publish --verbose --access public
 mirror:

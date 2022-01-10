@@ -103,9 +103,10 @@ export const installPektinCompose = async (
         password: randomString(),
         vaultEndpoint
     };
+    console.log(`${__dirname}`);
 
     const pektinAdminRibstonPolicy = await fs.readFile(
-        "./src/ribston-policies/pektin-admin.ts",
+        `${__dirname}/node_modules/@pektin/client/dist/ribston-policies/pektin-admin.js`,
         "utf-8"
     );
 
@@ -398,6 +399,8 @@ export const envSetValues = async (
     repls.forEach(repl => {
         file = file += `${repl[0]}="${repl[1]}"\n`;
     });
+    file += `# Some commands for debugging`;
+    file += `# redis-cli --pass ${v.R_PEKTIN_API_PASSWORD} --user r-pektin-api`;
     await fs.writeFile(path.join(dir, "secrets", ".env"), file);
 };
 
