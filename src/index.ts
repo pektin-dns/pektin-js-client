@@ -14,7 +14,7 @@ import {
 } from "./types";
 
 import f from "cross-fetch";
-import { vaultLoginUserpass, getVaultValue } from "./vault/vault";
+import { vaultLoginUserpass, getVaultValue } from "./vault/vault.js";
 
 export class BasicPektinClient {
     vaultEndpoint: string;

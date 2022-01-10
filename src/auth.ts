@@ -1,12 +1,12 @@
 import { deAbsolute } from "./index.js";
-import { PektinOfficerMeta, RibstonPolicy } from "./types.js";
+import { PektinOfficerMeta, RibstonPolicy } from "./types";
 import { randomString } from "./utils.js";
 import {
     pektinApiPolicy,
     pektinClientPolicy,
     pektinSignerPolicy
 } from "./vault/pektinVaultPolicies.js";
-import { VaultAuthEngine, VaultSecretEngine } from "./vault/types.js";
+import { VaultAuthEngine, VaultSecretEngine } from "./vault/types";
 import {
     createEntity,
     createEntityAlias,
