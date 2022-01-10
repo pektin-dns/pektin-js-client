@@ -1,6 +1,5 @@
 export interface PektinOfficerMeta {
     [policy: string]: string;
-    ribstonTree: string; // Where to find the policy for the officer
 }
 
 export type RibstonPolicy = string; // A valid ribston policy

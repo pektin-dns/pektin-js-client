@@ -1,5 +1,6 @@
 import { deAbsolute } from "./index.js";
 import { PektinOfficerMeta, RibstonPolicy } from "./types.js";
+import { randomString } from "./utils.js";
 import {
     pektinApiPolicy,
     pektinClientPolicy,
@@ -44,8 +45,7 @@ export const createPektinOfficer = async (
 ) => {
     const name = `pektin-officer-${clientName}`;
     const metadata: PektinOfficerMeta = {
-        ribstonPolicy: ribstonPolicy,
-        ribstonTree: "meta/ribstonPolicy"
+        ribstonPolicy
     };
     createFullUserPass(endpoint, token, name, password, metadata, []);
 };
@@ -59,27 +59,20 @@ export const createFullPektinClient = async (
     allowedSigningDomains: string[],
     allowAllSigningDomains?: boolean
 ) => {
-    await createPektinRibstonPolicy(endpoint, token, clientName, ribstonPolicy);
+    const officerPassword = randomString();
+
+    await updatePektinAuthPasswords(endpoint, token, "officer", officerPassword, clientName);
+
+    await createPektinOfficer(endpoint, token, clientName, officerPassword, ribstonPolicy);
 
     await createVaultPolicy(
         endpoint,
         token,
         clientName,
-        pektinClientPolicy(allowedSigningDomains, allowAllSigningDomains)
+        pektinClientPolicy(clientName, allowedSigningDomains, allowAllSigningDomains)
     );
 
-    await createPektinClient(endpoint, token, clientName, clientPassword, {
-        ribstonPolicyLocation: "default"
-    }); // default means in the "pektin-ribston-policies" kv store
-};
-
-export const createPektinRibstonPolicy = async (
-    endpoint: string,
-    token: string,
-    policyName: string,
-    policy: RibstonPolicy
-) => {
-    updateKvValue(endpoint, token, policyName, { policy }, "pektin-ribston-policies");
+    await createPektinClient(endpoint, token, clientName, clientPassword, {});
 };
 
 export const createPektinClient = async (
@@ -127,14 +120,14 @@ export const createPektinVaultEngines = async (
 export const updatePektinAuthPasswords = async (
     endpoint: string,
     token: string,
-    type: "signer",
+    type: "signer" | "officer",
     password: string,
-    domainName: string
+    authName: string /* authName is either the client name for the officer or the domain name for the signer */
 ) => {
     const updatePassword = await updateKvValue(
         endpoint,
         token,
-        deAbsolute(domainName),
+        deAbsolute(authName),
         { password },
         `pektin-${type}-passwords`
     );
@@ -148,7 +141,7 @@ export const updatePektinAuthPasswords = async (
         const updatePasswordHalf = await updateKvValue(
             endpoint,
             token,
-            deAbsolute(domainName),
+            deAbsolute(authName),
             { password: passwordHalf },
             `pektin-${type}-passwords-${i}`
         );
