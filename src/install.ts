@@ -399,7 +399,7 @@ export const envSetValues = async (
     repls.forEach(repl => {
         file = file += `${repl[0]}="${repl[1]}"\n`;
     });
-    file += `# Some commands for debugging`;
+    file += `# Some commands for debugging\n`;
     file += `# redis-cli --pass ${v.R_PEKTIN_API_PASSWORD} --user r-pektin-api`;
     await fs.writeFile(path.join(dir, "secrets", ".env"), file);
 };
