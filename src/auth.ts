@@ -4,6 +4,7 @@ import { randomString } from "./utils.js";
 import {
     pektinApiPolicy,
     pektinClientPolicy,
+    pektinOfficerPolicy,
     pektinSignerPolicy
 } from "./vault/pektinVaultPolicies.js";
 import { VaultAuthEngine, VaultSecretEngine } from "./vault/types";
@@ -53,7 +54,9 @@ export const createPektinOfficer = async (
         "pektin-ribston-policies"
     );
 
-    await createFullUserPass(endpoint, token, name, password, {}, []);
+    await createVaultPolicy(endpoint, token, name, pektinOfficerPolicy(name));
+
+    await createFullUserPass(endpoint, token, name, password, {}, [name]);
 };
 
 export const createFullPektinClient = async (
