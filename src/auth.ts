@@ -49,12 +49,12 @@ export const createPektinOfficer = async (
     await updateKvValue(
         endpoint,
         token,
-        name,
+        clientName,
         { policy: ribstonPolicy },
         "pektin-ribston-policies"
     );
 
-    await createVaultPolicy(endpoint, token, name, pektinOfficerPolicy(name));
+    await createVaultPolicy(endpoint, token, name, pektinOfficerPolicy(clientName));
 
     await createFullUserPass(endpoint, token, name, password, {}, [name]);
 };
