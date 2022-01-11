@@ -56,7 +56,8 @@ export const installPektinCompose = async (
                 path: "pektin-officer-passwords-2",
                 options: { type: "kv", options: { version: 2 } }
             },
-            { path: "pektin-officer-passwords", options: { type: "kv", options: { version: 2 } } }
+            { path: "pektin-officer-passwords", options: { type: "kv", options: { version: 2 } } },
+            { path: "pektin-ribston-policies", options: { type: "kv", options: { version: 2 } } }
         ],
         [{ path: "userpass", options: { type: "userpass" } }]
     );

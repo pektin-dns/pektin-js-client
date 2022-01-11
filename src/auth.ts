@@ -44,10 +44,16 @@ export const createPektinOfficer = async (
     ribstonPolicy: RibstonPolicy
 ) => {
     const name = `pektin-officer-${clientName}`;
-    const metadata: PektinOfficerMeta = {
-        ribstonPolicy
-    };
-    createFullUserPass(endpoint, token, name, password, metadata, []);
+
+    await updateKvValue(
+        endpoint,
+        token,
+        name,
+        { policy: ribstonPolicy },
+        "pektin-ribston-policies"
+    );
+
+    await createFullUserPass(endpoint, token, name, password, {}, []);
 };
 
 export const createFullPektinClient = async (
