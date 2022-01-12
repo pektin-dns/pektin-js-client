@@ -3,7 +3,7 @@ import { ClientName, ManagerName, VaultPolicy } from "./types";
 
 export const pektinOfficerPolicy = (clientName: ClientName): VaultPolicy => {
     return `
-path "pektin-ribston-policies/${clientName}" {
+path "pektin-ribston-policies/${clientName}/*" {
     capabilities = ["read"]
 }`;
 };
@@ -24,7 +24,7 @@ export const pektinConfidantPolicy = (
     allowAllSigningDomains: boolean = false
 ): VaultPolicy => {
     let policy = `
-path "pektin-officer-passwords-1/${clientName}" {
+path "pektin-officer-passwords-1/${clientName}/*" {
     capabilities = ["read"]
 }`;
 
@@ -36,7 +36,7 @@ path "pektin-signer-passwords-1/*" {
     } else {
         allowedSigningDomains.map(domain => {
             policy += `
-path "pektin-signer-passwords-1/${deAbsolute(domain)}" {
+path "pektin-signer-passwords-1/${deAbsolute(domain)}/*" {
     capabilities = ["read"]
 }`;
         });
