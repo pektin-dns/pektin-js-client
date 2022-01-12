@@ -14,7 +14,7 @@ path "pektin-transit/sign/{{identity.entity.metadata.domain}}/sha2-256" {
 }`;
 
 export const pektinManagerPolicy = `
-path "pektin-confidant-passwords/{{identity.entity.name}}" {
+path "pektin-confidant-passwords/{{identity.entity.name}}/*" {
     capabilities = ["read"]
 }`;
 
