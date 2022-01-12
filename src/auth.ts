@@ -4,7 +4,6 @@ import { randomString } from "./utils.js";
 import {
     pektinApiPolicy,
     pektinConfidantPolicy,
-    pektinManagerPolicy,
     pektinOfficerPolicy,
     pektinSignerPolicy
 } from "./vault/pektinVaultPolicies.js";
@@ -118,19 +117,13 @@ export const createPektinConfidant = async (
     allowedSigningDomains: string[],
     allowAllSigningDomains?: boolean
 ) => {
-    await createFullUserPass(
-        endpoint,
-        token,
-        `pektin-client-confidant-${clientName}`,
-        password,
-        metadata,
-        [clientName]
-    );
+    const confidantName = `pektin-client-confidant-${clientName}`;
+    await createFullUserPass(endpoint, token, confidantName, password, metadata, [confidantName]);
 
     await createVaultPolicy(
         endpoint,
         token,
-        clientName,
+        confidantName,
         pektinConfidantPolicy(clientName, allowedSigningDomains, allowAllSigningDomains)
     );
 };
@@ -142,8 +135,7 @@ export const createPektinApiAccount = async (endpoint: string, token: string, pa
 export const createPektinAuthVaultPolicies = async (endpoint: string, token: string) => {
     const policyPairs = [
         { name: "pektin-signer", policy: pektinSignerPolicy },
-        { name: "pektin-api", policy: pektinApiPolicy },
-        { name: "pektin-client-manager", policy: pektinManagerPolicy }
+        { name: "pektin-api", policy: pektinApiPolicy }
     ];
 
     policyPairs.map(async e => {
