@@ -7,9 +7,6 @@ include:
 
 image: alpine
 
-variables:
-    NPM_TOKEN: ${NPM_TOKEN}
-
 stages:
     - mirror
     - npm-build-and-publish
