@@ -56,10 +56,6 @@ export const installPektinCompose = async (
                 path: "pektin-officer-passwords-2",
                 options: { type: "kv", options: { version: 2 } }
             },
-            {
-                path: "pektin-confidant-passwords",
-                options: { type: "kv", options: { version: 2 } }
-            },
             { path: "pektin-officer-passwords", options: { type: "kv", options: { version: 2 } } },
             { path: "pektin-ribston-policies", options: { type: "kv", options: { version: 2 } } }
         ],
@@ -105,7 +101,8 @@ export const installPektinCompose = async (
     // create admin account
     const pektinAdminConnectionConfig = {
         username: `pektin-admin-${randomString(10)}`,
-        password: randomString(),
+        managerPassword: randomString(),
+        confidantPassword: randomString(),
         vaultEndpoint
     };
 
@@ -118,7 +115,8 @@ export const installPektinCompose = async (
         internalVaultUrl,
         vaultTokens.rootToken,
         pektinAdminConnectionConfig.username,
-        pektinAdminConnectionConfig.password,
+        pektinAdminConnectionConfig.managerPassword,
+        pektinAdminConnectionConfig.confidantPassword,
         pektinAdminRibstonPolicy,
         [],
         true

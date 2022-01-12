@@ -72,6 +72,7 @@ export const createPektinClient = async (
     token: string,
     clientName: ClientName,
     managerPassword: string,
+    confidantPassword: string,
     ribstonPolicy: RibstonPolicy,
     allowedSigningDomains: string[],
     allowAllSigningDomains?: boolean
@@ -83,7 +84,6 @@ export const createPektinClient = async (
     await createPektinOfficer(endpoint, token, clientName, officerPassword, ribstonPolicy);
 
     await createPektinManager(endpoint, token, clientName, managerPassword);
-    const confidantPassword = randomString();
 
     await createPektinConfidant(
         endpoint,
@@ -94,21 +94,8 @@ export const createPektinClient = async (
         allowedSigningDomains,
         allowAllSigningDomains
     );
-};
 
-export const updateConfidantPassword = async (
-    endpoint: string,
-    token: string,
-    clientName: ClientName,
-    password: string
-) => {
-    await updateKvValue(
-        endpoint,
-        token,
-        `pektin-client-manager-${clientName}`,
-        { password },
-        `pektin-confidant-passwords`
-    );
+    return confidantPassword;
 };
 
 export const createPektinManager = async (
@@ -140,7 +127,6 @@ export const createPektinConfidant = async (
         [clientName]
     );
 
-    await updateConfidantPassword(endpoint, token, clientName, password);
     await createVaultPolicy(
         endpoint,
         token,
