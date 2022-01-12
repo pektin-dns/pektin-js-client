@@ -28,3 +28,8 @@ const pc = new ExtendedPektinApiClient({
 
 console.log(await pc.getDomains());
 ```
+
+-   "manager" that can create vault roles holds pw for "confidant"
+-   "confidant" holds half of password for "signers" and "officers"
+-   "signer" can sign for domains
+-   "officer" holds policy for "api-client"

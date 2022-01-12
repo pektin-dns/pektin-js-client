@@ -6,12 +6,12 @@ import crypto from "crypto";
 import { unsealVault, initVault, enableVaultCors, updateKvValue } from "./vault/vault.js";
 import { PektinConfig } from "./types";
 import {
-    createFullPektinClient,
+    createPektinClient,
     createPektinApiAccount,
     createPektinAuthVaultPolicies,
     createPektinSigner,
     createPektinVaultEngines,
-    updatePektinAuthPasswords
+    updatePektinSharedPasswords
 } from "./auth.js";
 
 export const installPektinCompose = async (
@@ -56,6 +56,10 @@ export const installPektinCompose = async (
                 path: "pektin-officer-passwords-2",
                 options: { type: "kv", options: { version: 2 } }
             },
+            {
+                path: "pektin-confidant-passwords",
+                options: { type: "kv", options: { version: 2 } }
+            },
             { path: "pektin-officer-passwords", options: { type: "kv", options: { version: 2 } } },
             { path: "pektin-ribston-policies", options: { type: "kv", options: { version: 2 } } }
         ],
@@ -75,7 +79,7 @@ export const installPektinCompose = async (
             mainDomainSignerPassword
         );
 
-        await updatePektinAuthPasswords(
+        await updatePektinSharedPasswords(
             internalVaultUrl,
             vaultTokens.rootToken,
             "signer",
@@ -110,7 +114,7 @@ export const installPektinCompose = async (
         "utf-8"
     );
 
-    await createFullPektinClient(
+    await createPektinClient(
         internalVaultUrl,
         vaultTokens.rootToken,
         pektinAdminConnectionConfig.username,
