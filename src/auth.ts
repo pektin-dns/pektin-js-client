@@ -4,6 +4,7 @@ import { randomString } from "./utils.js";
 import {
     pektinApiPolicy,
     pektinConfidantPolicy,
+    pektinManagerPolicy,
     pektinOfficerPolicy,
     pektinSignerPolicy
 } from "./vault/pektinVaultPolicies.js";
@@ -81,18 +82,18 @@ export const createPektinClient = async (
 
     await createPektinOfficer(endpoint, token, clientName, officerPassword, ribstonPolicy);
 
-    await createVaultPolicy(
+    await createPektinManager(endpoint, token, clientName, managerPassword);
+    const confidantPassword = randomString();
+
+    await createPektinConfidant(
         endpoint,
         token,
         clientName,
-        pektinConfidantPolicy(clientName, allowedSigningDomains, allowAllSigningDomains)
+        confidantPassword,
+        {},
+        allowedSigningDomains,
+        allowAllSigningDomains
     );
-
-    await createPektinManager(endpoint, token, clientName, managerPassword);
-    const confidantPassword = randomString();
-    await updateConfidantPassword(endpoint, token, clientName, confidantPassword);
-
-    await createPektinConfidant(endpoint, token, clientName, confidantPassword, {});
 };
 
 export const updateConfidantPassword = async (
@@ -101,7 +102,13 @@ export const updateConfidantPassword = async (
     clientName: ClientName,
     password: string
 ) => {
-    await updateKvValue(endpoint, token, clientName, { password }, `pektin-confidant-passwords`);
+    await updateKvValue(
+        endpoint,
+        token,
+        `pektin-client-manager-${clientName}`,
+        { password },
+        `pektin-confidant-passwords`
+    );
 };
 
 export const createPektinManager = async (
@@ -111,7 +118,8 @@ export const createPektinManager = async (
     password: string
 ) => {
     const name: ManagerName = `pektin-client-manager-${clientName}`;
-    createFullUserPass(endpoint, token, name, password, {}, [name]);
+
+    await createFullUserPass(endpoint, token, name, password, {}, ["pektin-client-manager"]);
 };
 
 export const createPektinConfidant = async (
@@ -119,15 +127,25 @@ export const createPektinConfidant = async (
     token: string,
     clientName: ClientName,
     password: string,
-    metadata: object
+    metadata: object,
+    allowedSigningDomains: string[],
+    allowAllSigningDomains?: boolean
 ) => {
-    createFullUserPass(
+    await createFullUserPass(
         endpoint,
         token,
         `pektin-client-confidant-${clientName}`,
         password,
         metadata,
         [clientName]
+    );
+
+    await updateConfidantPassword(endpoint, token, clientName, password);
+    await createVaultPolicy(
+        endpoint,
+        token,
+        clientName,
+        pektinConfidantPolicy(clientName, allowedSigningDomains, allowAllSigningDomains)
     );
 };
 
@@ -138,7 +156,8 @@ export const createPektinApiAccount = async (endpoint: string, token: string, pa
 export const createPektinAuthVaultPolicies = async (endpoint: string, token: string) => {
     const policyPairs = [
         { name: "pektin-signer", policy: pektinSignerPolicy },
-        { name: "pektin-api", policy: pektinApiPolicy }
+        { name: "pektin-api", policy: pektinApiPolicy },
+        { name: "pektin-client-manager", policy: pektinManagerPolicy }
     ];
 
     policyPairs.map(async e => {

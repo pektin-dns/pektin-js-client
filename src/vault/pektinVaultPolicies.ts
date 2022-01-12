@@ -5,8 +5,7 @@ export const pektinOfficerPolicy = (clientName: ClientName): VaultPolicy => {
     return `
 path "pektin-ribston-policies/${clientName}" {
     capabilities = ["read"]
-}
-`;
+}`;
 };
 
 export const pektinSignerPolicy: VaultPolicy = `
@@ -14,13 +13,10 @@ path "pektin-transit/sign/{{identity.entity.metadata.domain}}/sha2-256" {
     capabilities = ["update"]
 }`;
 
-export const pektinManagerPolicy = (clientName: ClientName): VaultPolicy => {
-    return `
-path "pektin-confidant-passwords/${clientName}" {
+export const pektinManagerPolicy = `
+path "pektin-confidant-passwords/{{identity.entity.name}}" {
     capabilities = ["read"]
-}
-`;
-};
+}`;
 
 export const pektinConfidantPolicy = (
     clientName: ClientName,
@@ -30,22 +26,19 @@ export const pektinConfidantPolicy = (
     let policy = `
 path "pektin-officer-passwords-1/${clientName}" {
     capabilities = ["read"]
-}
-`;
+}`;
 
     if (allowAllSigningDomains) {
         policy += `
 path "pektin-signer-passwords-1/*" {
     capabilities = ["read"]
-}
-    `;
+}`;
     } else {
         allowedSigningDomains.map(domain => {
             policy += `
 path "pektin-signer-passwords-1/${deAbsolute(domain)}" {
     capabilities = ["read"]
-}
-        `;
+}`;
         });
     }
 
@@ -58,6 +51,4 @@ path "pektin-signer-passwords-2/*" {
 
 path "pektin-officer-passwords-2/*" {
     capabilities = ["read"]
-}
-
-`;
+}`;
