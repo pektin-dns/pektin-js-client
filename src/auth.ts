@@ -98,22 +98,16 @@ export const createPektinClient = async (
 export const updateConfidantPassword = async (
     endpoint: string,
     token: string,
-    clientName: string,
+    clientName: ClientName,
     password: string
 ) => {
-    await updateKvValue(
-        endpoint,
-        token,
-        `pektin-client-confidant-${clientName}`,
-        { password },
-        `pektin-confidant-passwords`
-    );
+    await updateKvValue(endpoint, token, clientName, { password }, `pektin-confidant-passwords`);
 };
 
 export const createPektinManager = async (
     endpoint: string,
     token: string,
-    clientName: string,
+    clientName: ClientName,
     password: string
 ) => {
     const name: ManagerName = `pektin-client-manager-${clientName}`;
@@ -123,11 +117,18 @@ export const createPektinManager = async (
 export const createPektinConfidant = async (
     endpoint: string,
     token: string,
-    clientName: string,
+    clientName: ClientName,
     password: string,
     metadata: object
 ) => {
-    createFullUserPass(endpoint, token, `p-c-c-${clientName}`, password, metadata, [clientName]);
+    createFullUserPass(
+        endpoint,
+        token,
+        `pektin-client-confidant-${clientName}`,
+        password,
+        metadata,
+        [clientName]
+    );
 };
 
 export const createPektinApiAccount = async (endpoint: string, token: string, password: string) => {
@@ -136,8 +137,8 @@ export const createPektinApiAccount = async (endpoint: string, token: string, pa
 
 export const createPektinAuthVaultPolicies = async (endpoint: string, token: string) => {
     const policyPairs = [
-        { name: "p-signer", policy: pektinSignerPolicy },
-        { name: "p-api", policy: pektinApiPolicy }
+        { name: "pektin-signer", policy: pektinSignerPolicy },
+        { name: "pektin-api", policy: pektinApiPolicy }
     ];
 
     policyPairs.map(async e => {
