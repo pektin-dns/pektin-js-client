@@ -106,6 +106,8 @@ export const installPektinCompose = async (
         vaultEndpoint
     };
 
+    // TODO rename pektin-admin-... policy to pektin-confidant-... in vault
+
     const pektinAdminRibstonPolicy = await fs.readFile(
         `/app/node_modules/@pektin/client/dist/ribston-policies/pektin-admin.ribston.js`,
         "utf-8"
