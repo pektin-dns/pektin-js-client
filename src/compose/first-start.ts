@@ -1,7 +1,7 @@
 import fs from "fs/promises";
 import path from "path";
 import { ExtendedPektinApiClient } from "../index.js";
-import { PektinClientCredentials, PektinConfig } from "../types";
+import { PektinClientConnectionConfigOverride, PektinConfig } from "../types";
 import { createSingleScript } from "../utils.js";
 
 const dir = "/pektin-compose/";
@@ -11,7 +11,7 @@ export const pektinComposeFirstStart = async (recursive: any) => {
         await fs.readFile(path.join(dir, "pektin-config.json"), "utf-8")
     ) as PektinConfig;
 
-    const adminCreds: PektinClientCredentials = JSON.parse(
+    const adminCreds: PektinClientConnectionConfigOverride = JSON.parse(
         await fs.readFile(path.join(dir, "secrets", "admin-access.json"), "utf-8")
     );
 

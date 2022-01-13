@@ -16,13 +16,17 @@ export type ConfidantPassword = `c.${string}`;
 
 export type ClientVaultAccountType = "confidant" | "manager";
 
-export interface PektinClientCredentials {
+export interface PektinClientConnectionConfig {
     vaultEndpoint: string;
     username: string;
     confidantPassword?: ConfidantPassword;
     managerPassword?: ManagerPassword;
+}
+
+export interface PektinClientConnectionConfigOverride extends PektinClientConnectionConfig {
     override?: OverrideClientCredentials;
 }
+
 export interface OverrideClientCredentials {
     pektinApiEndpoint?: string;
     pektinConfig?: PektinConfig;

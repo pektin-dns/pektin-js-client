@@ -12,7 +12,8 @@ import {
     PektinApiRequestBody,
     PektinApiSearchRequestBody,
     PektinApiSetRequestBody,
-    PektinClientCredentials,
+    PektinClientConnectionConfig,
+    PektinClientConnectionConfigOverride,
     PektinConfig,
     PektinRRset,
     RedisEntry
@@ -34,7 +35,7 @@ export class BasicPektinClient {
 
     pektinConfig: PektinConfig | null;
 
-    constructor(credentials: PektinClientCredentials) {
+    constructor(credentials: PektinClientConnectionConfigOverride) {
         this.vaultEndpoint = credentials.vaultEndpoint;
         this.username = credentials.username;
 
