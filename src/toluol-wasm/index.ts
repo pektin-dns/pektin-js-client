@@ -4,9 +4,9 @@ import { ToluolModule, ToluolResponse } from "./types";
 import * as tm from "@pektin/toluol-wasm";
 
 export class Toluol {
-    private resolver: string;
-    private resolverAuth: string;
-    private toluol: ToluolModule;
+    resolver: string;
+    resolverAuth: string;
+    toluol: ToluolModule;
     constructor(resolver: string, recursorAuth: string, toluol?: ToluolModule) {
         this.resolver = resolver;
         this.resolverAuth = recursorAuth;
@@ -14,7 +14,7 @@ export class Toluol {
         this.toluol.init_panic_hook();
     }
 
-    private post = async (q: Uint8Array) => {
+    post = async (q: Uint8Array) => {
         const res = await f(`${this.resolver}/dns-query`, {
             headers: {
                 "content-type": "application/dns-message",
@@ -27,7 +27,7 @@ export class Toluol {
         return new Uint8Array(await res.arrayBuffer());
     };
 
-    private get = async (q: Uint8Array) => {
+    get = async (q: Uint8Array) => {
         const s = Buffer.from(q).toString("base64").replace(/\+/g, "-").replace(/\//g, "_");
 
         const res = await f(`${this.resolver}/dns-query?dns=${s.replace(/=/g, "")}`, {
