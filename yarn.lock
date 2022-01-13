@@ -2,17 +2,10 @@
 # yarn lockfile v1
 
 
-"@types/node@*", "@types/node@^16.11.12":
+"@types/node@^16.11.12":
   version "16.11.12"
   resolved "https://registry.yarnpkg.com/@types/node/-/node-16.11.12.tgz#ac7fb693ac587ee182c3780c26eb65546a1a3c10"
   integrity sha512-+2Iggwg7PxoO5Kyhvsq9VarmPbIelXP070HMImEpbtGCoyWNINQj4wzjbQCXzdHTRXnqufutJb5KAURZANNBAw==
-
-"@types/promise-fs@^2.1.2":
-  version "2.1.2"
-  resolved "https://registry.yarnpkg.com/@types/promise-fs/-/promise-fs-2.1.2.tgz#7ef6ab00c7fbc68081e34e560d2f008d3dd27fd2"
-  integrity sha512-s3YON1LmplAUVrvTT2d1I0m2Rk0hSgc/1l5/krnU96YpP4NG9VEN/qopaFv8yk5a2Z+AgYzafS1LCP+kQH0MYw==
-  dependencies:
-    "@types/node" "*"
 
 cross-fetch@^3.1.4:
   version "3.1.4"

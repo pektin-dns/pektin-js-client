@@ -16,6 +16,6 @@
         "strictNullChecks": true,
         "lib": ["dom", "dom.iterable", "esnext"]
     },
-    "include": ["src"],
+    "include": ["src", "src/.manualTests/*"],
     "exclude": ["src/ribston-policies"]
 }

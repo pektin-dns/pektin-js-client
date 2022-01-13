@@ -1,2 +1,2 @@
-src/manualTests/*
-dist/manualTests/*
+src/.manualTests/*
+dist/.manualTests/*

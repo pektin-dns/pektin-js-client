@@ -9,4 +9,4 @@ const pc = new ExtendedPektinApiClient({
     }
 });
 
-await pc.setupMainDomain();
+//await pc.setupMainDomain();

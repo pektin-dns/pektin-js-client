@@ -33,6 +33,6 @@
         "start": "tsc --watch",
         "compile-policies": "tsc src/ribston-policies/* --outDir dist/ribston-policies --target es2021 --strict",
         "before-publish": "yarn build; yarn compile-policies",
-        "manual-test": "node dist/manualTests/index.js"
+        "manual-test": "node dist/.manualTests/index.js"
     }
 }
