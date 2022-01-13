@@ -19,11 +19,15 @@ export const pektinConfidantPolicy = (
     let policy = `
 path "pektin-officer-passwords-1/data/${clientName}" {
     capabilities = ["read"]
+}
+
+path "pektin-kv/data/pektin-config" {
+    capabilities = ["read"]
 }`;
 
     if (allowAllSigningDomains) {
         policy += `
-path "pektin-signer-passwords-1/*" {
+path "pektin-signer-passwords-1/data/*" {
     capabilities = ["read"]
 }`;
     } else {
@@ -38,10 +42,10 @@ path "pektin-signer-passwords-1/data/${deAbsolute(domain)}" {
     return policy as VaultPolicy;
 };
 export const pektinApiPolicy: VaultPolicy = `
-path "pektin-signer-passwords-2/*" {
+path "pektin-signer-passwords-2/data/*" {
     capabilities = ["read"]
 }
 
-path "pektin-officer-passwords-2/*" {
+path "pektin-officer-passwords-2/data/*" {
     capabilities = ["read"]
 }`;

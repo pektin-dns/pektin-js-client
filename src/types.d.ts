@@ -7,12 +7,12 @@ export type RibstonPolicy = string; // A valid ribston policy
 export interface PektinClientCredentials {
     vaultEndpoint: string;
     username: string;
-    password: string;
+    confidantPassword: string;
+    managerPassword?: string;
     override?: OverrideClientCredentials;
 }
 export interface OverrideClientCredentials {
     pektinApiEndpoint: string;
-    pektinApiToken: string;
     pektinConfig: PektinConfig;
 }
 
@@ -26,7 +26,8 @@ export type PektinApiRequestBody =
     | PektinApiGetZoneRecordsRequestBody;
 
 export interface PektinApiRequestBodyBase {
-    token: string;
+    confidant_password: string;
+    client_username: string;
 }
 
 export interface PektinApiGetRequestBody extends PektinApiRequestBodyBase {

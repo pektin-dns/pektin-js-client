@@ -18,9 +18,12 @@ import { vaultLoginUserpass, getVaultValue } from "./vault/vault.js";
 
 export class BasicPektinClient {
     vaultEndpoint: string;
-    vaultUsername: string;
-    vaultPassword: string;
-    vaultToken: string | null;
+    username: string;
+    confidantPassword?: string;
+    managerPassword?: string;
+
+    confidantToken: string | null;
+    managerToken: string | null;
 
     pektinApiEndpoint: string | null;
 
@@ -28,9 +31,11 @@ export class BasicPektinClient {
 
     constructor(credentials: PektinClientCredentials) {
         this.vaultEndpoint = credentials.vaultEndpoint;
-        this.vaultUsername = credentials.username;
-        this.vaultPassword = credentials.password;
-        this.vaultToken = null;
+        this.username = credentials.username;
+        this.confidantPassword = credentials.confidantPassword;
+        this.managerPassword = credentials.managerPassword;
+        this.confidantToken = null;
+        this.managerToken = null;
 
         this.pektinApiEndpoint = credentials.override?.pektinApiEndpoint || null;
         this.pektinConfig = credentials.override?.pektinConfig || null;
@@ -43,13 +48,14 @@ export class BasicPektinClient {
 
     // get the pektin config from vault
     getPektinConfig = async () => {
-        if (!this.vaultToken) {
+        if (!this.confidantToken) {
             await this.getVaultToken();
-            if (!this.vaultToken) throw Error("Couldn't obtain vault token while getting config");
+            if (!this.confidantToken)
+                throw Error("Couldn't obtain vault token while getting config");
         }
 
         if (!this.pektinConfig) {
-            this.pektinConfig = await getPektinConfig(this.vaultEndpoint, this.vaultToken);
+            this.pektinConfig = await getPektinConfig(this.vaultEndpoint, this.confidantToken);
         }
 
         if (!this.pektinApiEndpoint) {
@@ -62,10 +68,13 @@ export class BasicPektinClient {
 
     // obtain the vault token by sending username and password to the vault endpoint
     getVaultToken = async () => {
-        this.vaultToken = await vaultLoginUserpass({
+        if (!this.confidantPassword) {
+            throw Error("Client cannot use this function because it requires a confidantPassword");
+        }
+        this.confidantToken = await vaultLoginUserpass({
             vaultEndpoint: this.vaultEndpoint,
-            username: this.vaultUsername,
-            password: this.vaultPassword
+            username: this.username,
+            password: this.confidantPassword
         });
     };
 
@@ -77,13 +86,15 @@ export class BasicPektinClient {
                 throw Error("Couldn't obtain pektinApiEndpoint");
             }
         }
-        if (!this.vaultToken) {
-            await this.getVaultToken();
-            if (!this.vaultToken) {
-                throw Error("Couldn't obtain vaultToken");
-            }
+        if (!this.confidantPassword) {
+            throw Error("Client cannot use this function because it requires a confidantPassword");
         }
-        return await get(this.pektinApiEndpoint, { token: this.vaultToken, keys });
+
+        return await get(this.pektinApiEndpoint, {
+            confidant_password: this.confidantPassword,
+            client_username: this.username,
+            keys
+        });
     };
 
     // set records via the api in redis
@@ -94,13 +105,15 @@ export class BasicPektinClient {
                 throw Error("Couldn't obtain pektinApiEndpoint");
             }
         }
-        if (!this.vaultToken) {
-            await this.getVaultToken();
-            if (!this.vaultToken) {
-                throw Error("Couldn't obtain vaultToken");
-            }
+        if (!this.confidantPassword) {
+            throw Error("Client cannot use this function because it requires a confidantPassword");
         }
-        return await set(this.pektinApiEndpoint, { token: this.vaultToken, records });
+
+        return await set(this.pektinApiEndpoint, {
+            confidant_password: this.confidantPassword,
+            client_username: this.username,
+            records
+        });
     };
 
     // search for records in redis by providing a glob search string
@@ -111,13 +124,18 @@ export class BasicPektinClient {
                 throw Error("Couldn't obtain pektinApiEndpoint");
             }
         }
-        if (!this.vaultToken) {
-            await this.getVaultToken();
-            if (!this.vaultToken) {
-                throw Error("Couldn't obtain vaultToken");
-            }
+        if (!this.confidantPassword) {
+            throw Error("Client cannot use this function because it requires a confidantPassword");
         }
-        return await search(this.pektinApiEndpoint, { token: this.vaultToken, glob });
+        if (!this.confidantPassword) {
+            throw Error("Client cannot use this function because it requires a confidantPassword");
+        }
+
+        return await search(this.pektinApiEndpoint, {
+            confidant_password: this.confidantPassword,
+            client_username: this.username,
+            glob
+        });
     };
 
     // delete records based on their keys
@@ -128,13 +146,15 @@ export class BasicPektinClient {
                 throw Error("Couldn't obtain pektinApiEndpoint");
             }
         }
-        if (!this.vaultToken) {
-            await this.getVaultToken();
-            if (!this.vaultToken) {
-                throw Error("Couldn't obtain vaultToken");
-            }
+        if (!this.confidantPassword) {
+            throw Error("Client cannot use this function because it requires a confidantPassword");
         }
-        return await deleteRecords(this.pektinApiEndpoint, { token: this.vaultToken, keys });
+
+        return await deleteRecords(this.pektinApiEndpoint, {
+            confidant_password: this.confidantPassword,
+            client_username: this.username,
+            keys
+        });
     };
 
     // get all records for zones
@@ -145,13 +165,15 @@ export class BasicPektinClient {
                 throw Error("Couldn't obtain pektinApiEndpoint");
             }
         }
-        if (!this.vaultToken) {
-            await this.getVaultToken();
-            if (!this.vaultToken) {
-                throw Error("Couldn't obtain vaultToken");
-            }
+        if (!this.confidantPassword) {
+            throw Error("Client cannot use this function because it requires a confidantPassword");
         }
-        return await getZoneRecords(this.pektinApiEndpoint, { token: this.vaultToken, names });
+
+        return await getZoneRecords(this.pektinApiEndpoint, {
+            confidant_password: this.confidantPassword,
+            client_username: this.username,
+            names
+        });
     };
 }
 
@@ -472,7 +494,6 @@ export const pektinApiRequest = async (
     const json = await res.json().catch(e => {
         throw Error("Couldn't parse JSON response: " + e);
     });
-    body.token = "";
     if (json.error === true) {
         throw Error(
             "API Error: " +
