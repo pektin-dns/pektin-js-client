@@ -1,5 +1,5 @@
 import f from "cross-fetch";
-import { deAbsolute } from "..";
+import { deAbsolute } from "../index.js";
 import { ToluolModule, ToluolResponse } from "./types";
 import * as tm from "@pektin/toluol-wasm";
 
