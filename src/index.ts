@@ -3,6 +3,7 @@ import {
     PektinApiDeleteRequestBody,
     PektinApiGetRequestBody,
     PektinApiGetZoneRecordsRequestBody,
+    PektinApiHealthRequestBody,
     PektinApiMethod,
     PektinApiRequestBody,
     PektinApiSearchRequestBody,
@@ -64,7 +65,22 @@ export class BasicPektinClient {
     };
 
     // get whether or not the pektin setup is healthy
-    health = async () => {};
+    health = async () => {
+        if (!this.pektinApiEndpoint) {
+            this.getPektinConfig();
+            if (!this.pektinApiEndpoint) {
+                throw Error("Couldn't obtain pektinApiEndpoint");
+            }
+        }
+        if (!this.confidantPassword) {
+            throw Error("Client cannot use this function because it requires a confidantPassword");
+        }
+
+        return await health(this.pektinApiEndpoint, {
+            confidant_password: this.confidantPassword,
+            client_username: this.username
+        });
+    };
 
     // obtain the vault token by sending username and password to the vault endpoint
     getVaultToken = async () => {
@@ -465,6 +481,11 @@ export const search = async (apiEndpoint: string, body: PektinApiSearchRequestBo
 // delete records based on their keys
 export const deleteRecords = async (apiEndpoint: string, body: PektinApiDeleteRequestBody) => {
     return await pektinApiRequest(apiEndpoint, "delete", body);
+};
+
+// get api health status
+export const health = async (apiEndpoint: string, body: PektinApiHealthRequestBody) => {
+    return await pektinApiRequest(apiEndpoint, "health", body);
 };
 
 // get all records for zones

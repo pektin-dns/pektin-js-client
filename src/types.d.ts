@@ -16,14 +16,15 @@ export interface OverrideClientCredentials {
     pektinConfig: PektinConfig;
 }
 
-export type PektinApiMethod = "get" | "set" | "search" | "delete" | "get-zone-records";
+export type PektinApiMethod = "get" | "set" | "search" | "delete" | "get-zone-records" | "health";
 
 export type PektinApiRequestBody =
     | PektinApiGetRequestBody
     | PektinApiSetRequestBody
     | PektinApiSearchRequestBody
     | PektinApiDeleteRequestBody
-    | PektinApiGetZoneRecordsRequestBody;
+    | PektinApiGetZoneRecordsRequestBody
+    | PektinApiHealthRequestBody;
 
 export interface PektinApiRequestBodyBase {
     confidant_password: string;
@@ -45,6 +46,7 @@ export interface PektinApiDeleteRequestBody extends PektinApiRequestBodyBase {
 export interface PektinApiGetZoneRecordsRequestBody extends PektinApiRequestBodyBase {
     names: string[];
 }
+export interface PektinApiHealthRequestBody extends PektinApiRequestBodyBase {}
 
 export interface PektinConfig {
     domain: string;
