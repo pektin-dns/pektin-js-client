@@ -100,16 +100,14 @@ export const installPektinCompose = async (
 
     // create admin account
     const pektinAdminConnectionConfig = {
-        username: `pektin-admin-${randomString(10)}`,
-        managerPassword: randomString(),
-        confidantPassword: randomString(),
+        username: `admin-${randomString(10)}`,
+        managerPassword: `m.${randomString()}`,
+        confidantPassword: `c.${randomString()}`,
         vaultEndpoint
     };
 
-    // TODO rename pektin-admin-... policy to pektin-confidant-... in vault
-
     const pektinAdminRibstonPolicy = await fs.readFile(
-        `/app/node_modules/@pektin/client/dist/ribston-policies/pektin-admin.ribston.js`,
+        `/app/node_modules/@pektin/client/dist/ribston-policies/admin.ribston.js`,
         "utf-8"
     );
 

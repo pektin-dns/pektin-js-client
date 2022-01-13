@@ -61,9 +61,11 @@ export const createPektinOfficer = async (
         "pektin-ribston-policies"
     );
 
-    await createVaultPolicy(endpoint, token, officerName, pektinOfficerPolicy(clientName));
+    await createVaultPolicy(endpoint, token, "pektin-officer", pektinOfficerPolicy);
 
-    await createFullUserPass(endpoint, token, officerName, password, {}, [officerName]);
+    await createFullUserPass(endpoint, token, officerName, password, { clientName }, [
+        "pektin-officer"
+    ]);
 };
 
 export const createPektinClient = async (
