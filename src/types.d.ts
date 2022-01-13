@@ -7,13 +7,13 @@ export type RibstonPolicy = string; // A valid ribston policy
 export interface PektinClientCredentials {
     vaultEndpoint: string;
     username: string;
-    confidantPassword: string;
+    confidantPassword?: string;
     managerPassword?: string;
     override?: OverrideClientCredentials;
 }
 export interface OverrideClientCredentials {
-    pektinApiEndpoint: string;
-    pektinConfig: PektinConfig;
+    pektinApiEndpoint?: string;
+    pektinConfig?: PektinConfig;
 }
 
 export type PektinApiMethod = "get" | "set" | "search" | "delete" | "get-zone-records" | "health";
@@ -79,7 +79,21 @@ export interface NameServer {
     subDomain: string;
     ips: string[];
     legacyIps: string[];
+    createSingleScript?: CreateSingleScript;
 }
+export interface CreateSingleScript {
+    system: ComposeSupportedOS;
+    cloneRepo: boolean;
+    setup: boolean;
+    start: boolean;
+    root: SingleScriptRootOptions;
+}
+export interface SingleScriptRootOptions {
+    disableSystemdResolved: boolean;
+    installDocker: boolean;
+}
+
+export type ComposeSupportedOS = "ubuntu" | "arch";
 
 export interface VaultAuthJSON {
     vaultEndpoint: string;

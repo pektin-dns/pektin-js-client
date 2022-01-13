@@ -1,10 +1,10 @@
 import { promises as fs } from "fs";
 import path from "path";
-import { chownRecursive, chown, chmod, randomString } from "./utils.js";
+import { chownRecursive, chown, chmod, randomString } from "./../utils.js";
 import crypto from "crypto";
 
-import { unsealVault, initVault, enableVaultCors, updateKvValue } from "./vault/vault.js";
-import { PektinConfig } from "./types";
+import { unsealVault, initVault, enableVaultCors, updateKvValue } from "./../vault/vault.js";
+import { PektinConfig } from "./../types";
 import {
     createPektinClient,
     createPektinApiAccount,
@@ -12,7 +12,7 @@ import {
     createPektinSigner,
     createPektinVaultEngines,
     updatePektinSharedPasswords
-} from "./auth.js";
+} from "./../auth.js";
 
 export const installPektinCompose = async (
     dir: string = "/pektin-compose/",
