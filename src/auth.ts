@@ -1,5 +1,5 @@
 import { deAbsolute } from "./index.js";
-import { RibstonPolicy } from "./types";
+import { ClientName, DomainName, ManagerName, OfficerName, RibstonPolicy } from "./types";
 import { randomString } from "./utils.js";
 import {
     pektinApiPolicy,
@@ -7,14 +7,7 @@ import {
     pektinOfficerPolicy,
     pektinSignerPolicy
 } from "./vault/pektinVaultPolicies.js";
-import {
-    ClientName,
-    DomainName,
-    ManagerName,
-    OfficerName,
-    VaultAuthEngine,
-    VaultSecretEngine
-} from "./vault/types";
+import { VaultAuthEngine, VaultSecretEngine } from "./vault/types";
 import {
     createEntity,
     createEntityAlias,

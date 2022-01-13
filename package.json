@@ -1,6 +1,6 @@
 {
     "name": "@pektin/client",
-    "version": "1.0.43",
+    "version": "1.0.44",
     "description": "A client to facilitate the control of pektin dns servers",
     "main": "dist/index.js",
     "types": "src/index.ts",
@@ -32,6 +32,7 @@
         "build": "tsc",
         "start": "tsc --watch",
         "compile-policies": "tsc src/ribston-policies/* --outDir dist/ribston-policies --target es2021 --strict",
-        "before-publish": "yarn build; yarn compile-policies"
+        "before-publish": "yarn build; yarn compile-policies",
+        "manual-test": "node dist/manualTests/index.js"
     }
 }

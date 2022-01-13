@@ -1,4 +1,8 @@
 import {
+    ClientName,
+    ClientVaultAccountType,
+    ConfidantPassword,
+    ManagerPassword,
     NameServer,
     PektinApiDeleteRequestBody,
     PektinApiGetRequestBody,
@@ -19,9 +23,9 @@ import { vaultLoginUserpass, getVaultValue } from "./vault/vault.js";
 
 export class BasicPektinClient {
     vaultEndpoint: string;
-    username: string;
-    confidantPassword?: string;
-    managerPassword?: string;
+    username: ClientName;
+    confidantPassword?: ConfidantPassword;
+    managerPassword?: ManagerPassword;
 
     confidantToken: string | null;
     managerToken: string | null;
@@ -33,8 +37,11 @@ export class BasicPektinClient {
     constructor(credentials: PektinClientCredentials) {
         this.vaultEndpoint = credentials.vaultEndpoint;
         this.username = credentials.username;
-        this.confidantPassword = credentials.confidantPassword;
-        this.managerPassword = credentials.managerPassword;
+
+        this.confidantPassword = checkConfidantPassword(credentials.confidantPassword);
+
+        this.managerPassword = checkManagerPassword(credentials.managerPassword);
+
         this.confidantToken = null;
         this.managerToken = null;
 
@@ -43,16 +50,17 @@ export class BasicPektinClient {
     }
 
     init = async () => {
-        await this.getVaultToken();
+        await this.getVaultToken("confidant");
         await this.getPektinConfig();
     };
 
     // get the pektin config from vault
     getPektinConfig = async () => {
         if (!this.confidantToken) {
-            await this.getVaultToken();
-            if (!this.confidantToken)
+            await this.getVaultToken("confidant");
+            if (!this.confidantToken) {
                 throw Error("Couldn't obtain vault token while getting config");
+            }
         }
 
         if (!this.pektinConfig) {
@@ -83,15 +91,21 @@ export class BasicPektinClient {
     };
 
     // obtain the vault token by sending username and password to the vault endpoint
-    getVaultToken = async () => {
+    getVaultToken = async (clientType: ClientVaultAccountType) => {
         if (!this.confidantPassword) {
             throw Error("Client cannot use this function because it requires a confidantPassword");
         }
-        this.confidantToken = await vaultLoginUserpass({
-            vaultEndpoint: this.vaultEndpoint,
-            username: this.username,
-            password: this.confidantPassword
-        });
+        if (clientType === undefined) throw Error("clientType cant be undefined");
+        if (clientType !== "manager" && clientType !== "confidant") {
+            throw Error("clientType must be either 'manager' or 'confidant'");
+        }
+
+        this[(clientType + "Token") as "confidantToken" | "managerToken"] =
+            await vaultLoginUserpass({
+                vaultEndpoint: this.vaultEndpoint,
+                username: `pektin-client-${clientType}-${this.username}`,
+                password: this.confidantPassword
+            });
     };
 
     // get records from the api/redis based on their key
@@ -530,4 +544,22 @@ export const pektinApiRequest = async (
 export const deAbsolute = (domainName: string) => {
     const absDomain = absoluteName(domainName);
     return absDomain.substring(0, absDomain.length - 1);
+};
+
+export const checkConfidantPassword = (
+    input: string | undefined
+): ConfidantPassword | undefined => {
+    if (input === undefined) return undefined;
+    if (typeof input !== "string") throw Error("confidantPassword is not a string");
+
+    if (input.startsWith("c.")) return input as ConfidantPassword;
+    throw Error("Passed confidantPassword is not a confidant password");
+};
+
+export const checkManagerPassword = (input: string | undefined): ManagerPassword | undefined => {
+    if (input === undefined) return undefined;
+
+    if (typeof input !== "string") throw Error("managerPassword is not a string");
+    if (input.startsWith("m.")) return input as ManagerPassword;
+    throw Error("Passed managerPassword is not a manager password");
 };

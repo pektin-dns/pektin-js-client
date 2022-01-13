@@ -4,11 +4,23 @@ export interface PektinOfficerMeta {
 
 export type RibstonPolicy = string; // A valid ribston policy
 
+export type ClientName = string;
+export type DomainName = string;
+export type ManagerName = `pektin-client-manager-${ClientName}`;
+export type ConfidantName = `pektin-client-confidant-${ClientName}`;
+export type SignerName = `pektin-signer-${DomainName}`;
+export type OfficerName = `pektin-officer-${ClientName}`;
+
+export type ManagerPassword = `m.${string}`;
+export type ConfidantPassword = `c.${string}`;
+
+export type ClientVaultAccountType = "confidant" | "manager";
+
 export interface PektinClientCredentials {
     vaultEndpoint: string;
     username: string;
-    confidantPassword?: string;
-    managerPassword?: string;
+    confidantPassword?: ConfidantPassword;
+    managerPassword?: ManagerPassword;
     override?: OverrideClientCredentials;
 }
 export interface OverrideClientCredentials {
@@ -27,8 +39,8 @@ export type PektinApiRequestBody =
     | PektinApiHealthRequestBody;
 
 export interface PektinApiRequestBodyBase {
-    confidant_password: string;
-    client_username: string;
+    confidant_password: ConfidantPassword;
+    client_username: ClientName;
 }
 
 export interface PektinApiGetRequestBody extends PektinApiRequestBodyBase {

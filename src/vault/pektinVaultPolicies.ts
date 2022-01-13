@@ -1,5 +1,6 @@
 import { deAbsolute } from "../index.js";
-import { ClientName, VaultPolicy } from "./types";
+import { ClientName } from "../types.js";
+import { VaultPolicy } from "./types";
 
 export const pektinOfficerPolicy = `
 path "pektin-ribston-policies/data/{{identity.entity.metadata.clientName}}" {

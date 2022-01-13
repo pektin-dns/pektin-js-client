@@ -1,10 +1,3 @@
-type ClientName = string;
-type DomainName = string;
-type ManagerName = `pektin-client-manager-${ClientName}`;
-type ConfidantName = `pektin-client-confidant-${ClientName}`;
-type SignerName = `pektin-signer-${DomainName}`;
-type OfficerName = `pektin-officer-${ClientName}`;
-
 export type VaultPolicy = string;
 
 export interface VaultAuthEngine {
