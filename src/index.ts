@@ -12,7 +12,6 @@ import {
     PektinApiRequestBody,
     PektinApiSearchRequestBody,
     PektinApiSetRequestBody,
-    PektinClientConnectionConfig,
     PektinClientConnectionConfigOverride,
     PektinConfig,
     PektinRRset,

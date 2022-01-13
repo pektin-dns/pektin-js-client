@@ -2,11 +2,6 @@
 # yarn lockfile v1
 
 
-"@pektin/toluol-wasm@^0.2.0":
-  version "0.2.0"
-  resolved "https://registry.yarnpkg.com/@pektin/toluol-wasm/-/toluol-wasm-0.2.0.tgz#652fed0c2e77f6abbb70b3fbd2bfc55f3b36d278"
-  integrity sha512-z0OUVwrgt/ovzWIHuYPwZtwtpV2Ptzma4e2ZE9UTkfU+FuyPYYumqgPOINSHxd5N1wGZ3fPVfaZuR4ODt6Yiig==
-
 "@types/node@^16.11.12":
   version "16.11.12"
   resolved "https://registry.yarnpkg.com/@types/node/-/node-16.11.12.tgz#ac7fb693ac587ee182c3780c26eb65546a1a3c10"

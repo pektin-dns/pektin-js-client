@@ -1,5 +1,4 @@
 import { ExtendedPektinApiClient } from "../index.js";
-import { Toluol } from "../toluol-wasm/index.js";
 const pc = new ExtendedPektinApiClient({
     confidantPassword:
         "c.Poe8KnGekf164xwaFL6R7vkibkac8W-4DaJOK49BcFDLfoDoDXkL5-Mh0NiE8qrYuhrJ2TAR4Og7pMacM_JR0-tmZKCVal2m6jT85RRgiAWyNcA3wYW1ik1Jhn7Ek8WMmgw1Bw",
@@ -9,8 +8,3 @@ const pc = new ExtendedPektinApiClient({
         pektinApiEndpoint: "http://127.0.0.1:3001"
     }
 });
-
-const tl = new Toluol("", "");
-
-tl.query("", "");
-//await pc.setupMainDomain();
