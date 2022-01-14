@@ -26,6 +26,7 @@ export class BasicPektinClient {
     username: ClientName;
     confidantPassword?: ConfidantPassword;
     managerPassword?: ManagerPassword;
+    recursorAuth?: string;
 
     confidantToken: string | null;
     managerToken: string | null;
@@ -70,6 +71,15 @@ export class BasicPektinClient {
         if (!this.pektinApiEndpoint) {
             this.pektinApiEndpoint = getPektinApiEndpoint(this.pektinConfig);
         }
+    };
+    getRecursorAuth = async () => {
+        if (!this.confidantToken) {
+            await this.getVaultToken("confidant");
+            if (!this.confidantToken) {
+                throw Error("Couldn't obtain vault token while getting config");
+            }
+        }
+        this.recursorAuth = await getRecursorAuth(this.vaultEndpoint, this.confidantToken);
     };
 
     // get whether or not the pektin setup is healthy
@@ -456,6 +466,11 @@ export const getPektinRecursorEndpoint = (pektinConfig: PektinConfig): string =>
                 : pektinConfig.insecureDevIp
             : pektinConfig.apiSubDomain + "." + pektinConfig.domain;
     return protocol + endpoint;
+};
+
+export const getRecursorAuth = async (vaultEndpoint: string, vaultToken: string) => {
+    return (await getVaultValue(vaultEndpoint, vaultToken, "recursor-auth", "pektin-kv"))
+        .basicAuth as string;
 };
 
 export const absoluteName = (name: string) => {
