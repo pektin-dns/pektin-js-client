@@ -469,8 +469,9 @@ export const getPektinRecursorEndpoint = (pektinConfig: PektinConfig): string =>
 };
 
 export const getRecursorAuth = async (vaultEndpoint: string, vaultToken: string) => {
-    return (await getVaultValue(vaultEndpoint, vaultToken, "recursor-auth", "pektin-kv"))
-        .basicAuth as string;
+    const res = await getVaultValue(vaultEndpoint, vaultToken, "recursor-auth", "pektin-kv");
+    if (!res || !res.basicAuth) throw Error("Couldnt obtain recursor auth");
+    return res.basicAuth as string;
 };
 
 export const absoluteName = (name: string) => {

@@ -15,7 +15,8 @@ path "pektin-transit/sign/{{identity.entity.metadata.domain}}/sha2-256" {
 export const pektinConfidantPolicy = (
     clientName: ClientName,
     allowedSigningDomains: string[],
-    allowAllSigningDomains: boolean = false
+    allowAllSigningDomains: boolean = false,
+    allowRecursorUse: boolean = true
 ): VaultPolicy => {
     let policy = `
 path "pektin-officer-passwords-1/data/${clientName}" {
@@ -25,6 +26,13 @@ path "pektin-officer-passwords-1/data/${clientName}" {
 path "pektin-kv/data/pektin-config" {
     capabilities = ["read"]
 }`;
+
+    if (allowRecursorUse) {
+        policy += `
+path "pektin-kv/data/recursor-auth" {
+    capabilities = ["read"]
+}`;
+    }
 
     if (allowAllSigningDomains) {
         policy += `
