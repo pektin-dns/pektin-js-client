@@ -546,10 +546,10 @@ export const pektinApiRequest = async (
     });
     if (json.error === true) {
         throw Error(
-            "API Error: " +
-                JSON.stringify(json, null, "    ") +
-                "\n while trying to set: \n" +
-                JSON.stringify(body, null, "    ")
+            `API Error:\n 
+                ${JSON.stringify(json, null, "    ")}\n 
+                while trying to ${method}: \n
+                ${JSON.stringify(body, null, "    ")}`
         );
     }
 

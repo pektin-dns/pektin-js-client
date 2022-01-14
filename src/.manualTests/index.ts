@@ -1,10 +1,12 @@
 import { ExtendedPektinApiClient } from "../index.js";
 const pc = new ExtendedPektinApiClient({
     confidantPassword:
-        "c.Poe8KnGekf164xwaFL6R7vkibkac8W-4DaJOK49BcFDLfoDoDXkL5-Mh0NiE8qrYuhrJ2TAR4Og7pMacM_JR0-tmZKCVal2m6jT85RRgiAWyNcA3wYW1ik1Jhn7Ek8WMmgw1Bw",
+        "c.Gvby0sp_kceGaq1ejBkFCuUNJKd07ZpsA9tozbeka40MSxrTBFp6BsGPaIIT6Us0NRbCU8HH0L2zNZ-50eEk7m8fXivTxSinSdCbEfOVQx_8h6tpADlCpI-lUWNy1jjnTPzY5g",
     vaultEndpoint: "http://127.0.0.1:8200",
-    username: "admin-uF0euRyAGavGSw",
+    username: "admin-m3EtghwjAWzNJA",
     override: {
         pektinApiEndpoint: "http://127.0.0.1:3001"
     }
 });
+
+await pc.setupMainDomain();

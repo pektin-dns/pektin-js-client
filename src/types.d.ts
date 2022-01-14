@@ -78,7 +78,7 @@ export interface PektinConfig {
     enableRotate: boolean;
     createCerts: boolean;
     letsencryptEmail: string;
-    autoConfigureMainDomain: boolean;
+    configureMainDomain: boolean;
     proxyConfig: string;
     createProxy: boolean;
     buildFromSource: boolean;

@@ -15,7 +15,7 @@ export const pektinComposeFirstStart = async (recursive: any) => {
         await fs.readFile(path.join(dir, "secrets", "admin-access.json"), "utf-8")
     );
 
-    if (pektinConfig.autoConfigureMainDomain) {
+    if (pektinConfig.configureMainDomain) {
         const pc = new ExtendedPektinApiClient({
             confidantPassword: adminCreds.confidantPassword,
             vaultEndpoint: "http://pektin-vault:8200",
