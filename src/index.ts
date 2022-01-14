@@ -2,10 +2,10 @@ import {
     ClientName,
     ClientVaultAccountType,
     ConfidantPassword,
-    DeleteResponseData,
-    GetResponseData,
-    GetZoneRecordsResponseData,
-    HealthResponseData,
+    DeleteResponse,
+    GetResponse,
+    GetZoneRecordsResponse,
+    HealthResponse,
     ManagerPassword,
     NameServer,
     PektinApiDeleteRequestBody,
@@ -14,15 +14,14 @@ import {
     PektinApiHealthRequestBody,
     PektinApiMethod,
     PektinApiRequestBody,
-    PektinApiResponse,
     PektinApiSearchRequestBody,
     PektinApiSetRequestBody,
     PektinClientConnectionConfigOverride,
     PektinConfig,
     PektinRRset,
     RedisEntry,
-    SearchResponseData,
-    SetResponseData
+    SearchResponse,
+    SetResponse
 } from "./types";
 
 import f from "cross-fetch";
@@ -502,7 +501,7 @@ export const getPektinConfig = async (vaultEndpoint: string, vaultToken: string)
 export const get = async (
     apiEndpoint: string,
     body: PektinApiGetRequestBody
-): Promise<PektinApiResponse<GetResponseData>> => {
+): Promise<GetResponse> => {
     return await pektinApiRequest(apiEndpoint, "get", body);
 };
 
@@ -510,7 +509,7 @@ export const get = async (
 export const set = async (
     apiEndpoint: string,
     body: PektinApiSetRequestBody
-): Promise<PektinApiResponse<SetResponseData>> => {
+): Promise<SetResponse> => {
     return await pektinApiRequest(apiEndpoint, "set", body);
 };
 
@@ -518,7 +517,7 @@ export const set = async (
 export const search = async (
     apiEndpoint: string,
     body: PektinApiSearchRequestBody
-): Promise<PektinApiResponse<SearchResponseData>> => {
+): Promise<SearchResponse> => {
     return await pektinApiRequest(apiEndpoint, "search", body);
 };
 
@@ -526,7 +525,7 @@ export const search = async (
 export const deleteRecords = async (
     apiEndpoint: string,
     body: PektinApiDeleteRequestBody
-): Promise<PektinApiResponse<DeleteResponseData>> => {
+): Promise<DeleteResponse> => {
     return await pektinApiRequest(apiEndpoint, "delete", body);
 };
 
@@ -534,7 +533,7 @@ export const deleteRecords = async (
 export const health = async (
     apiEndpoint: string,
     body: PektinApiHealthRequestBody
-): Promise<PektinApiResponse<HealthResponseData>> => {
+): Promise<HealthResponse> => {
     return await pektinApiRequest(apiEndpoint, "health", body);
 };
 
@@ -542,7 +541,7 @@ export const health = async (
 export const getZoneRecords = async (
     apiEndpoint: string,
     body: PektinApiGetZoneRecordsRequestBody
-): Promise<PektinApiResponse<GetZoneRecordsResponseData>> => {
+): Promise<GetZoneRecordsResponse> => {
     return await pektinApiRequest(apiEndpoint, "get-zone-records", body);
 };
 
