@@ -32,6 +32,23 @@ export interface OverrideClientCredentials {
     pektinConfig?: PektinConfig;
 }
 
+export interface PektinApiResponse<T> {
+    error: boolean;
+    data: T;
+    message: string;
+}
+
+export interface SetResponseData {}
+export type GetResponseData = RedisEntry[];
+export type SearchResponseData = string[];
+export interface DeleteResponseData {
+    keys_removed: number;
+}
+export interface HealthResponseData {}
+export interface GetZoneRecordsResponseData {
+    [domainName: DomainName]: string[];
+}
+
 export type PektinApiMethod = "get" | "set" | "search" | "delete" | "get-zone-records" | "health";
 
 export type PektinApiRequestBody =

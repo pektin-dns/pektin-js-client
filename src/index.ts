@@ -2,6 +2,10 @@ import {
     ClientName,
     ClientVaultAccountType,
     ConfidantPassword,
+    DeleteResponseData,
+    GetResponseData,
+    GetZoneRecordsResponseData,
+    HealthResponseData,
     ManagerPassword,
     NameServer,
     PektinApiDeleteRequestBody,
@@ -10,12 +14,15 @@ import {
     PektinApiHealthRequestBody,
     PektinApiMethod,
     PektinApiRequestBody,
+    PektinApiResponse,
     PektinApiSearchRequestBody,
     PektinApiSetRequestBody,
     PektinClientConnectionConfigOverride,
     PektinConfig,
     PektinRRset,
-    RedisEntry
+    RedisEntry,
+    SearchResponseData,
+    SetResponseData
 } from "./types";
 
 import f from "cross-fetch";
@@ -237,7 +244,7 @@ export class ExtendedPektinApiClient extends BasicPektinClient {
         await this.setupSOA(domain, nameServers);
         return await Promise.all([
             this.setupNameServers(domain, nameServers),
-            this.setupNameServerIps(domain, nameServers)
+            this.setupNameServerIps(nameServers)
         ]);
     };
 
@@ -393,7 +400,6 @@ export class ExtendedPektinApiClient extends BasicPektinClient {
         }
 
         return await this.setupNameServerIps(
-            pektinConfig.domain,
             pektinConfig.nameServers.map((mns: NameServer) => {
                 return {
                     domain: mns.subDomain + "." + pektinConfig?.domain,
@@ -405,7 +411,6 @@ export class ExtendedPektinApiClient extends BasicPektinClient {
     };
 
     setupNameServerIps = async (
-        domain: string,
         nameServers: { domain: string; ips: string[]; legacyIps: string[] }[]
     ) => {
         const records: RedisEntry[] = [];
@@ -494,27 +499,42 @@ export const getPektinConfig = async (vaultEndpoint: string, vaultToken: string)
 };
 
 // get records from the api/redis based on their key
-export const get = async (apiEndpoint: string, body: PektinApiGetRequestBody) => {
+export const get = async (
+    apiEndpoint: string,
+    body: PektinApiGetRequestBody
+): Promise<PektinApiResponse<GetResponseData>> => {
     return await pektinApiRequest(apiEndpoint, "get", body);
 };
 
 // set records via the api in redis
-export const set = async (apiEndpoint: string, body: PektinApiSetRequestBody) => {
+export const set = async (
+    apiEndpoint: string,
+    body: PektinApiSetRequestBody
+): Promise<PektinApiResponse<SetResponseData>> => {
     return await pektinApiRequest(apiEndpoint, "set", body);
 };
 
 // search for records in redis by providing a glob search string
-export const search = async (apiEndpoint: string, body: PektinApiSearchRequestBody) => {
+export const search = async (
+    apiEndpoint: string,
+    body: PektinApiSearchRequestBody
+): Promise<PektinApiResponse<SearchResponseData>> => {
     return await pektinApiRequest(apiEndpoint, "search", body);
 };
 
 // delete records based on their keys
-export const deleteRecords = async (apiEndpoint: string, body: PektinApiDeleteRequestBody) => {
+export const deleteRecords = async (
+    apiEndpoint: string,
+    body: PektinApiDeleteRequestBody
+): Promise<PektinApiResponse<DeleteResponseData>> => {
     return await pektinApiRequest(apiEndpoint, "delete", body);
 };
 
 // get api health status
-export const health = async (apiEndpoint: string, body: PektinApiHealthRequestBody) => {
+export const health = async (
+    apiEndpoint: string,
+    body: PektinApiHealthRequestBody
+): Promise<PektinApiResponse<HealthResponseData>> => {
     return await pektinApiRequest(apiEndpoint, "health", body);
 };
 
@@ -522,7 +542,7 @@ export const health = async (apiEndpoint: string, body: PektinApiHealthRequestBo
 export const getZoneRecords = async (
     apiEndpoint: string,
     body: PektinApiGetZoneRecordsRequestBody
-) => {
+): Promise<PektinApiResponse<GetZoneRecordsResponseData>> => {
     return await pektinApiRequest(apiEndpoint, "get-zone-records", body);
 };
 
