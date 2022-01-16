@@ -2,11 +2,9 @@ include:
     - project: pektin/pektin-dist
       ref: main
       file:
-          - scripts/mirror.yml
           - scripts/npm-build-and-publish.yml
 
 image: alpine
 
 stages:
-    - mirror
     - npm-build-and-publish

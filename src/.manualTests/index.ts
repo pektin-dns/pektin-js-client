@@ -1,12 +1,14 @@
 import { ExtendedPektinApiClient } from "../index.js";
 const pc = new ExtendedPektinApiClient({
     confidantPassword:
-        "c.Gvby0sp_kceGaq1ejBkFCuUNJKd07ZpsA9tozbeka40MSxrTBFp6BsGPaIIT6Us0NRbCU8HH0L2zNZ-50eEk7m8fXivTxSinSdCbEfOVQx_8h6tpADlCpI-lUWNy1jjnTPzY5g",
+        "c.QIUKgkW1pHcIQVX0G87fgmmGPkxsft5tVq74tash-HA_-3WMRRJ85k3I2dptd9Zlh0ASb7iqT47VUcDoNmNzRpDseKMz_E4fOd-zhjaCfPCPSVVKwINYuyeOyfXAHdNsNesiLA",
     vaultEndpoint: "http://127.0.0.1:8200",
-    username: "admin-m3EtghwjAWzNJA",
+    username: "admin-H__-tnuYhe3vuA",
     override: {
         pektinApiEndpoint: "http://127.0.0.1:3001"
     }
 });
 
-await pc.setupMainDomain();
+console.log(
+    await pc.getZoneRecords(["cloudflare.com", "pektin.xyz.", "pektin.xyzss.", "dadsd.com"])
+);

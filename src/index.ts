@@ -561,15 +561,22 @@ export const pektinApiRequest = async (
         throw Error("Couldn't fetch: " + e);
     });
 
-    const json = await res.json().catch(e => {
-        throw Error("Couldn't parse JSON response: " + e);
-    });
+    const text = await res.text();
+    let json;
+    try {
+        json = JSON.parse(text);
+    } catch (e) {
+        throw Error(`Couldn't parse JSON response: ${e}, res.text():\n${text}`);
+    }
     if (json.error === true) {
+        body.client_username = "<REDACTED>";
+        if (body.confidant_password) body.confidant_password = "<REDACTED>" as ConfidantPassword;
+
         throw Error(
             `API Error:\n 
-                ${JSON.stringify(json, null, "    ")}\n 
-                while trying to ${method}: \n
-                ${JSON.stringify(body, null, "    ")}`
+${JSON.stringify(json, null, "    ")}\n 
+while trying to ${method}: \n
+${JSON.stringify(body, null, "    ")}`
         );
     }
 
