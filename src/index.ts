@@ -231,7 +231,7 @@ export class ExtendedPektinApiClient extends BasicPektinClient {
     // returns number of removed keys
     deleteZone = async (name: string): Promise<number> => {
         const records = await this.getZoneRecords([name]);
-        const tbd = records.data[absoluteName(name)];
+        const tbd = records.data[absoluteName(name)].map(entry => entry.name);
         return (await this.deleteRecords(tbd)).data.keys_removed;
     };
 

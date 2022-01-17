@@ -61,7 +61,7 @@ export interface HealthResponse extends PektinApiResponseBase {
 }
 export interface GetZoneRecordsResponse extends PektinApiResponseBase {
     error: false;
-    data: { [domainName: DomainName]: string[] };
+    data: { [domainName: DomainName]: RedisEntry[] };
 }
 
 export type PektinApiMethod = "get" | "set" | "search" | "delete" | "get-zone-records" | "health";
