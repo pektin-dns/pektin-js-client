@@ -150,10 +150,8 @@ export interface VaultAuthJSON {
 }
 export interface RedisEntry {
     name: string;
-    rr_set: PektinRRset;
+    rr_set: PektinResourceRecord[];
 }
-
-export type PektinRRset = Array<PektinResourceRecord>;
 
 // a resource record with a ttl and the rr value
 export interface PektinResourceRecord {

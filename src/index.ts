@@ -18,7 +18,7 @@ import {
     PektinApiSetRequestBody,
     PektinClientConnectionConfigOverride,
     PektinConfig,
-    PektinRRset,
+    PektinResourceRecord,
     RedisEntry,
     SearchResponse,
     SetResponse
@@ -380,7 +380,7 @@ export class ExtendedPektinApiClient extends BasicPektinClient {
         nameServers: { domain: string; ips: string[]; legacyIps: string[] }[]
     ) => {
         const subDomains = nameServers.map(ns => ns.domain);
-        const rr_set: PektinRRset = subDomains.map(subDomain => {
+        const rr_set: PektinResourceRecord[] = subDomains.map(subDomain => {
             return {
                 ttl: 60,
                 value: { NS: absoluteName(subDomain) }
