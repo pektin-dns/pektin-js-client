@@ -148,112 +148,16 @@ export interface VaultAuthJSON {
     username: string;
     password: string;
 }
-export type RedisEntry =
-    | {
-          name: `${DomainName}:${PektinRRType.A}`;
-          rr_set: ASet[];
-      }
-    | {
-          name: `${DomainName}:${PektinRRType.AAAA}`;
-          rr_set: AAAASet[];
-      }
-    | {
-          name: `${DomainName}:${PektinRRType.NS}`;
-          rr_set: NSSet[];
-      }
-    | {
-          name: `${DomainName}:${PektinRRType.CNAME}`;
-          rr_set: CNAMESet[];
-      }
-    | {
-          name: `${DomainName}:${PektinRRType.SOA}`;
-          rr_set: SOASet[];
-      }
-    | {
-          name: `${DomainName}:${PektinRRType.MX}`;
-          rr_set: MXSet[];
-      }
-    | {
-          name: `${DomainName}:${PektinRRType.TXT}`;
-          rr_set: TXTSet[];
-      }
-    | {
-          name: `${DomainName}:${PektinRRType.SRV}`;
-          rr_set: SRVSet[];
-      }
-    | {
-          name: `${DomainName}:${PektinRRType.CAA}`;
-          rr_set: CAASet[];
-      }
-    | {
-          name: `${DomainName}:${PektinRRType.OPENPGPKEY}`;
-          rr_set: OPENPSet[];
-      }
-    | {
-          name: `${DomainName}:${PektinRRType.TLSA}`;
-          rr_set: TLSASet[];
-      };
-
-export type PektinResourceRecord =
-    | ASet
-    | AAAASet
-    | NSSet
-    | CNAMESet
-    | SOASet
-    | MXSet
-    | TXTSet
-    | SRVSet
-    | CAASet
-    | OPENPSet
-    | TLSASet;
-
-export interface AAAASet {
-    ttl: number;
-    value: AAAA;
-}
-export interface NSSet {
-    ttl: number;
-    value: NS;
-}
-export interface CNAMESet {
-    ttl: number;
-    value: CNAME;
-}
-export interface SOASet {
-    ttl: number;
-    value: SOA;
-}
-export interface MXSet {
-    ttl: number;
-    value: MX;
-}
-export interface TXTSet {
-    ttl: number;
-    value: TXT;
-}
-export interface SRVSet {
-    ttl: number;
-    value: SRV;
-}
-export interface CAASet {
-    ttl: number;
-    value: CAA;
-}
-export interface OPENPSet {
-    ttl: number;
-    value: OPENPGPKEY;
-}
-export interface TLSASet {
-    ttl: number;
-    value: TLSA;
-}
-
-export interface ASet {
-    ttl: number;
-    value: A;
+export interface RedisEntry {
+    name: `${DomainName}:${PektinRRType}`;
+    rr_set: PektinResourceRecord[];
 }
 
 // a resource record with a ttl and the rr value
+export interface PektinResourceRecord {
+    ttl: number;
+    value: PektinResourceRecordValue;
+}
 
 enum PektinRRType {
     "A",
@@ -268,6 +172,20 @@ enum PektinRRType {
     "OPENPGPKEY",
     "TLSA"
 }
+
+// the resource record value
+type PektinResourceRecordValue =
+    | A
+    | AAAA
+    | NS
+    | CNAME
+    | SOA
+    | MX
+    | TXT
+    | SRV
+    | CAA
+    | OPENPGPKEY
+    | TLSA;
 
 interface A {
     [type: PektinRRType.A]: string;
