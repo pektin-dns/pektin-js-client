@@ -148,16 +148,105 @@ export interface VaultAuthJSON {
     username: string;
     password: string;
 }
-export interface RedisEntry {
-    name: `${DomainName}:${PektinRRType}`;
-    rr_set: PektinResourceRecord[];
+export type RedisEntry =
+    | {
+          name: `${DomainName}:${PektinRRType.A}`;
+          rr_set: ASet[];
+      }
+    | {
+          name: `${DomainName}:${PektinRRType.AAAA}`;
+          rr_set: AAAASet[];
+      }
+    | {
+          name: `${DomainName}:${PektinRRType.NS}`;
+          rr_set: NSSet[];
+      }
+    | {
+          name: `${DomainName}:${PektinRRType.CNAME}`;
+          rr_set: CNAMESet[];
+      }
+    | {
+          name: `${DomainName}:${PektinRRType.SOA}`;
+          rr_set: SOASet[];
+      }
+    | {
+          name: `${DomainName}:${PektinRRType.MX}`;
+          rr_set: MXSet[];
+      }
+    | {
+          name: `${DomainName}:${PektinRRType.TXT}`;
+          rr_set: TXTSet[];
+      }
+    | {
+          name: `${DomainName}:${PektinRRType.SRV}`;
+          rr_set: SRVSet[];
+      }
+    | {
+          name: `${DomainName}:${PektinRRType.CAA}`;
+          rr_set: CAASet[];
+      }
+    | {
+          name: `${DomainName}:${PektinRRType.OPENPGPKEY}`;
+          rr_set: OPENPSet[];
+      }
+    | {
+          name: `${DomainName}:${PektinRRType.TLSA}`;
+          rr_set: TLSASet[];
+      };
+
+export type PektinResourceRecord =
+    | ASet
+    | AAAASet
+    | NSSet
+    | CNAMESet
+    | SOASet
+    | MXSet
+    | TXTSet
+    | SRVSet
+    | CAASet
+    | OPENPSet
+    | TLSASet;
+
+export interface RRSetBase {
+    ttl: number;
+}
+
+export interface ASet extends RRSetBase {
+    value: A;
+}
+
+export interface AAAASet extends RRSetBase {
+    value: AAAA;
+}
+export interface NSSet extends RRSetBase {
+    value: NS;
+}
+export interface CNAMESet extends RRSetBase {
+    value: CNAME;
+}
+export interface SOASet extends RRSetBase {
+    value: SOA;
+}
+export interface MXSet extends RRSetBase {
+    value: MX;
+}
+export interface TXTSet extends RRSetBase {
+    value: TXT;
+}
+export interface SRVSet extends RRSetBase {
+    value: SRV;
+}
+export interface CAASet extends RRSetBase {
+    value: CAA;
+}
+export interface OPENPSet extends RRSetBase {
+    value: OPENPGPKEY;
+}
+export interface TLSASet extends RRSetBase {
+    value: TLSA;
 }
 
 // a resource record with a ttl and the rr value
-export interface PektinResourceRecord {
-    ttl: number;
-    value: PektinResourceRecordValue;
-}
 
 enum PektinRRType {
     "A",
@@ -172,20 +261,6 @@ enum PektinRRType {
     "OPENPGPKEY",
     "TLSA"
 }
-
-// the resource record value
-type PektinResourceRecordValue =
-    | A
-    | AAAA
-    | NS
-    | CNAME
-    | SOA
-    | MX
-    | TXT
-    | SRV
-    | CAA
-    | OPENPGPKEY
-    | TLSA;
 
 interface A {
     [type: PektinRRType.A]: string;
