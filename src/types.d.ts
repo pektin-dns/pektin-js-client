@@ -188,20 +188,20 @@ type PektinResourceRecordValue =
     | TLSA;
 
 interface A {
-    A: string;
+    [type: PektinRRType.A]: string;
 }
 interface AAAA {
-    AAAA: string;
+    [type: PektinRRType.AAAA]: string;
 }
 interface NS {
-    NS: string;
+    [type: PektinRRType.NS]: string;
 }
 interface CNAME {
-    CNAME: string;
+    [type: PektinRRType.CNAME]: string;
 }
 
 interface SOA {
-    SOA: SOAValue;
+    [type: PektinRRType.SOA]: SOAValue;
 }
 interface SOAValue {
     mname: string;
@@ -213,18 +213,18 @@ interface SOAValue {
     minimum: number;
 }
 interface MX {
-    MX: MXValue;
+    [type: PektinRRType.MX]: MXValue;
 }
 interface MXValue {
     preference: number;
     exchange: string;
 }
 interface TXT {
-    TXT: string;
+    [type: PektinRRType.TXT]: string;
 }
 
 interface SRV {
-    SRV: SRVValue;
+    [type: PektinRRType.SRV]: SRVValue;
 }
 interface SRVValue {
     priority: number;
@@ -234,7 +234,7 @@ interface SRVValue {
 }
 
 interface CAA {
-    CAA: CAAValue;
+    [type: PektinRRType.CAA]: CAAValue;
 }
 interface CAAValue {
     issuer_critical: boolean;
@@ -248,11 +248,11 @@ interface Issuer {
 type Url = `https://${string}` | `http://${string}` | `mailto:${string}`;
 
 interface OPENPGPKEY {
-    OPENPGPKEY: string;
+    [type: PektinRRType.OPENPGPKEY]: string;
 }
 
 interface TLSA {
-    TLSA: TLSAValue;
+    [type: PektinRRType.TLSA]: TLSAValue;
 }
 interface TLSAValue {
     cert_usage: "CA" | "Service" | "TrustAnchor" | "DomainIssued";
