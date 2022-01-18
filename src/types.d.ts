@@ -149,7 +149,7 @@ export interface VaultAuthJSON {
     password: string;
 }
 export interface RedisEntry {
-    name: string;
+    name: `${DomainName}:${PektinRRType}`;
     rr_set: PektinResourceRecord[];
 }
 
@@ -159,18 +159,19 @@ export interface PektinResourceRecord {
     value: PektinResourceRecordValue;
 }
 
-type PektinRRTypes =
-    | "A"
-    | "AAAA"
-    | "NS"
-    | "CNAME"
-    | "SOA"
-    | "MX"
-    | "TXT"
-    | "SRV"
-    | "CAA"
-    | "OPENPGPKEY"
-    | "TLSA";
+enum PektinRRType {
+    "A",
+    "AAAA",
+    "NS",
+    "CNAME",
+    "SOA",
+    "MX",
+    "TXT",
+    "SRV",
+    "CAA",
+    "OPENPGPKEY",
+    "TLSA"
+}
 
 // the resource record value
 type PektinResourceRecordValue =
