@@ -248,7 +248,7 @@ export interface TLSASet extends RRSetBase {
 
 // a resource record with a ttl and the rr value
 
-enum PektinRRType {
+export enum PektinRRType {
     "A",
     "AAAA",
     "NS",
