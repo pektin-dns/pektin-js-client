@@ -311,3 +311,19 @@ export const getPubVaultKeys = async (endpoint: string, token: string, domainNam
         return getPubKeyRes.status;
     }
 };
+
+export const healthCheck = async (endpoint: string, token: string) => {
+    const res: any = await f(endpoint + `/v1/sys/health`, {
+        headers: {
+            "X-Vault-Token": token
+        }
+    }).catch(e => {
+        e = e.toString();
+        e = e.substring(e.indexOf(":") + 2);
+        return { error: e };
+    });
+    if (res.error) return res;
+
+    const resJson = await res.json().catch(() => {});
+    return resJson;
+};

@@ -605,3 +605,22 @@ export const checkManagerPassword = (input: string | undefined): ManagerPassword
     if (input.startsWith("m.")) return input as ManagerPassword;
     throw Error("Passed managerPassword is not a manager password");
 };
+
+export const isSupportedRecordType = (type: string) => {
+    if (supportedRecordTypes.indexOf(type) > -1) return true;
+    return false;
+};
+
+export const supportedRecordTypes = [
+    "A",
+    "AAAA",
+    "NS",
+    "CNAME",
+    "SOA",
+    "MX",
+    "TXT",
+    "SRV",
+    "CAA",
+    "OPENPGPKEY",
+    "TLSA"
+];

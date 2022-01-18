@@ -162,12 +162,10 @@ export interface PektinResourceRecord {
 }
 
 type PektinRRTypes =
-    | "NEW"
     | "A"
     | "AAAA"
     | "NS"
     | "CNAME"
-    | "PTR"
     | "SOA"
     | "MX"
     | "TXT"
@@ -182,7 +180,6 @@ type PektinResourceRecordValue =
     | AAAA
     | NS
     | CNAME
-    | PTR
     | SOA
     | MX
     | TXT
@@ -192,22 +189,20 @@ type PektinResourceRecordValue =
     | TLSA;
 
 interface A {
-    [A: string]: string;
+    A: string;
 }
 interface AAAA {
-    [AAAA: string]: string;
+    AAAA: string;
 }
 interface NS {
-    [NS: string]: string;
+    NS: string;
 }
 interface CNAME {
-    [CNAME: string]: string;
+    CNAME: string;
 }
-interface PTR {
-    [PTR: string]: string;
-}
+
 interface SOA {
-    [SOA: string]: SOAValue;
+    SOA: SOAValue;
 }
 interface SOAValue {
     mname: string;
@@ -219,21 +214,18 @@ interface SOAValue {
     minimum: number;
 }
 interface MX {
-    [MX: string]: MXValue;
+    MX: MXValue;
 }
 interface MXValue {
     preference: number;
     exchange: string;
 }
 interface TXT {
-    [TXT: string]: TXTValue;
-}
-interface TXTValue {
-    txt_data: Array<Array<number>>;
+    TXT: string;
 }
 
 interface SRV {
-    [SRV: string]: SRVValue;
+    SRV: SRVValue;
 }
 interface SRVValue {
     priority: number;
@@ -243,7 +235,7 @@ interface SRVValue {
 }
 
 interface CAA {
-    [CAA: string]: CAAValue;
+    CAA: CAAValue;
 }
 interface CAAValue {
     issuer_critical: boolean;
@@ -257,14 +249,11 @@ interface Issuer {
 type Url = `https://${string}` | `http://${string}` | `mailto:${string}`;
 
 interface OPENPGPKEY {
-    [OPENPGPKEY: string]: OPENPGPKEYValue;
+    OPENPGPKEY: string;
 }
 
-interface OPENPGPKEYValue {
-    [public_key: string]: Array<number>;
-}
 interface TLSA {
-    [TLSA: string]: TLSAValue;
+    TLSA: TLSAValue;
 }
 interface TLSAValue {
     cert_usage: "CA" | "Service" | "TrustAnchor" | "DomainIssued";
