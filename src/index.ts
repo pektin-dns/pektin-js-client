@@ -604,7 +604,7 @@ export const pektinApiRequest = async (
     throwErrors = true
 ): Promise<PektinApiResponseBody> => {
     if (!apiEndpoint) throw Error("Pektin API details weren't obtained yet");
-
+    const tStart = performance.now();
     const res = await f(`${apiEndpoint}/${method}`, {
         method: "POST",
         headers: { "content-type": "application/json" },
@@ -612,11 +612,12 @@ export const pektinApiRequest = async (
     }).catch(e => {
         throw Error("Couldn't fetch: " + e);
     });
-
+    const tEnd = performance.now();
     const text = await res.text();
     let json;
     try {
         json = JSON.parse(text);
+        json.time = tEnd - tStart;
     } catch (e) {
         throw Error(`Couldn't parse JSON response: ${e}, res.text():\n${text}`);
     }

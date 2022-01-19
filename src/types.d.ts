@@ -64,6 +64,7 @@ export interface GetZoneRecordsResponseError extends PektinApiResponseErrorBase 
 
 export interface PektinApiResponseBase {
     message: string;
+    time: number;
 }
 
 export interface PektinApiResponseSuccessBase extends PektinApiResponseBase {
