@@ -33,6 +33,7 @@ export class BasicPektinClient {
     confidantPassword?: ConfidantPassword;
     managerPassword?: ManagerPassword;
     recursorAuth?: string;
+    throwErrors?: boolean;
 
     confidantToken: string | null;
     managerToken: string | null;
@@ -41,7 +42,7 @@ export class BasicPektinClient {
 
     pektinConfig: PektinConfig | null;
 
-    constructor(credentials: PektinClientConnectionConfigOverride) {
+    constructor(credentials: PektinClientConnectionConfigOverride, throwErrors?: boolean) {
         this.vaultEndpoint = credentials.vaultEndpoint;
         this.username = credentials.username;
 
@@ -54,6 +55,7 @@ export class BasicPektinClient {
 
         this.pektinApiEndpoint = credentials.override?.pektinApiEndpoint || null;
         this.pektinConfig = credentials.override?.pektinConfig || null;
+        this.throwErrors = throwErrors;
     }
 
     init = async () => {
@@ -88,24 +90,6 @@ export class BasicPektinClient {
         this.recursorAuth = await getRecursorAuth(this.vaultEndpoint, this.confidantToken);
     };
 
-    // get whether or not the pektin setup is healthy
-    health = async () => {
-        if (!this.pektinApiEndpoint) {
-            this.getPektinConfig();
-            if (!this.pektinApiEndpoint) {
-                throw Error("Couldn't obtain pektinApiEndpoint");
-            }
-        }
-        if (!this.confidantPassword) {
-            throw Error("Client cannot use this function because it requires a confidantPassword");
-        }
-
-        return await health(this.pektinApiEndpoint, {
-            confidant_password: this.confidantPassword,
-            client_username: this.username
-        });
-    };
-
     // obtain the vault token by sending username and password to the vault endpoint
     getVaultToken = async (clientType: ClientVaultAccountType) => {
         if (!this.confidantPassword) {
@@ -125,7 +109,7 @@ export class BasicPektinClient {
     };
 
     // get records from the api/redis based on their key
-    get = async (keys: string[]) => {
+    get = async (keys: string[], throwErrors = this.throwErrors) => {
         if (!this.pektinApiEndpoint) {
             this.getPektinConfig();
             if (!this.pektinApiEndpoint) {
@@ -143,8 +127,30 @@ export class BasicPektinClient {
         });
     };
 
+    // get whether or not the pektin setup is healthy
+    health = async (throwErrors = this.throwErrors) => {
+        if (!this.pektinApiEndpoint) {
+            this.getPektinConfig();
+            if (!this.pektinApiEndpoint) {
+                throw Error("Couldn't obtain pektinApiEndpoint");
+            }
+        }
+        if (!this.confidantPassword) {
+            throw Error("Client cannot use this function because it requires a confidantPassword");
+        }
+
+        return await health(
+            this.pektinApiEndpoint,
+            {
+                confidant_password: this.confidantPassword,
+                client_username: this.username
+            },
+            throwErrors
+        );
+    };
+
     // set records via the api in redis
-    set = async (records: RedisEntry[]) => {
+    set = async (records: RedisEntry[], throwErrors = this.throwErrors) => {
         if (!this.pektinApiEndpoint) {
             await this.getPektinConfig();
             if (!this.pektinApiEndpoint) {
@@ -155,15 +161,19 @@ export class BasicPektinClient {
             throw Error("Client cannot use this function because it requires a confidantPassword");
         }
 
-        return await set(this.pektinApiEndpoint, {
-            confidant_password: this.confidantPassword,
-            client_username: this.username,
-            records
-        });
+        return await set(
+            this.pektinApiEndpoint,
+            {
+                confidant_password: this.confidantPassword,
+                client_username: this.username,
+                records
+            },
+            throwErrors
+        );
     };
 
     // search for records in redis by providing a glob search string
-    search = async (glob: string) => {
+    search = async (glob: string, throwErrors = this.throwErrors) => {
         if (!this.pektinApiEndpoint) {
             await this.getPektinConfig();
             if (!this.pektinApiEndpoint) {
@@ -177,15 +187,19 @@ export class BasicPektinClient {
             throw Error("Client cannot use this function because it requires a confidantPassword");
         }
 
-        return await search(this.pektinApiEndpoint, {
-            confidant_password: this.confidantPassword,
-            client_username: this.username,
-            glob
-        });
+        return await search(
+            this.pektinApiEndpoint,
+            {
+                confidant_password: this.confidantPassword,
+                client_username: this.username,
+                glob
+            },
+            throwErrors
+        );
     };
 
     // delete records based on their keys
-    deleteRecords = async (keys: string[]) => {
+    deleteRecords = async (keys: string[], throwErrors = this.throwErrors) => {
         if (!this.pektinApiEndpoint) {
             await this.getPektinConfig();
             if (!this.pektinApiEndpoint) {
@@ -196,15 +210,19 @@ export class BasicPektinClient {
             throw Error("Client cannot use this function because it requires a confidantPassword");
         }
 
-        return await deleteRecords(this.pektinApiEndpoint, {
-            confidant_password: this.confidantPassword,
-            client_username: this.username,
-            keys
-        });
+        return await deleteRecords(
+            this.pektinApiEndpoint,
+            {
+                confidant_password: this.confidantPassword,
+                client_username: this.username,
+                keys
+            },
+            throwErrors
+        );
     };
 
     // get all records for zones
-    getZoneRecords = async (names: string[]) => {
+    getZoneRecords = async (names: string[], throwErrors = this.throwErrors) => {
         if (!this.pektinApiEndpoint) {
             await this.getPektinConfig();
             if (!this.pektinApiEndpoint) {
@@ -215,11 +233,15 @@ export class BasicPektinClient {
             throw Error("Client cannot use this function because it requires a confidantPassword");
         }
 
-        return await getZoneRecords(this.pektinApiEndpoint, {
-            confidant_password: this.confidantPassword,
-            client_username: this.username,
-            names
-        });
+        return await getZoneRecords(
+            this.pektinApiEndpoint,
+            {
+                confidant_password: this.confidantPassword,
+                client_username: this.username,
+                names
+            },
+            throwErrors
+        );
     };
 }
 
@@ -500,7 +522,8 @@ export const getPektinConfig = async (vaultEndpoint: string, vaultToken: string)
 // get records from the api/redis based on their key
 export const get = async (
     apiEndpoint: string,
-    body: PektinApiGetRequestBody
+    body: PektinApiGetRequestBody,
+    throwErrors?: boolean
 ): Promise<GetResponse> => {
     return await pektinApiRequest(apiEndpoint, "get", body);
 };
@@ -508,7 +531,8 @@ export const get = async (
 // set records via the api in redis
 export const set = async (
     apiEndpoint: string,
-    body: PektinApiSetRequestBody
+    body: PektinApiSetRequestBody,
+    throwErrors?: boolean
 ): Promise<SetResponse> => {
     return await pektinApiRequest(apiEndpoint, "set", body);
 };
@@ -516,7 +540,8 @@ export const set = async (
 // search for records in redis by providing a glob search string
 export const search = async (
     apiEndpoint: string,
-    body: PektinApiSearchRequestBody
+    body: PektinApiSearchRequestBody,
+    throwErrors?: boolean
 ): Promise<SearchResponse> => {
     return await pektinApiRequest(apiEndpoint, "search", body);
 };
@@ -524,7 +549,8 @@ export const search = async (
 // delete records based on their keys
 export const deleteRecords = async (
     apiEndpoint: string,
-    body: PektinApiDeleteRequestBody
+    body: PektinApiDeleteRequestBody,
+    throwErrors?: boolean
 ): Promise<DeleteResponse> => {
     return await pektinApiRequest(apiEndpoint, "delete", body);
 };
@@ -532,7 +558,8 @@ export const deleteRecords = async (
 // get api health status
 export const health = async (
     apiEndpoint: string,
-    body: PektinApiHealthRequestBody
+    body: PektinApiHealthRequestBody,
+    throwErrors?: boolean
 ): Promise<HealthResponse> => {
     return await pektinApiRequest(apiEndpoint, "health", body);
 };
@@ -540,7 +567,8 @@ export const health = async (
 // get all records for zones
 export const getZoneRecords = async (
     apiEndpoint: string,
-    body: PektinApiGetZoneRecordsRequestBody
+    body: PektinApiGetZoneRecordsRequestBody,
+    throwErrors?: boolean
 ): Promise<GetZoneRecordsResponse> => {
     return await pektinApiRequest(apiEndpoint, "get-zone-records", body);
 };
@@ -549,7 +577,8 @@ export const getZoneRecords = async (
 export const pektinApiRequest = async (
     apiEndpoint: string,
     method: PektinApiMethod,
-    body: PektinApiRequestBody
+    body: PektinApiRequestBody,
+    throwErrors = true
 ) => {
     if (!apiEndpoint) throw Error("Pektin API details weren't obtained yet");
 
@@ -568,7 +597,7 @@ export const pektinApiRequest = async (
     } catch (e) {
         throw Error(`Couldn't parse JSON response: ${e}, res.text():\n${text}`);
     }
-    if (json.error === true) {
+    if (json.error === true && throwErrors) {
         body.client_username = "<REDACTED>";
         if (body.confidant_password) body.confidant_password = "<REDACTED>" as ConfidantPassword;
 
