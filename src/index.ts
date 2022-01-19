@@ -525,7 +525,7 @@ export const get = async (
     body: PektinApiGetRequestBody,
     throwErrors?: boolean
 ): Promise<GetResponse> => {
-    return await pektinApiRequest(apiEndpoint, "get", body);
+    return await pektinApiRequest(apiEndpoint, "get", body, throwErrors);
 };
 
 // set records via the api in redis
@@ -534,7 +534,7 @@ export const set = async (
     body: PektinApiSetRequestBody,
     throwErrors?: boolean
 ): Promise<SetResponse> => {
-    return await pektinApiRequest(apiEndpoint, "set", body);
+    return await pektinApiRequest(apiEndpoint, "set", body, throwErrors);
 };
 
 // search for records in redis by providing a glob search string
@@ -543,7 +543,7 @@ export const search = async (
     body: PektinApiSearchRequestBody,
     throwErrors?: boolean
 ): Promise<SearchResponse> => {
-    return await pektinApiRequest(apiEndpoint, "search", body);
+    return await pektinApiRequest(apiEndpoint, "search", body, throwErrors);
 };
 
 // delete records based on their keys
@@ -552,7 +552,7 @@ export const deleteRecords = async (
     body: PektinApiDeleteRequestBody,
     throwErrors?: boolean
 ): Promise<DeleteResponse> => {
-    return await pektinApiRequest(apiEndpoint, "delete", body);
+    return await pektinApiRequest(apiEndpoint, "delete", body, throwErrors);
 };
 
 // get api health status
@@ -561,7 +561,7 @@ export const health = async (
     body: PektinApiHealthRequestBody,
     throwErrors?: boolean
 ): Promise<HealthResponse> => {
-    return await pektinApiRequest(apiEndpoint, "health", body);
+    return await pektinApiRequest(apiEndpoint, "health", body, throwErrors);
 };
 
 // get all records for zones
@@ -570,7 +570,7 @@ export const getZoneRecords = async (
     body: PektinApiGetZoneRecordsRequestBody,
     throwErrors?: boolean
 ): Promise<GetZoneRecordsResponse> => {
-    return await pektinApiRequest(apiEndpoint, "get-zone-records", body);
+    return await pektinApiRequest(apiEndpoint, "get-zone-records", body, throwErrors);
 };
 
 // send any request to the pektin api
