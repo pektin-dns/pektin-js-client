@@ -32,35 +32,62 @@ export interface OverrideClientCredentials {
     pektinConfig?: PektinConfig;
 }
 
+export type PektinApiResponseBodyNoError =
+    | SetResponseSuccess
+    | GetResponseSuccess
+    | SearchResponseSuccess
+    | DeleteResponseSuccess
+    | HealthResponseSuccess
+    | GetZoneRecordsResponseSuccess;
+
+export type PektinApiResponseBody =
+    | SetResponse
+    | GetResponse
+    | SearchResponse
+    | DeleteResponse
+    | HealthResponse
+    | GetZoneRecordsResponse;
+
+export type SetResponse = SetResponseSuccess | SetResponseError;
+export type GetResponse = GetResponseSuccess | GetResponseError;
+export type SearchResponse = SearchResponseSuccess | SearchResponseError;
+export type DeleteResponse = DeleteResponseSuccess | DeleteResponseError;
+export type HealthResponse = HealthResponseSuccess | HealthResponseError;
+export type GetZoneRecordsResponse = GetZoneRecordsResponseSuccess | GetZoneRecordsResponseError;
+
+export interface SetResponseError extends PektinApiResponseErrorBase {}
+export interface GetResponseError extends PektinApiResponseErrorBase {}
+export interface SearchResponseError extends PektinApiResponseErrorBase {}
+export interface DeleteResponseError extends PektinApiResponseErrorBase {}
+export interface HealthResponseError extends PektinApiResponseErrorBase {}
+export interface GetZoneRecordsResponseError extends PektinApiResponseErrorBase {}
+
 export interface PektinApiResponseBase {
     message: string;
 }
 
-export interface ApiErrorResponse extends PektinApiResponseBase {
+export interface PektinApiResponseSuccessBase extends PektinApiResponseBase {
+    error: false;
+}
+export interface PektinApiResponseErrorBase extends PektinApiResponseBase {
     error: true;
 }
 
-export interface SetResponse extends PektinApiResponseBase {
-    error: false;
+export interface SetResponseSuccess extends PektinApiResponseSuccessBase {
     data: null;
 }
-export interface GetResponse extends PektinApiResponseBase {
-    error: false;
+
+export interface GetResponseSuccess extends PektinApiResponseSuccessBase {
     data: RedisEntry[];
 }
-export interface SearchResponse extends PektinApiResponseBase {
-    error: false;
+export interface SearchResponseSuccess extends PektinApiResponseSuccessBase {
     data: string[];
 }
-export interface DeleteResponse extends PektinApiResponseBase {
-    error: false;
+export interface DeleteResponseSuccess extends PektinApiResponseSuccessBase {
     data: { keys_removed: number };
 }
-export interface HealthResponse extends PektinApiResponseBase {
-    error: false;
-}
-export interface GetZoneRecordsResponse extends PektinApiResponseBase {
-    error: false;
+export interface HealthResponseSuccess extends PektinApiResponseSuccessBase {}
+export interface GetZoneRecordsResponseSuccess extends PektinApiResponseSuccessBase {
     data: { [domainName: DomainName]: RedisEntry[] };
 }
 
