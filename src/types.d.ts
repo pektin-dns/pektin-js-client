@@ -55,23 +55,14 @@ export type DeleteResponse = DeleteResponseSuccess | DeleteResponseError;
 export type HealthResponse = HealthResponseSuccess | HealthResponseError;
 export type GetZoneRecordsResponse = GetZoneRecordsResponseSuccess | GetZoneRecordsResponseError;
 
-export interface SetResponseError extends PektinApiResponseErrorBase {}
-export interface GetResponseError extends PektinApiResponseErrorBase {}
-export interface SearchResponseError extends PektinApiResponseErrorBase {}
-export interface DeleteResponseError extends PektinApiResponseErrorBase {}
-export interface HealthResponseError extends PektinApiResponseErrorBase {}
-export interface GetZoneRecordsResponseError extends PektinApiResponseErrorBase {}
-
 export interface PektinApiResponseBase {
     message: string;
     time: number;
 }
 
+// response success
 export interface PektinApiResponseSuccessBase extends PektinApiResponseBase {
     error: false;
-}
-export interface PektinApiResponseErrorBase extends PektinApiResponseBase {
-    error: true;
 }
 
 export interface SetResponseSuccess extends PektinApiResponseSuccessBase {
@@ -91,6 +82,19 @@ export interface HealthResponseSuccess extends PektinApiResponseSuccessBase {}
 export interface GetZoneRecordsResponseSuccess extends PektinApiResponseSuccessBase {
     data: { [domainName: DomainName]: RedisEntry[] };
 }
+
+// response errors
+export interface PektinApiResponseErrorBase extends PektinApiResponseBase {
+    error: true;
+}
+export interface SetResponseError extends PektinApiResponseErrorBase {
+    data: string[];
+}
+export interface GetResponseError extends PektinApiResponseErrorBase {}
+export interface SearchResponseError extends PektinApiResponseErrorBase {}
+export interface DeleteResponseError extends PektinApiResponseErrorBase {}
+export interface HealthResponseError extends PektinApiResponseErrorBase {}
+export interface GetZoneRecordsResponseError extends PektinApiResponseErrorBase {}
 
 export type PektinApiMethod = "get" | "set" | "search" | "delete" | "get-zone-records" | "health";
 
