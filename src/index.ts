@@ -19,7 +19,7 @@ import {
     PektinApiMethod,
     PektinApiRequestBody,
     PektinApiResponseBody,
-    PektinApiResponseBodyNoError,
+    PektinApiResponseBodyReturnErrors,
     PektinApiSearchRequestBody,
     PektinApiSetRequestBody,
     PektinClientConnectionConfigOverride,
@@ -632,7 +632,7 @@ while trying to ${method}: \n
 ${JSON.stringify(body, null, "    ")}`
         );
     }
-    if (throwErrors) return json as PektinApiResponseBodyNoError;
+    if (throwErrors) return json as PektinApiResponseBodyReturnErrors;
     return json as PektinApiResponseBody;
 };
 
