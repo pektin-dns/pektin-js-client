@@ -96,7 +96,7 @@ export interface PektinApiResponseErrorBase extends PektinApiResponseBase {
     error: true;
 }
 export interface SetResponseError extends PektinApiResponseErrorBase {
-    data: string[];
+    data: array<string | null>;
 }
 export interface GetResponseError extends PektinApiResponseErrorBase {}
 export interface SearchResponseError extends PektinApiResponseErrorBase {}
