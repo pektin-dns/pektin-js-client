@@ -13,6 +13,7 @@ import {
     createPektinVaultEngines,
     updatePektinSharedPasswords
 } from "./../auth.js";
+import { getPektinApiEndpoint } from "../index.js";
 
 export const installPektinCompose = async (
     dir: string = "/pektin-compose/",
@@ -107,30 +108,64 @@ export const installPektinCompose = async (
     };
 
     const pektinAdminRibstonPolicy = await fs.readFile(
-        `/app/node_modules/@pektin/client/dist/ribston-policies/admin.ribston.js`,
+        `/app/node_modules/@pektin/client/dist/ribston-policies/allow-everything.ribston.js`,
         "utf-8"
     );
 
-    await createPektinClient(
-        internalVaultUrl,
-        vaultTokens.rootToken,
-        pektinAdminConnectionConfig.username,
-        pektinAdminConnectionConfig.managerPassword,
-        pektinAdminConnectionConfig.confidantPassword,
-        pektinAdminRibstonPolicy,
-        [],
-        true
-    );
+    await createPektinClient({
+        endpoint: internalVaultUrl,
+        token: vaultTokens.rootToken,
+        clientName: pektinAdminConnectionConfig.username,
+        managerPassword: pektinAdminConnectionConfig.managerPassword,
+        confidantPassword: pektinAdminConnectionConfig.confidantPassword,
+        capabilities: {
+            allowAllSigningDomains: true,
+            recursorAccess: true,
+            configAccess: true,
+            ribstonPolicy: pektinAdminRibstonPolicy
+        }
+    });
 
     await fs.writeFile(
-        path.join(dir, "secrets", "admin-access.json"),
+        path.join(dir, "secrets", "server-admin-connection-config.json"),
         JSON.stringify(pektinAdminConnectionConfig)
     );
+
+    // create acme client if enabled
+    if (pektinConfig.createCerts) {
+        const acmeClientConnectionConfig = {
+            username: `acme-${randomString(10)}`,
+            confidantPassword: `c.${randomString()}`,
+            vaultEndpoint,
+            override: {
+                pektinApiEndpoint: getPektinApiEndpoint(pektinConfig)
+            }
+        };
+        const acmeClientRibstonPolicy = await fs.readFile(
+            `/app/node_modules/@pektin/client/dist/ribston-policies/acme.ribston.js`,
+            "utf-8"
+        );
+        await createPektinClient({
+            endpoint: internalVaultUrl,
+            token: vaultTokens.rootToken,
+            clientName: acmeClientConnectionConfig.username,
+            confidantPassword: acmeClientConnectionConfig.confidantPassword,
+            capabilities: {
+                ribstonPolicy: acmeClientRibstonPolicy,
+                allowAllSigningDomains: true
+            }
+        });
+        await fs.writeFile(
+            path.join(dir, "secrets", "acme-client-connection-config.json"),
+            JSON.stringify(acmeClientConnectionConfig)
+        );
+    }
 
     // create basic auth for recursor
     const RECURSOR_USER = randomString(20);
     const RECURSOR_PASSWORD = randomString();
     const recursorBasicAuthHashed = genBasicAuthHashed(RECURSOR_USER, RECURSOR_PASSWORD);
+
     // set recursor basic auth string on vault
     await updateKvValue(
         internalVaultUrl,

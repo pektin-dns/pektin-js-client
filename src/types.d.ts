@@ -1,3 +1,11 @@
+export interface ClientCapabilities {
+    ribstonPolicy: string;
+    allowedSigningDomains?: string[];
+    allowAllSigningDomains?: boolean;
+    recursorAccess?: boolean;
+    configAccess?: boolean;
+}
+
 export interface PektinOfficerMeta {
     [policy: string]: string;
 }

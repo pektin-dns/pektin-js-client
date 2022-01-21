@@ -1,5 +1,12 @@
 import { deAbsolute } from "./index.js";
-import { ClientName, DomainName, ManagerName, OfficerName, RibstonPolicy } from "./types";
+import {
+    ClientCapabilities,
+    ClientName,
+    DomainName,
+    ManagerName,
+    OfficerName,
+    RibstonPolicy
+} from "./types";
 import { randomString } from "./utils.js";
 import {
     pektinApiPolicy,
@@ -61,33 +68,35 @@ export const createPektinOfficer = async (
     ]);
 };
 
-export const createPektinClient = async (
-    endpoint: string,
-    token: string,
-    clientName: ClientName,
-    managerPassword: string,
-    confidantPassword: string,
-    ribstonPolicy: RibstonPolicy,
-    allowedSigningDomains: string[],
-    allowAllSigningDomains?: boolean
-) => {
+export const createPektinClient = async ({
+    endpoint,
+    token,
+    clientName,
+    managerPassword,
+    confidantPassword,
+    capabilities
+}: {
+    endpoint: string;
+    token: string;
+    clientName: ClientName;
+    managerPassword?: string;
+    confidantPassword: string;
+    capabilities: ClientCapabilities;
+}) => {
     const officerPassword = randomString();
 
     await updatePektinSharedPasswords(endpoint, token, "officer", officerPassword, clientName);
 
-    await createPektinOfficer(endpoint, token, clientName, officerPassword, ribstonPolicy);
-
-    await createPektinManager(endpoint, token, clientName, managerPassword);
-
-    await createPektinConfidant(
+    await createPektinOfficer(
         endpoint,
         token,
         clientName,
-        confidantPassword,
-        {},
-        allowedSigningDomains,
-        allowAllSigningDomains
+        officerPassword,
+        capabilities.ribstonPolicy
     );
+    if (managerPassword) await createPektinManager(endpoint, token, clientName, managerPassword);
+
+    await createPektinConfidant(endpoint, token, clientName, confidantPassword, {}, capabilities);
 
     return confidantPassword;
 };
@@ -109,8 +118,7 @@ export const createPektinConfidant = async (
     clientName: ClientName,
     password: string,
     metadata: object,
-    allowedSigningDomains: string[],
-    allowAllSigningDomains?: boolean
+    capabilities: ClientCapabilities
 ) => {
     const confidantName = `pektin-client-confidant-${clientName}`;
     await createFullUserPass(endpoint, token, confidantName, password, metadata, [confidantName]);
@@ -119,7 +127,7 @@ export const createPektinConfidant = async (
         endpoint,
         token,
         confidantName,
-        pektinConfidantPolicy(clientName, allowedSigningDomains, allowAllSigningDomains)
+        pektinConfidantPolicy(clientName, capabilities)
     );
 };
 
@@ -219,4 +227,12 @@ export const createFullUserPass = async (
         canonical_id: entity.id,
         mount_accessor: authMethods["userpass/"].accessor
     });
+};
+
+const deleteClient = async () => {
+    // TODO
+};
+
+const getClients = async () => {
+    // TODO
 };

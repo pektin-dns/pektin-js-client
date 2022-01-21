@@ -1,5 +1,5 @@
 import { deAbsolute } from "../index.js";
-import { ClientName } from "../types.js";
+import { ClientCapabilities, ClientName } from "../types.js";
 import { VaultPolicy } from "./types";
 
 export const pektinOfficerPolicy = `
@@ -14,33 +14,33 @@ path "pektin-transit/sign/{{identity.entity.metadata.domain}}/sha2-256" {
 
 export const pektinConfidantPolicy = (
     clientName: ClientName,
-    allowedSigningDomains: string[],
-    allowAllSigningDomains: boolean = false,
-    allowRecursorUse: boolean = true
+    capabilities: ClientCapabilities
 ): VaultPolicy => {
     let policy = `
 path "pektin-officer-passwords-1/data/${clientName}" {
     capabilities = ["read"]
-}
-
+}`;
+    if (capabilities.configAccess) {
+        policy += `
 path "pektin-kv/data/pektin-config" {
     capabilities = ["read"]
 }`;
+    }
 
-    if (allowRecursorUse) {
+    if (capabilities.recursorAccess) {
         policy += `
 path "pektin-kv/data/recursor-auth" {
     capabilities = ["read"]
 }`;
     }
 
-    if (allowAllSigningDomains) {
+    if (capabilities.allowAllSigningDomains) {
         policy += `
 path "pektin-signer-passwords-1/data/*" {
     capabilities = ["read"]
 }`;
-    } else {
-        allowedSigningDomains.map(domain => {
+    } else if (capabilities.allowedSigningDomains) {
+        capabilities.allowedSigningDomains.map(domain => {
             policy += `
 path "pektin-signer-passwords-1/data/${deAbsolute(domain)}" {
     capabilities = ["read"]
