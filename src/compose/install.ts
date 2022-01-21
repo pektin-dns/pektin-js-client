@@ -247,7 +247,8 @@ export const installPektinCompose = async (
     await chownRecursive(path.join(dir, `secrets`), process.env.UID, process.env.GID);
     await chmod(path.join(dir, `secrets`), `700`);
     await chmod(path.join(dir, `secrets`, `.env`), `700`);
-    await chmod(path.join(dir, `secrets`, `admin-access.json`), `700`);
+    await chmod(path.join(dir, `secrets`, `acme-client-connection-config.json`), `700`);
+    await chmod(path.join(dir, `secrets`, `server-admin-connection-config.json`), `700`);
 };
 
 export const genBasicAuthHashed = (username: string, password: string) => {
