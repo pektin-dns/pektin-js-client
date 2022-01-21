@@ -1,10 +1,10 @@
 import { promises as fs } from "fs";
 import path from "path";
-import { chownRecursive, chown, chmod, randomString } from "./../utils.js";
+import { chownRecursive, chown, chmod, randomString, configToCertbotIni } from "./../utils.js";
 import crypto from "crypto";
 
 import { unsealVault, initVault, enableVaultCors, updateKvValue } from "./../vault/vault.js";
-import { PektinConfig } from "./../types";
+import { PektinClientConnectionConfigOverride, PektinConfig } from "./../types";
 import {
     createPektinClient,
     createPektinApiAccount,
@@ -136,7 +136,6 @@ export const installPektinCompose = async (
         const acmeClientConnectionConfig = {
             username: `acme-${randomString(10)}`,
             confidantPassword: `c.${randomString()}`,
-            vaultEndpoint,
             override: {
                 pektinApiEndpoint: getPektinApiEndpoint(pektinConfig)
             }
@@ -158,6 +157,10 @@ export const installPektinCompose = async (
         await fs.writeFile(
             path.join(dir, "secrets", "acme-client-connection-config.json"),
             JSON.stringify(acmeClientConnectionConfig)
+        );
+        await fs.writeFile(
+            path.join(dir, "secrets", "certbot-acme-client-connection-config.ini"),
+            configToCertbotIni(acmeClientConnectionConfig as PektinClientConnectionConfigOverride)
         );
     }
 

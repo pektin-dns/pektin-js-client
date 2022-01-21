@@ -2,7 +2,7 @@ import crypto from "crypto";
 
 import { promisify } from "util";
 import { exec as exec_default } from "child_process";
-import { NameServer } from "./types";
+import { NameServer, PektinClientConnectionConfigOverride } from "./types";
 import fs from "fs/promises";
 import path from "path";
 const exec = promisify(exec_default);
@@ -66,4 +66,11 @@ export const createSingleScript = async (
     }
     await fs.writeFile(scriptDestination, content + "history -d $(history 1)");
     return out;
+};
+
+export const configToCertbotIni = (cc: PektinClientConnectionConfigOverride) => {
+    return `username = ${cc.username}
+confidantPassword = ${cc.confidantPassword}
+pektinApiEndpoint = ${cc.override?.pektinApiEndpoint}
+`;
 };
