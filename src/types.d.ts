@@ -25,7 +25,7 @@ export type ConfidantPassword = `c.${string}`;
 export type ClientVaultAccountType = "confidant" | "manager";
 
 export interface PektinClientConnectionConfig {
-    vaultEndpoint: string;
+    vaultEndpoint?: string;
     username: string;
     confidantPassword?: ConfidantPassword;
     managerPassword?: ManagerPassword;

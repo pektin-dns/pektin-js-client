@@ -12,7 +12,7 @@ export const pektinComposeFirstStart = async (recursive: any) => {
     ) as PektinConfig;
 
     const adminCreds: PektinClientConnectionConfigOverride = JSON.parse(
-        await fs.readFile(path.join(dir, "secrets", "admin-access.json"), "utf-8")
+        await fs.readFile(path.join(dir, "secrets", "server-admin-connection-config.json"), "utf-8")
     );
 
     if (pektinConfig.configureMainDomain) {

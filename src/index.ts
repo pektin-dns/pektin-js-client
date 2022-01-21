@@ -36,7 +36,7 @@ import f from "cross-fetch";
 import { vaultLoginUserpass, getVaultValue } from "./vault/vault.js";
 
 export class BasicPektinClient {
-    vaultEndpoint: string;
+    vaultEndpoint?: string;
     username: ClientName;
     confidantPassword?: ConfidantPassword;
     managerPassword?: ManagerPassword;
@@ -73,6 +73,11 @@ export class BasicPektinClient {
 
     // get the pektin config from vault
     getPektinConfig = async () => {
+        if (!this.vaultEndpoint) {
+            throw Error(
+                "Tried to execute an action that requires the vault endpoint without it being supplied"
+            );
+        }
         if (!this.confidantToken) {
             await this.getVaultToken("confidant");
             if (!this.confidantToken) {
@@ -89,6 +94,11 @@ export class BasicPektinClient {
         }
     };
     getRecursorAuth = async () => {
+        if (!this.vaultEndpoint) {
+            throw Error(
+                "Tried to execute an action that requires the vault endpoint without it being supplied"
+            );
+        }
         if (!this.confidantToken) {
             await this.getVaultToken("confidant");
             if (!this.confidantToken) {
@@ -100,6 +110,11 @@ export class BasicPektinClient {
 
     // obtain the vault token by sending username and password to the vault endpoint
     getVaultToken = async (clientType: ClientVaultAccountType) => {
+        if (!this.vaultEndpoint) {
+            throw Error(
+                "Tried to execute an action that requires the vault endpoint without it being supplied"
+            );
+        }
         if (!this.confidantPassword) {
             throw Error("Client cannot use this function because it requires a confidantPassword");
         }
