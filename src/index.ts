@@ -1,4 +1,5 @@
 import {
+    ApiRecord,
     ClientName,
     ClientVaultAccountType,
     ConfidantPassword,
@@ -24,7 +25,6 @@ import {
     PektinApiSetRequestBody,
     PektinClientConnectionConfigOverride,
     PektinConfig,
-    RedisEntry,
     SearchResponse,
     SearchResponseSuccess,
     SetResponse,
@@ -172,7 +172,7 @@ export class BasicPektinClient {
     };
 
     // set records via the api in redis
-    set = async (records: RedisEntry[], throwErrors = this.throwErrors) => {
+    set = async (records: ApiRecord[], throwErrors = this.throwErrors) => {
         if (!this.pektinApiEndpoint) {
             await this.getPektinConfig();
             if (!this.pektinApiEndpoint) {
@@ -325,7 +325,7 @@ export class ExtendedPektinApiClient extends BasicPektinClient {
             pektinConfig.vaultSubDomain,
             pektinConfig.recursorSubDomain
         ];
-        const records = [] as RedisEntry[];
+        const records = [] as ApiRecord[];
 
         domains.forEach((subDomain: string) => {
             if (pektinConfig?.nameServers[0].ips.length) {
@@ -456,7 +456,7 @@ export class ExtendedPektinApiClient extends BasicPektinClient {
     setupNameServerIps = async (
         nameServers: { domain: string; ips: string[]; legacyIps: string[] }[]
     ) => {
-        const records: RedisEntry[] = [];
+        const records: ApiRecord[] = [];
         nameServers.forEach(ns => {
             if (ns.ips && ns.ips.length) {
                 records.push({
