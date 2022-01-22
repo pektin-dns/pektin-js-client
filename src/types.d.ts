@@ -197,68 +197,68 @@ export interface VaultAuthJSON {
     password: string;
 }
 
-export type RedisEntry =
-    | RedisA
-    | RedisAAAA
-    | RedisNS
-    | RedisCNAME
-    | RedisSOA
-    | RedisMX
-    | RedisTXT
-    | RedisSRV
-    | RedisCAA
-    | RedisOPENPGPKEY
-    | RedisTLSA;
+export type ApiRecord =
+    | ApiRecordA
+    | ApiRecordAAAA
+    | ApiRecordNS
+    | ApiRecordCNAME
+    | ApiRecordSOA
+    | ApiRecordMX
+    | ApiRecordTXT
+    | ApiRecordSRV
+    | ApiRecordCAA
+    | ApiRecordOPENPGPKEY
+    | ApiRecordTLSA;
 
-export interface RedisBase {
+export interface ApiRecordBase {
     name: string;
 }
-export interface RedisA extends RedisBase {
+export interface ApiRecordA extends ApiRecordBase {
     rr_type: "A";
     rr_set: ARecord[];
 }
 
-export interface RedisAAAA extends RedisBase {
+export interface ApiRecordAAAA extends ApiRecordBase {
     rr_type: "AAAA";
     rr_set: AAAARecord[];
 }
-export interface RedisNS extends RedisBase {
+export interface ApiRecordNS extends ApiRecordBase {
     rr_type: "NS";
     rr_set: NSRecord[];
 }
-export interface RedisCNAME extends RedisBase {
+export interface ApiRecordCNAME extends ApiRecordBase {
     rr_type: "CNAME";
     rr_set: CNAMERecord[];
 }
-export interface RedisSOA extends RedisBase {
+export interface ApiRecordSOA extends ApiRecordBase {
     rr_type: "SOA";
     rr_set: SOARecord[];
 }
-export interface RedisMX extends RedisBase {
+export interface ApiRecordMX extends ApiRecordBase {
     rr_type: "MX";
     rr_set: MXRecord[];
 }
-export interface RedisTXT extends RedisBase {
+export interface ApiRecordTXT extends ApiRecordBase {
     rr_type: "TXT";
     rr_set: TXTRecord[];
 }
-export interface RedisSRV extends RedisBase {
+export interface ApiRecordSRV extends ApiRecordBase {
     rr_type: "SRV";
     rr_set: SRVRecord[];
 }
-export interface RedisSOA extends RedisBase {
+export interface ApiRecordSOA extends ApiRecordBase {
     rr_type: "SOA";
     rr_set: SOARecord[];
 }
-export interface RedisCAA extends RedisBase {
+export interface ApiRecordCAA extends ApiRecordBase {
     rr_type: "CAA";
     rr_set: CAARecord[];
 }
-export interface RedisOPENPGPKEY extends RedisBase {
+export interface ApiRecordOPENPGPKEY extends ApiRecordBase {
     rr_type: "OPENPGPKEY";
     rr_set: OPENPGPKEYRecord[];
 }
-export interface RedisTLSA extends RedisBase {
+export interface ApiRecordTLSA extends ApiRecordBase {
     rr_type: "TLSA";
     rr_set: TLSARecord[];
 }
@@ -292,27 +292,26 @@ export interface SOARecord extends ResourceRecordBase {
     minimum: number;
 }
 
-export interface MXRecord extends ResourceRecordBase {
+export interface OPENPGPKEYRecord extends ResourceRecordBase {
     value: string;
 }
 export interface TXTRecord extends ResourceRecordBase {
-    mname: string;
-    rname: string;
+    value: string;
 }
 
-export interface SRVRecord extends ResourceRecordBase {
+export interface MXRecord extends ResourceRecordBase {
     preference: number;
     exchange: string;
 }
 
-export interface CAARecord extends ResourceRecordBase {
+export interface SRVRecord extends ResourceRecordBase {
     priority: number;
     weight: number;
     port: number;
     target: string;
 }
 
-export interface OPENPGPKEYRecord extends ResourceRecordBase {
+export interface CAARecord extends ResourceRecordBase {
     flag: number; //0;
     tag: "issue" | "issuewild" | "iodef"; //"issue" | "issuewild" | "iodef" | "contactemail" | "contactphone";
     caaValue: string;
