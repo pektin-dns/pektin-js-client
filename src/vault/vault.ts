@@ -299,7 +299,7 @@ export const createSigningKey = async (endpoint: string, token: string, domainNa
 
 // get keys for a domain with vault metadata
 export const getPubVaultKeys = async (endpoint: string, token: string, domainName: string) => {
-    const getPubKeyRes = await f(`${process.env.VAULT_URL}/v1/pektin-transit/keys/${domainName}`, {
+    const getPubKeyRes = await f(`${endpoint}/v1/pektin-transit/keys/${domainName}`, {
         method: "GET",
         headers: {
             "X-Vault-Token": token

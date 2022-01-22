@@ -1,2 +1,3 @@
 src/.manualTests/*
-dist/.manualTests/*
+dist/js/.manualTests/*
+dist/deno/.manualTests/*

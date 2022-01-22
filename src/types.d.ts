@@ -104,7 +104,7 @@ export interface PektinApiResponseErrorBase extends PektinApiResponseBase {
     error: true;
 }
 export interface SetResponseError extends PektinApiResponseErrorBase {
-    data: array<string | null>;
+    data: Array<string | null>;
 }
 export interface GetResponseError extends PektinApiResponseErrorBase {}
 export interface SearchResponseError extends PektinApiResponseErrorBase {}
@@ -196,18 +196,125 @@ export interface VaultAuthJSON {
     username: string;
     password: string;
 }
-export interface RedisEntry {
+
+export type RedisEntry =
+    | RedisA
+    | RedisAAAA
+    | RedisNS
+    | RedisCNAME
+    | RedisSOA
+    | RedisMX
+    | RedisTXT
+    | RedisSRV
+    | RedisCAA
+    | RedisOPENPGPKEY
+    | RedisTLSA;
+
+export interface RedisBase {
     name: string;
-    rr_set: PektinResourceRecord[];
+}
+export interface RedisA extends RedisBase {
+    rr_type: "A";
+    rr_set: ARecord[];
 }
 
-// a resource record with a ttl and the rr value
-export interface PektinResourceRecord {
+export interface RedisAAAA extends RedisBase {
+    rr_type: "AAAA";
+    rr_set: AAAARecord[];
+}
+export interface RedisNS extends RedisBase {
+    rr_type: "NS";
+    rr_set: NSRecord[];
+}
+export interface RedisCNAME extends RedisBase {
+    rr_type: "CNAME";
+    rr_set: CNAMERecord[];
+}
+export interface RedisSOA extends RedisBase {
+    rr_type: "SOA";
+    rr_set: SOARecord[];
+}
+export interface RedisMX extends RedisBase {
+    rr_type: "MX";
+    rr_set: MXRecord[];
+}
+export interface RedisTXT extends RedisBase {
+    rr_type: "TXT";
+    rr_set: TXTRecord[];
+}
+export interface RedisSRV extends RedisBase {
+    rr_type: "SRV";
+    rr_set: SRVRecord[];
+}
+export interface RedisCAA extends RedisBase {
+    rr_type: "CAA";
+    rr_set: CAARecord[];
+}
+export interface RedisOPENPGPKEY extends RedisBase {
+    rr_type: "OPENPGPKEY";
+    rr_set: OPENPGPKEYRecord[];
+}
+export interface RedisTLSA extends RedisBase {
+    rr_type: "TLSA";
+    rr_set: TLSARecord[];
+}
+
+export interface ResourceRecordBase {
     ttl: number;
-    value: PektinResourceRecordValue;
 }
 
-type PektinRRTypes =
+export interface A extends ResourceRecordBase {
+    value: string;
+}
+export interface ARecord extends ResourceRecordBase {
+    value: string;
+}
+export interface AAAARecord extends ResourceRecordBase {
+    value: string;
+}
+export interface NSRecord extends ResourceRecordBase {
+    value: string;
+}
+export interface CNAMERecord extends ResourceRecordBase {
+    value: string;
+}
+export interface SOARecord extends ResourceRecordBase {
+    value: string;
+}
+export interface MXRecord extends ResourceRecordBase {
+    value: string;
+}
+export interface TXTRecord extends ResourceRecordBase {
+    mname: string;
+    rname: string;
+}
+
+export interface SRVRecord extends ResourceRecordBase {
+    preference: number;
+    exchange: string;
+}
+
+export interface CAARecord extends ResourceRecordBase {
+    priority: number;
+    weight: number;
+    port: number;
+    target: string;
+}
+
+export interface OPENPGPKEYRecord extends ResourceRecordBase {
+    flag: number; //0;
+    tag: "issue" | "issuewild" | "iodef"; //"issue" | "issuewild" | "iodef" | "contactemail" | "contactphone";
+    caaValue: string;
+}
+
+export interface TLSARecord extends ResourceRecordBase {
+    usage: 0 | 1 | 2 | 3;
+    selector: 0 | 1;
+    matching_type: 0 | 1 | 2;
+    data: string;
+}
+
+type PektinRRType =
     | "A"
     | "AAAA"
     | "NS"
@@ -219,91 +326,3 @@ type PektinRRTypes =
     | "CAA"
     | "OPENPGPKEY"
     | "TLSA";
-
-// the resource record value
-type PektinResourceRecordValue =
-    | A
-    | AAAA
-    | NS
-    | CNAME
-    | SOA
-    | MX
-    | TXT
-    | SRV
-    | CAA
-    | OPENPGPKEY
-    | TLSA;
-
-interface A {
-    A: string;
-}
-interface AAAA {
-    AAAA: string;
-}
-interface NS {
-    NS: string;
-}
-interface CNAME {
-    CNAME: string;
-}
-
-interface SOA {
-    SOA: SOAValue;
-}
-interface SOAValue {
-    mname: string;
-    rname: string;
-    serial: number;
-    refresh: number;
-    retry: number;
-    expire: number;
-    minimum: number;
-}
-interface MX {
-    MX: MXValue;
-}
-interface MXValue {
-    preference: number;
-    exchange: string;
-}
-interface TXT {
-    TXT: string;
-}
-
-interface SRV {
-    SRV: SRVValue;
-}
-interface SRVValue {
-    priority: number;
-    weight: number;
-    port: number;
-    target: string;
-}
-
-interface CAA {
-    CAA: CAAValue;
-}
-interface CAAValue {
-    issuer_critical: boolean;
-    tag: "Issue" | "IssueWild" | "Iodef";
-    value: Issuer[] | Url;
-}
-interface Issuer {
-    key: string;
-    value: string;
-}
-type Url = `https://${string}` | `http://${string}` | `mailto:${string}`;
-
-interface OPENPGPKEY {
-    OPENPGPKEY: string;
-}
-
-interface TLSA {
-    TLSA: TLSAValue;
-}
-interface TLSAValue {
-    cert_usage: "CA" | "Service" | "TrustAnchor" | "DomainIssued";
-    selector: "Full" | "Spki";
-    matching: "Raw" | "Sha256" | "Sha512";
-    cert_data: string;
-}

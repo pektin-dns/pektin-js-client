@@ -1,6 +1,6 @@
 {
     "compilerOptions": {
-        "outDir": "./dist",
+        "outDir": "./dist/js",
         "target": "es2017",
         "esModuleInterop": true,
         "moduleResolution": "node",
