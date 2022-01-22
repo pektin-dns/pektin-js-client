@@ -633,8 +633,15 @@ export const pektinApiRequest = async (
         json = JSON.parse(text);
         json.time = tEnd - tStart;
     } catch (e) {
+        body.client_username = "<REDACTED>";
+        if (body.confidant_password) body.confidant_password = "<REDACTED>" as ConfidantPassword;
         throw Error(
-            `Pektin client couldn't parse JSON response from API\nPektin-API returned body:\n${text}`
+            `Pektin client couldn't parse JSON response from API\n
+Pektin-API returned body:\n
+${text}\n
+\n 
+while client was trying to ${method} the following body:\n 
+${JSON.stringify(body, null, "    ")}`
         );
     }
     if (json.error === true && throwErrors) {
@@ -644,7 +651,7 @@ export const pektinApiRequest = async (
         throw Error(
             `API Error:\n 
 ${JSON.stringify(json, null, "    ")}\n 
-while trying to ${method}: \n
+while client was trying to ${method} the following body: \n
 ${JSON.stringify(body, null, "    ")}`
         );
     }
