@@ -246,6 +246,10 @@ export interface RedisSRV extends RedisBase {
     rr_type: "SRV";
     rr_set: SRVRecord[];
 }
+export interface RedisSOA extends RedisBase {
+    rr_type: "SOA";
+    rr_set: SOARecord[];
+}
 export interface RedisCAA extends RedisBase {
     rr_type: "CAA";
     rr_set: CAARecord[];
@@ -279,8 +283,15 @@ export interface CNAMERecord extends ResourceRecordBase {
     value: string;
 }
 export interface SOARecord extends ResourceRecordBase {
-    value: string;
+    mname: string;
+    rname: string;
+    serial: number;
+    refresh: number;
+    retry: number;
+    expire: number;
+    minimum: number;
 }
+
 export interface MXRecord extends ResourceRecordBase {
     value: string;
 }

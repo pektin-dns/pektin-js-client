@@ -24,7 +24,6 @@ import {
     PektinApiSetRequestBody,
     PektinClientConnectionConfigOverride,
     PektinConfig,
-    PektinResourceRecord,
     RedisEntry,
     SearchResponse,
     SearchResponseSuccess,
@@ -331,22 +330,24 @@ export class ExtendedPektinApiClient extends BasicPektinClient {
         domains.forEach((subDomain: string) => {
             if (pektinConfig?.nameServers[0].ips.length) {
                 records.push({
-                    name: absoluteName(subDomain + "." + pektinConfig?.domain) + ":AAAA",
+                    name: absoluteName(subDomain + "." + pektinConfig?.domain),
+                    rr_type: "AAAA",
                     rr_set: pektinConfig?.nameServers[0].ips.map(ip => {
                         return {
                             ttl: 60,
-                            value: { AAAA: ip }
+                            value: ip
                         };
                     })
                 });
             }
             if (pektinConfig?.nameServers[0].legacyIps.length) {
                 records.push({
-                    name: absoluteName(subDomain + "." + pektinConfig?.domain) + ":A",
+                    name: absoluteName(subDomain + "." + pektinConfig?.domain),
+                    rr_type: "A",
                     rr_set: pektinConfig?.nameServers[0].legacyIps.map(legacyIp => {
                         return {
                             ttl: 60,
-                            value: { A: legacyIp }
+                            value: legacyIp
                         };
                     })
                 });
@@ -386,20 +387,16 @@ export class ExtendedPektinApiClient extends BasicPektinClient {
         const rr_set = [
             {
                 ttl: 60,
-                value: {
-                    SOA: {
-                        mname: absoluteName(mainSubdomain),
-                        rname: absoluteName("hostmaster." + domain),
-                        serial: 0,
-                        refresh: 0,
-                        retry: 0,
-                        expire: 0,
-                        minimum: 0
-                    }
-                }
+                mname: absoluteName(mainSubdomain),
+                rname: absoluteName("hostmaster." + domain),
+                serial: 0,
+                refresh: 0,
+                retry: 0,
+                expire: 0,
+                minimum: 0
             }
         ];
-        return await this.set([{ name: absoluteName(domain) + ":SOA", rr_set }]);
+        return await this.set([{ name: absoluteName(domain), rr_type: "SOA", rr_set }]);
     };
 
     setupMainNameServers = async (pektinConfig?: PektinConfig) => {
@@ -427,13 +424,13 @@ export class ExtendedPektinApiClient extends BasicPektinClient {
         nameServers: { domain: string; ips: string[]; legacyIps: string[] }[]
     ) => {
         const subDomains = nameServers.map(ns => ns.domain);
-        const rr_set: PektinResourceRecord[] = subDomains.map(subDomain => {
+        const rr_set = subDomains.map(subDomain => {
             return {
                 ttl: 60,
-                value: { NS: absoluteName(subDomain) }
+                value: absoluteName(subDomain)
             };
         });
-        return await this.set([{ name: absoluteName(domain) + ":NS", rr_set }]);
+        return await this.set([{ name: absoluteName(domain), rr_type: "NS", rr_set }]);
     };
 
     setupMainNameServerIps = async (pektinConfig?: PektinConfig) => {
@@ -463,22 +460,24 @@ export class ExtendedPektinApiClient extends BasicPektinClient {
         nameServers.forEach(ns => {
             if (ns.ips && ns.ips.length) {
                 records.push({
-                    name: absoluteName(ns.domain) + ":AAAA",
+                    name: absoluteName(ns.domain),
+                    rr_type: "AAAA",
                     rr_set: ns.ips.map(ip => {
                         return {
                             ttl: 60,
-                            value: { AAAA: ip }
+                            value: ip
                         };
                     })
                 });
             }
             if (ns.legacyIps && ns.legacyIps.length) {
                 records.push({
-                    name: absoluteName(ns.domain) + ":A",
+                    name: absoluteName(ns.domain),
+                    rr_type: "A",
                     rr_set: ns.legacyIps.map(legacyIp => {
                         return {
                             ttl: 60,
-                            value: { A: legacyIp }
+                            value: legacyIp
                         };
                     })
                 });
