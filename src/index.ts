@@ -633,7 +633,9 @@ export const pektinApiRequest = async (
         json = JSON.parse(text);
         json.time = tEnd - tStart;
     } catch (e) {
-        throw Error(`Couldn't parse JSON response: ${e}, res.text():\n${text}`);
+        throw Error(
+            `Pektin client couldn't parse JSON response from API\nPektin-API returned body:\n${text}`
+        );
     }
     if (json.error === true && throwErrors) {
         body.client_username = "<REDACTED>";
