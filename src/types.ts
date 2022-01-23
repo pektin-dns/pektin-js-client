@@ -318,10 +318,18 @@ export interface SRVRecord extends ResourceRecordBase {
     target: string;
 }
 
-export interface CAARecord extends ResourceRecordBase {
-    flag: number; //0;
-    tag: "issue" | "issuewild" | "iodef"; //"issue" | "issuewild" | "iodef" | "contactemail" | "contactphone";
-    caaValue: string;
+export type CAARecord = CAARecordIssue | CAARecordIodef;
+
+export interface CAARecordIssue extends ResourceRecordBase {
+    issuer_critical: boolean;
+    tag: "issue" | "issuewild";
+    value: DomainName;
+}
+
+export interface CAARecordIodef extends ResourceRecordBase {
+    issuer_critical: boolean;
+    tag: "iodef";
+    value: `https://${string}` | `http://${string}` | `mailto:${string}`;
 }
 
 export interface TLSARecord extends ResourceRecordBase {

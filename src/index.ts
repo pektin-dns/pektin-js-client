@@ -689,6 +689,8 @@ export const isSupportedRecordType = (type: string) => {
     return false;
 };
 
+// TODO coloring only shows special characters in browser
+
 export const supportedRecordTypes = [
     "A",
     "AAAA",
