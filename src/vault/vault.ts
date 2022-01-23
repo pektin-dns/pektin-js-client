@@ -1,6 +1,6 @@
 import f from "cross-fetch";
 import { VaultAuthJSON } from "../types";
-import { colors } from "../utils.js";
+import { colors } from "../colors.js";
 import {
     VaultSecretEngineOptions,
     VaultAuthEngineType,
