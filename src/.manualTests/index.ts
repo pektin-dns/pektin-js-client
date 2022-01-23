@@ -1,10 +1,10 @@
 import { ExtendedPektinApiClient } from "../index.js";
 const pc = new ExtendedPektinApiClient({
-    username: "admin-ERwxFZQIWR_yOA",
+    username: "admin-8V5adk-TuQKIEw",
     managerPassword:
-        "m.RyRRfuwh-8_HeFhUzY3e9uVnrzAGWX1lC8wYTz506CgsTDghSylJiIDWgjvVVznUnBy6nABIZEK0OIobMfZQZf933oQT_zRWiUlJhheY8xfo35l9x6mx11fN0Jng5TkkYWirYw",
+        "m.i-NBaFlt9JSIqEeN56gWWo_iLltOQHrc8aYLNOnalfKu00hoB202vCiS7Bc2-0hac3-lfnAs7Av-vG-gpZiGDMaBk3MthYqPC1TRt4TePC5nSTRvp0P38sr3yprZR0cs5obElA",
     confidantPassword:
-        "c.o5MGb2zXSUGvVezruFSFLAJGq0MlHdCWL01aGr4kxOxv5NdDgA28FOWjDTqsTFXsr41KDphHLm55sktuJJcTsD_p2bOZV3-FGW8_VGFdcTXxd5mI71W8UcUy-ySryT5sq4V7gA",
+        "c.hrWFuu3EH-MdmgzAUa0hsFWisdzV4zORSQwzZIqNv6kGgBEvzB0-qcursvuHNmOZQ9TRfsOpTy-OQflKJ0H3i39uAOFb7RjfW9im1NImgzfM9ICV0gAGFhXY6ZQb86YCujg3Bg",
     vaultEndpoint: "http://127.0.0.1:8200"
 });
 

@@ -86,7 +86,7 @@ export interface SetResponseSuccess extends PektinApiResponseSuccessBase {
 }
 
 export interface GetResponseSuccess extends PektinApiResponseSuccessBase {
-    data: RedisEntry[];
+    data: ApiRecord[];
 }
 export interface SearchResponseSuccess extends PektinApiResponseSuccessBase {
     data: string[];
@@ -96,7 +96,7 @@ export interface DeleteResponseSuccess extends PektinApiResponseSuccessBase {
 }
 export interface HealthResponseSuccess extends PektinApiResponseSuccessBase {}
 export interface GetZoneRecordsResponseSuccess extends PektinApiResponseSuccessBase {
-    data: { [domainName: DomainName]: RedisEntry[] };
+    data: { [domainName: DomainName]: ApiRecord[] };
 }
 
 // response errors
@@ -131,7 +131,7 @@ export interface PektinApiGetRequestBody extends PektinApiRequestBodyBase {
     keys: string[];
 }
 export interface PektinApiSetRequestBody extends PektinApiRequestBodyBase {
-    records: RedisEntry[];
+    records: ApiRecord[];
 }
 export interface PektinApiSearchRequestBody extends PektinApiRequestBodyBase {
     glob: string;
@@ -214,52 +214,49 @@ export interface ApiRecordBase {
     name: string;
 }
 export interface ApiRecordA extends ApiRecordBase {
-    rr_type: "A";
+    rr_type: PektinRRType.A;
     rr_set: ARecord[];
 }
 
 export interface ApiRecordAAAA extends ApiRecordBase {
-    rr_type: "AAAA";
+    rr_type: PektinRRType.AAAA;
     rr_set: AAAARecord[];
 }
 export interface ApiRecordNS extends ApiRecordBase {
-    rr_type: "NS";
+    rr_type: PektinRRType.NS;
     rr_set: NSRecord[];
 }
 export interface ApiRecordCNAME extends ApiRecordBase {
-    rr_type: "CNAME";
+    rr_type: PektinRRType.CNAME;
     rr_set: CNAMERecord[];
 }
 export interface ApiRecordSOA extends ApiRecordBase {
-    rr_type: "SOA";
+    rr_type: PektinRRType.SOA;
     rr_set: SOARecord[];
 }
 export interface ApiRecordMX extends ApiRecordBase {
-    rr_type: "MX";
+    rr_type: PektinRRType.MX;
     rr_set: MXRecord[];
 }
 export interface ApiRecordTXT extends ApiRecordBase {
-    rr_type: "TXT";
+    rr_type: PektinRRType.TXT;
     rr_set: TXTRecord[];
 }
 export interface ApiRecordSRV extends ApiRecordBase {
-    rr_type: "SRV";
+    rr_type: PektinRRType.SRV;
     rr_set: SRVRecord[];
 }
-export interface ApiRecordSOA extends ApiRecordBase {
-    rr_type: "SOA";
-    rr_set: SOARecord[];
-}
+
 export interface ApiRecordCAA extends ApiRecordBase {
-    rr_type: "CAA";
+    rr_type: PektinRRType.CAA;
     rr_set: CAARecord[];
 }
 export interface ApiRecordOPENPGPKEY extends ApiRecordBase {
-    rr_type: "OPENPGPKEY";
+    rr_type: PektinRRType.OPENPGPKEY;
     rr_set: OPENPGPKEYRecord[];
 }
 export interface ApiRecordTLSA extends ApiRecordBase {
-    rr_type: "TLSA";
+    rr_type: PektinRRType.TLSA;
     rr_set: TLSARecord[];
 }
 
@@ -267,9 +264,19 @@ export interface ResourceRecordBase {
     ttl: number;
 }
 
-export interface A extends ResourceRecordBase {
-    value: string;
-}
+export type ResourceRecord =
+    | ARecord
+    | AAAARecord
+    | NSRecord
+    | CNAMERecord
+    | SOARecord
+    | OPENPGPKEYRecord
+    | TXTRecord
+    | MXRecord
+    | SRVRecord
+    | CAARecord
+    | TLSARecord;
+
 export interface ARecord extends ResourceRecordBase {
     value: string;
 }
@@ -324,15 +331,16 @@ export interface TLSARecord extends ResourceRecordBase {
     data: string;
 }
 
-type PektinRRType =
-    | "A"
-    | "AAAA"
-    | "NS"
-    | "CNAME"
-    | "SOA"
-    | "MX"
-    | "TXT"
-    | "SRV"
-    | "CAA"
-    | "OPENPGPKEY"
-    | "TLSA";
+export enum PektinRRType {
+    A = "A",
+    AAAA = "AAAA",
+    NS = "NS",
+    CNAME = "CNAME",
+    SOA = "SOA",
+    MX = "MX",
+    TXT = "TXT",
+    SRV = "SRV",
+    CAA = "CAA",
+    OPENPGPKEY = "OPENPGPKEY",
+    TLSA = "TLSA"
+}

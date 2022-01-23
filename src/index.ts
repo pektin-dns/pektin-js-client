@@ -25,14 +25,16 @@ import {
     PektinApiSetRequestBody,
     PektinClientConnectionConfigOverride,
     PektinConfig,
+    PektinRRType,
     SearchResponse,
     SearchResponseSuccess,
     SetResponse,
     SetResponseSuccess
-} from "./types";
+} from "./types.js";
 
 import f from "cross-fetch";
 import { vaultLoginUserpass, getVaultValue } from "./vault/vault.js";
+import { colors } from "./utils.js";
 
 export class BasicPektinClient {
     vaultEndpoint?: string;
@@ -331,7 +333,7 @@ export class ExtendedPektinApiClient extends BasicPektinClient {
             if (pektinConfig?.nameServers[0].ips.length) {
                 records.push({
                     name: absoluteName(subDomain + "." + pektinConfig?.domain),
-                    rr_type: "AAAA",
+                    rr_type: PektinRRType.AAAA,
                     rr_set: pektinConfig?.nameServers[0].ips.map(ip => {
                         return {
                             ttl: 60,
@@ -343,7 +345,7 @@ export class ExtendedPektinApiClient extends BasicPektinClient {
             if (pektinConfig?.nameServers[0].legacyIps.length) {
                 records.push({
                     name: absoluteName(subDomain + "." + pektinConfig?.domain),
-                    rr_type: "A",
+                    rr_type: PektinRRType.A,
                     rr_set: pektinConfig?.nameServers[0].legacyIps.map(legacyIp => {
                         return {
                             ttl: 60,
@@ -396,7 +398,7 @@ export class ExtendedPektinApiClient extends BasicPektinClient {
                 minimum: 0
             }
         ];
-        return await this.set([{ name: absoluteName(domain), rr_type: "SOA", rr_set }]);
+        return await this.set([{ name: absoluteName(domain), rr_type: PektinRRType.SOA, rr_set }]);
     };
 
     setupMainNameServers = async (pektinConfig?: PektinConfig) => {
@@ -430,7 +432,7 @@ export class ExtendedPektinApiClient extends BasicPektinClient {
                 value: absoluteName(subDomain)
             };
         });
-        return await this.set([{ name: absoluteName(domain), rr_type: "NS", rr_set }]);
+        return await this.set([{ name: absoluteName(domain), rr_type: PektinRRType.NS, rr_set }]);
     };
 
     setupMainNameServerIps = async (pektinConfig?: PektinConfig) => {
@@ -461,7 +463,7 @@ export class ExtendedPektinApiClient extends BasicPektinClient {
             if (ns.ips && ns.ips.length) {
                 records.push({
                     name: absoluteName(ns.domain),
-                    rr_type: "AAAA",
+                    rr_type: PektinRRType.AAAA,
                     rr_set: ns.ips.map(ip => {
                         return {
                             ttl: 60,
@@ -473,7 +475,7 @@ export class ExtendedPektinApiClient extends BasicPektinClient {
             if (ns.legacyIps && ns.legacyIps.length) {
                 records.push({
                     name: absoluteName(ns.domain),
-                    rr_type: "A",
+                    rr_type: PektinRRType.A,
                     rr_set: ns.legacyIps.map(legacyIp => {
                         return {
                             ttl: 60,
@@ -629,6 +631,7 @@ export const pektinApiRequest = async (
     const tEnd = performance.now();
     const text = await res.text();
     let json;
+    // TODO add coloring
     try {
         json = JSON.parse(text);
         json.time = tEnd - tStart;
@@ -636,12 +639,11 @@ export const pektinApiRequest = async (
         body.client_username = "<REDACTED>";
         if (body.confidant_password) body.confidant_password = "<REDACTED>" as ConfidantPassword;
         throw Error(
-            `Pektin client couldn't parse JSON response from API\n
-Pektin-API returned body:\n
+            `${colors.boldRed}Pektin client couldn't parse JSON response from API${colors.reset}\n
+Pektin-API returned this body:\n
 ${text}\n
-\n 
 while client was trying to ${method} the following body:\n 
-${JSON.stringify(body, null, "    ")}`
+${JSON.stringify(body, null, "    ")}${colors.reset}`
         );
     }
     if (json.error === true && throwErrors) {
@@ -649,10 +651,10 @@ ${JSON.stringify(body, null, "    ")}`
         if (body.confidant_password) body.confidant_password = "<REDACTED>" as ConfidantPassword;
 
         throw Error(
-            `API Error:\n 
+            `${colors.boldRed}API Error:${colors.reset}\n 
 ${JSON.stringify(json, null, "    ")}\n 
-while client was trying to ${method} the following body: \n
-${JSON.stringify(body, null, "    ")}`
+${colors.bold}while client was trying to ${method} the following body: ${colors.reset}\n
+${JSON.stringify(body, null, "    ")}${colors.reset}`
         );
     }
     if (throwErrors) return json as PektinApiResponseBodyReturnErrors;
