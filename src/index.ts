@@ -1,6 +1,5 @@
 import {
     ApiRecord,
-    ApiRecordSOA,
     ClientName,
     ClientVaultAccountType,
     ConfidantPassword,
@@ -24,12 +23,10 @@ import {
     PektinApiSearchRequestBody,
     PektinApiSetRequestBody,
     PektinClientConnectionConfigOverride,
-    PektinRRType,
     SearchResponse,
     SearchResponseSuccess,
     SetResponse,
-    SetResponseSuccess,
-    SOARecord
+    SetResponseSuccess
 } from "./types.js";
 import { PektinConfig } from "@pektin/config/src/types.js";
 
@@ -282,109 +279,6 @@ export class ExtendedPektinApiClient extends BasicPektinClient {
         const records = (await this.getZoneRecords([name])) as GetZoneRecordsResponseSuccess;
         const tbd = records.data[absoluteName(name)].map(entry => entry.name);
         return ((await this.deleteRecords(tbd)) as DeleteResponseSuccess).data.keys_removed;
-    };
-}
-
-export class PektinComposeClient extends BasicPektinClient {
-    public setup = async (pektinConfig = this.pektinConfig) => {
-        if (!pektinConfig) {
-            await this.getPektinConfig();
-            if (!this.pektinConfig) throw Error("Couldn't obtain pektin config");
-            pektinConfig = this.pektinConfig;
-        }
-        if (pektinConfig?.nameservers) await this.createNameserverDNS(pektinConfig);
-        await this.createPektinServiceEndpointsDNS(pektinConfig);
-        //setup at the registrar
-    };
-    private createNameserverDNS = async (pektinConfig: PektinConfig) => {
-        if (pektinConfig.nameservers === undefined) {
-            throw Error("No main nameservers found in config");
-        }
-        const records: ApiRecord[] = [];
-        pektinConfig.nameservers.forEach(ns => {
-            if (ns.main) {
-                records.push({
-                    name: absoluteName(ns.domain),
-                    rr_type: PektinRRType.SOA,
-                    rr_set: [
-                        {
-                            ttl: 60,
-                            mname: absoluteName(concatDomain(ns.domain, ns.subDomain)),
-                            rname: absoluteName("hostmaster." + ns.domain),
-                            serial: 0,
-                            refresh: 0,
-                            retry: 0,
-                            expire: 0,
-                            minimum: 0
-                        }
-                    ]
-                });
-
-                const rr_set: { ttl: number; value: string }[] = [];
-                /*@ts-ignore*/
-                pektinConfig.nameservers.forEach(ns2 => {
-                    if (ns2.domain === ns.domain) {
-                        rr_set.push({
-                            ttl: 60,
-                            value: absoluteName(concatDomain(ns.domain, ns.subDomain))
-                        });
-                    }
-                });
-                records.push({
-                    name: absoluteName(ns.domain),
-                    rr_type: PektinRRType.NS,
-                    rr_set
-                });
-            }
-            const currentNode = pektinConfig.nodes.filter(node => node.name === ns.node)[0];
-
-            if (currentNode.ips) {
-                records.push({
-                    name: absoluteName(concatDomain(ns.domain, ns.subDomain)),
-                    rr_type: PektinRRType.AAAA,
-                    rr_set: currentNode.ips.map(ip => ({ ttl: 60, value: ip }))
-                });
-            }
-            if (currentNode.legacyIps) {
-                records.push({
-                    name: absoluteName(concatDomain(ns.domain, ns.subDomain)),
-                    rr_type: PektinRRType.A,
-                    rr_set: currentNode.legacyIps.map(legacyIp => ({ ttl: 60, value: legacyIp }))
-                });
-            }
-        });
-        return await this.set(records);
-    };
-
-    // create AAAA and A records for endabled service endpoints
-    private createPektinServiceEndpointsDNS = async (pektinConfig: PektinConfig) => {
-        const mainNode = pektinConfig.nodes.filter(node => node.main === true)[0];
-
-        const enabledServices = [
-            pektinConfig.ui,
-            pektinConfig.api,
-            pektinConfig.vault,
-            pektinConfig.recursor
-        ].filter(s => s.enabled);
-        const records: ApiRecord[] = [];
-
-        enabledServices.forEach(s => {
-            if (mainNode.ips) {
-                records.push({
-                    name: absoluteName(concatDomain(s.domain, s.subDomain)),
-                    rr_type: PektinRRType.AAAA,
-                    rr_set: mainNode.ips.map(ip => ({ ttl: 60, value: ip }))
-                });
-            }
-            if (mainNode.legacyIps) {
-                records.push({
-                    name: absoluteName(concatDomain(s.domain, s.subDomain)),
-                    rr_type: PektinRRType.A,
-                    rr_set: mainNode.legacyIps.map(legacyIp => ({ ttl: 60, value: legacyIp }))
-                });
-            }
-        });
-        return await this.set(records);
     };
 }
 

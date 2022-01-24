@@ -4,7 +4,7 @@ import { chownRecursive, chown, chmod, randomString, configToCertbotIni } from "
 import crypto from "crypto";
 
 import { unsealVault, initVault, enableVaultCors, updateKvValue } from "./../vault/vault.js";
-import { PektinClientConnectionConfigOverride } from "./../types";
+import { ApiRecord, PektinClientConnectionConfigOverride, PektinRRType } from "./../types";
 import { PektinConfig } from "@pektin/config/src/types.js";
 
 import {
@@ -15,7 +15,14 @@ import {
     createPektinVaultEngines,
     updatePektinSharedPasswords
 } from "./../auth.js";
-import { concatDomain, getMainNode, getNodesNameservers, getPektinEndpoint } from "../index.js";
+import {
+    absoluteName,
+    BasicPektinClient,
+    concatDomain,
+    getMainNode,
+    getNodesNameservers,
+    getPektinEndpoint
+} from "../index.js";
 
 export const installPektinCompose = async (
     dir: string = "/pektin-compose/",
