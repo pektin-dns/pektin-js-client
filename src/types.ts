@@ -1,3 +1,4 @@
+import { PektinConfig } from "@pektin/config/src/types";
 export interface ClientCapabilities {
     ribstonPolicy: string;
     allowedSigningDomains?: string[];
@@ -143,53 +144,6 @@ export interface PektinApiGetZoneRecordsRequestBody extends PektinApiRequestBody
     names: string[];
 }
 export interface PektinApiHealthRequestBody extends PektinApiRequestBodyBase {}
-
-export interface PektinConfig {
-    domain: string;
-    nameServers: NameServer[];
-    multiNode: boolean;
-    uiSubDomain: string;
-    apiSubDomain: string;
-    vaultSubDomain: string;
-    recursorSubDomain: string;
-    enableUi: boolean;
-    enableApi: boolean;
-    enableRecursor: boolean;
-    enableRotate: boolean;
-    createCerts: boolean;
-    letsencryptEmail: string;
-    configureMainDomain: boolean;
-    proxyConfig: string;
-    createProxy: boolean;
-    buildFromSource: boolean;
-    sources: {
-        server: string;
-        api: string;
-        ui: string;
-    };
-    dev?: "local" | "insecure-online";
-    insecureDevIp: string;
-}
-
-export interface NameServer {
-    subDomain: string;
-    ips: string[];
-    legacyIps: string[];
-    createSingleScript?: CreateSingleScript;
-}
-export interface CreateSingleScript {
-    system: ComposeSupportedOS;
-    cloneRepo: boolean;
-    setup: boolean;
-    start: boolean;
-    root: SingleScriptRootOptions;
-}
-export interface SingleScriptRootOptions {
-    disableSystemdResolved: boolean;
-    installDocker: boolean;
-}
-
-export type ComposeSupportedOS = "ubuntu" | "arch";
 
 export interface VaultAuthJSON {
     vaultEndpoint: string;
