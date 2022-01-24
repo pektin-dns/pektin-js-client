@@ -305,7 +305,10 @@ export const createArbeiterConfig = async (
                 ["R_PEKTIN_GEWERKSCHAFT_PASSWORD", v.R_PEKTIN_GEWERKSCHAFT_PASSWORD],
                 ["R_PEKTIN_SERVER_PASSWORD", R_PEKTIN_SERVER_PASSWORD],
                 ["SERVER_DOMAINS_SNI", sni],
-                ["SERVER_DOMAIN", nodeNameServers ? nodeNameServers[0].domain : ""]
+                [
+                    "SERVER_DOMAIN",
+                    nodeNameServers && nodeNameServers[0] ? nodeNameServers[0].domain : ""
+                ]
             ];
             // TODO SERVER_DOMAIN server certificates seperation for multiple domains
             /*
@@ -435,7 +438,7 @@ export const envSetValues = async (
     }
     // TODO SERVER_DOMAIN is only singular: see todo notice above
     const repls = [
-        ["SERVER_DOMAIN", nodeNameServers ? nodeNameServers[0].domain : ""],
+        ["SERVER_DOMAIN", nodeNameServers && nodeNameServers[0] ? nodeNameServers[0].domain : ""],
         ["V_PEKTIN_API_PASSWORD", v.V_PEKTIN_API_PASSWORD],
         ["R_PEKTIN_API_PASSWORD", v.R_PEKTIN_API_PASSWORD],
         ["R_PEKTIN_SERVER_PASSWORD", v.R_PEKTIN_SERVER_PASSWORD],
