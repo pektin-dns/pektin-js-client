@@ -1,7 +1,7 @@
 import { PektinConfig } from "@pektin/config/src/types.js";
 import fs from "fs/promises";
 import path from "path";
-import { absoluteName, BasicPektinClient, concatDomain } from "../index.js";
+import { absoluteName, PektinClient, concatDomain } from "../index.js";
 import { ApiRecord, PektinClientConnectionConfigOverride, PektinRRType } from "../types.js";
 import { createSingleScript } from "../utils.js";
 
@@ -41,7 +41,7 @@ export const pektinComposeFirstStart = async (recursive: any) => {
     });
 };
 
-export class PektinComposeClient extends BasicPektinClient {
+export class PektinComposeClient extends PektinClient {
     public setup = async (pektinConfig: PektinConfig) => {
         if (pektinConfig?.nameservers) await this.createNameserverDNS(pektinConfig);
         await this.createPektinServiceEndpointsDNS(pektinConfig);

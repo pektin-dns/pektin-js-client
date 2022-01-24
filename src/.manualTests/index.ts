@@ -1,6 +1,6 @@
-import { ExtendedPektinApiClient } from "../index.js";
+import { PektinClient } from "../index.js";
 import { PektinRRType } from "../types.js";
-const pc = new ExtendedPektinApiClient({
+const pc = new PektinClient({
     username: "admin-eJzwqXlEMHWMAA",
     managerPassword:
         "m.RgMj19aCGo2ykcX2BTjeCEdo9jdQQjGBMBv583KkPJrB00yOT5ueRMkk2-mbJ1HNI_5xVGd6uYzqHMeuuqBqj1EAHWbVfluRH7FaR0xI-EzjULMlhgSDmrFoIqyp5aQRQr_tzg",

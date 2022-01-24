@@ -34,7 +34,7 @@ import f from "cross-fetch";
 import { vaultLoginUserpass, getVaultValue } from "./vault/vault.js";
 import { colors } from "./colors.js";
 
-export class BasicPektinClient {
+export class PektinClient {
     vaultEndpoint?: string;
     username: ClientName;
     confidantPassword?: ConfidantPassword;
@@ -265,9 +265,6 @@ export class BasicPektinClient {
             throwErrors
         );
     };
-}
-
-export class ExtendedPektinApiClient extends BasicPektinClient {
     getDomains = async (): Promise<string[]> => {
         return ((await this.search("*.:SOA", true)) as SearchResponseSuccess).data.map(
             (name: string) => name.replace(":SOA", "")

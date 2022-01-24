@@ -17,9 +17,9 @@ npm i @pektin/client
 **Normaly you should NEVER store your credentials in a code file but use something like a .env file. Have a look at [dotenv](https://www.npmjs.com/package/dotenv) for Node.js.**
 
 ```ts
-import { ExtendedPektinApiClient } from "@pektin/client";
+import { PektinClient } from "@pektin/client";
 
-const pc = new ExtendedPektinApiClient({
+const pc = new PektinClient({
     username: "ui-j-6samfz_r1OTQ",
     password:
         "Bq9Wvf4_FeDtKNoxdFLJweZzYhKVnN4Ll9SiQniyBRQIu2c_1BIHqGihFr6KlQproTrMndkSA50aUQY_HS8VRJNWBdveGAeoWWwcGrECPBwgIygDbKUjeXHaGE2FOvXeWTmbHg",
