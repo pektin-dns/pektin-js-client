@@ -2,9 +2,10 @@ import crypto from "crypto";
 
 import { promisify } from "util";
 import { exec as exec_default } from "child_process";
-import { NameServer, PektinClientConnectionConfigOverride } from "./types";
+import { PektinClientConnectionConfigOverride } from "./types";
 import fs from "fs/promises";
 import path from "path";
+import { PektinConfig } from "@pektin/config/src/types";
 const exec = promisify(exec_default);
 
 export const randomString = (length = 100) => {
@@ -26,14 +27,15 @@ export const chownRecursive = async (path: string, uid: string, gid: string) => 
 export const createSingleScript = async (
     sourceFolder: string,
     scriptDestination: string,
-    nsConfig: NameServer,
+    node: PektinConfig["nodes"][0],
     recursive: any
 ) => {
+    if (!node.setup) return;
     const dirs = await recursive(sourceFolder);
     const out = [];
     let content = ``;
 
-    if (nsConfig?.createSingleScript?.cloneRepo) {
+    if (node?.setup?.cloneRepo) {
         content += `git clone https://github.com/pektin-dns/pektin-compose ; cd pektin-compose; `;
     }
 
@@ -52,16 +54,16 @@ export const createSingleScript = async (
         content += `echo -ne '${contents.replaceAll("\n", "\\n")}' > ${path.join(".", filePath)};`;
     }
 
-    if (nsConfig?.createSingleScript?.root?.installDocker) {
-        content += `sudo sh scripts/systems/${nsConfig.createSingleScript.system}/install-docker.sh; `;
+    if (node?.setup?.root?.installDocker) {
+        content += `sudo sh scripts/systems/${node.setup.system}/install-docker.sh; `;
     }
-    if (nsConfig?.createSingleScript?.root?.disableSystemdResolved) {
-        content += `sudo sh scripts/systems/${nsConfig.createSingleScript.system}/disable-systemd-resolved.sh; `;
+    if (node?.setup?.root?.disableSystemdResolved) {
+        content += `sudo sh scripts/systems/${node.setup.system}/disable-systemd-resolved.sh; `;
     }
-    if (nsConfig?.createSingleScript?.setup) {
+    if (node?.setup?.setup) {
         content += `bash setup.sh; `;
     }
-    if (nsConfig?.createSingleScript?.start) {
+    if (node?.setup?.start) {
         content += `bash start.sh; `;
     }
     await fs.writeFile(scriptDestination, content + "history -d $(history 1)");
