@@ -1,8 +1,8 @@
-import { PektinConfig } from "@pektin/config/src/types";
+import { PektinConfig } from "@pektin/config/src/types.js";
 import fs from "fs/promises";
 import path from "path";
-import { absoluteName, BasicPektinClient, concatDomain } from "..";
-import { ApiRecord, PektinClientConnectionConfigOverride, PektinRRType } from "../types";
+import { absoluteName, BasicPektinClient, concatDomain } from "../index.js";
+import { ApiRecord, PektinClientConnectionConfigOverride, PektinRRType } from "../types.js";
 import { createSingleScript } from "../utils.js";
 
 const dir = "/pektin-compose/";

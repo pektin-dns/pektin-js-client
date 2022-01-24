@@ -4,7 +4,7 @@ import { chownRecursive, chown, chmod, randomString, configToCertbotIni } from "
 import crypto from "crypto";
 
 import { unsealVault, initVault, enableVaultCors, updateKvValue } from "./../vault/vault.js";
-import { ApiRecord, PektinClientConnectionConfigOverride, PektinRRType } from "./../types";
+import { PektinClientConnectionConfigOverride } from "./../types";
 import { PektinConfig } from "@pektin/config/src/types.js";
 
 import {
