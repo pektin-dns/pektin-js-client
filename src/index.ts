@@ -384,6 +384,7 @@ export class ExtendedPektinApiClient extends BasicPektinClient {
         domain: string,
         nameServers: { domain: string; ips: string[]; legacyIps: string[] }[]
     ) => {
+        // this function doesnt need all nameservers
         const mainSubdomain = nameServers.map(ns => ns.domain)[0];
 
         const rr_set = [

@@ -333,10 +333,10 @@ export interface CAARecordIodef extends ResourceRecordBase {
 }
 
 export interface TLSARecord extends ResourceRecordBase {
-    usage: 0 | 1 | 2 | 3;
+    cert_usage: 0 | 1 | 2 | 3;
     selector: 0 | 1;
-    matching_type: 0 | 1 | 2;
-    data: string;
+    matching: 0 | 1 | 2;
+    cert_data: string;
 }
 
 export enum PektinRRType {
