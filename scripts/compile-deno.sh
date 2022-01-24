@@ -16,4 +16,4 @@ cp -r src/ ${DENO_DIR}
 
 find ${DENO_DIR} -type f -exec sed -i "s/import f from \"cross-fetch\"/const f=fetch/g" {} \;
 find ${DENO_DIR} -type f -exec sed -i "s/.js\";/.ts\";/g" {} \;
-find ${DENO_DIR} -type f -exec sed -i "s/\/types/\/types.d.ts/g" {} \;
+find ${DENO_DIR} -type f -exec sed -i "s/\/types/\/types.ts/g" {} \;

@@ -23,6 +23,7 @@ import {
     PektinApiSearchRequestBody,
     PektinApiSetRequestBody,
     PektinClientConnectionConfigOverride,
+    PektinRRType,
     SearchResponse,
     SearchResponseSuccess,
     SetResponse,
@@ -265,6 +266,7 @@ export class PektinClient {
             throwErrors
         );
     };
+
     getDomains = async (): Promise<string[]> => {
         return ((await this.search("*.:SOA", true)) as SearchResponseSuccess).data.map(
             (name: string) => name.replace(":SOA", "")
@@ -276,6 +278,84 @@ export class PektinClient {
         const records = (await this.getZoneRecords([name])) as GetZoneRecordsResponseSuccess;
         const tbd = records.data[absoluteName(name)].map(entry => entry.name);
         return ((await this.deleteRecords(tbd)) as DeleteResponseSuccess).data.keys_removed;
+    };
+
+    // fully setup a domain with soa record and nameservers
+    setupDomain = async (
+        domain: string,
+        nameServers: { name: string; ips: string[]; legacyIps: string[] }[]
+    ) => {
+        await this.setupSOA(domain, nameServers[0]);
+        return await Promise.all([
+            this.setupNameServers(domain, nameServers),
+            this.setupNameServerIps(nameServers)
+        ]);
+    };
+
+    // setup a soa record
+    setupSOA = async (
+        domain: string,
+        nameServer: { name: string; ips: string[]; legacyIps: string[] }
+    ) => {
+        const rr_set = [
+            {
+                ttl: 60,
+                mname: absoluteName(nameServer.name),
+                rname: absoluteName("hostmaster." + domain),
+                serial: 0,
+                refresh: 0,
+                retry: 0,
+                expire: 0,
+                minimum: 0
+            }
+        ];
+        return await this.set([{ name: absoluteName(domain), rr_type: PektinRRType.SOA, rr_set }]);
+    };
+    setupNameServers = async (
+        domain: string,
+        nameServers: { name: string; ips: string[]; legacyIps: string[] }[]
+    ) => {
+        const subDomains = nameServers.map(ns => ns.name);
+        const rr_set = subDomains.map(subDomain => {
+            return {
+                ttl: 60,
+                value: absoluteName(subDomain)
+            };
+        });
+        return await this.set([{ name: absoluteName(domain), rr_type: PektinRRType.NS, rr_set }]);
+    };
+    setupNameServerIps = async (
+        nameServers: { name: string; ips: string[]; legacyIps: string[] }[]
+    ) => {
+        const records: ApiRecord[] = [];
+        nameServers.forEach(ns => {
+            if (ns.ips && ns.ips.length) {
+                records.push({
+                    name: absoluteName(ns.name),
+                    rr_type: PektinRRType.AAAA,
+                    rr_set: ns.ips.map(ip => {
+                        return {
+                            ttl: 60,
+                            value: ip
+                        };
+                    })
+                });
+            }
+            if (ns.legacyIps && ns.legacyIps.length) {
+                records.push({
+                    name: absoluteName(ns.name),
+                    rr_type: PektinRRType.A,
+                    rr_set: ns.legacyIps.map(legacyIp => {
+                        return {
+                            ttl: 60,
+                            value: legacyIp
+                        };
+                    })
+                });
+            }
+        });
+
+        return await this.set(records);
     };
 }
 
