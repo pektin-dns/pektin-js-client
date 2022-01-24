@@ -424,11 +424,11 @@ export const envSetValues = async (
     }
     CSP_CONNECT_SRC = addAllowedConnectSources(CSP_CONNECT_SRC);
 
-    console.log(v.pektinConfig.nodes.filter(n => n.main)[0].name);
     const nodeNameServers = getNodesNameservers(
         v.pektinConfig,
         v.pektinConfig.nodes.filter(n => n.main)[0].name
     );
+    console.log(nodeNameServers);
 
     let sni = ``;
     if (nodeNameServers) {
