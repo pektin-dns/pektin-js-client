@@ -555,7 +555,11 @@ export const activeComposeFiles = (pektinConfig: PektinConfig) => {
         composeCommand += ` -f pektin-compose/traefik-config.yml`;
     }
 
-    if (pektinConfig.reverseProxy.createTraefik) {
+    if (
+        pektinConfig.reverseProxy.createTraefik &&
+        (!pektinConfig.devmode.enabled ||
+            (pektinConfig.devmode.enabled && pektinConfig.devmode.type !== "local"))
+    ) {
         composeCommand += ` -f pektin-compose/traefik.yml`;
     }
 
