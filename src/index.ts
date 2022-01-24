@@ -304,13 +304,13 @@ export class PektinComposeClient extends BasicPektinClient {
         pektinConfig.nameservers.forEach(ns => {
             if (ns.main) {
                 records.push({
-                    name: ns.domain,
+                    name: absoluteName(ns.domain),
                     rr_type: PektinRRType.SOA,
                     rr_set: [
                         {
                             ttl: 60,
                             mname: absoluteName(concatDomain(ns.domain, ns.subDomain)),
-                            rname: "hostmaster." + ns.domain,
+                            rname: absoluteName("hostmaster." + ns.domain),
                             serial: 0,
                             refresh: 0,
                             retry: 0,
@@ -331,7 +331,7 @@ export class PektinComposeClient extends BasicPektinClient {
                     }
                 });
                 records.push({
-                    name: ns.domain,
+                    name: absoluteName(ns.domain),
                     rr_type: PektinRRType.NS,
                     rr_set
                 });
