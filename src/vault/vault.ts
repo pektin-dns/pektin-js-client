@@ -1,12 +1,12 @@
 import f from "cross-fetch";
-import { VaultAuthJSON } from "../types";
 import { colors } from "../colors.js";
 import {
     VaultSecretEngineOptions,
     VaultAuthEngineType,
     IdentityEntityDataRequestBody,
     IdentityEntityAliasRequestBody,
-    VaultPolicy
+    VaultPolicy,
+    VaultAuthJSON
 } from "./types";
 
 export const getAuthMethods = async (endpoint: string, token: string) => {

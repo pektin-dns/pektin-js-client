@@ -84,9 +84,10 @@ export interface PektinApiResponseBase {
     time: number;
 }
 
+export type PektinApiReponseType = "success" | "error";
 // response success
 export interface PektinApiResponseSuccessBase extends PektinApiResponseBase {
-    error: false;
+    type: "success";
 }
 
 export interface SetResponseSuccess extends PektinApiResponseSuccessBase {
@@ -109,7 +110,7 @@ export interface GetZoneRecordsResponseSuccess extends PektinApiResponseSuccessB
 
 // response errors
 export interface PektinApiResponseErrorBase extends PektinApiResponseBase {
-    error: true;
+    type: "error";
 }
 export interface SetResponseError extends PektinApiResponseErrorBase {
     data: Array<string | null>;
@@ -151,12 +152,6 @@ export interface PektinApiGetZoneRecordsRequestBody extends PektinApiRequestBody
     names: string[];
 }
 export interface PektinApiHealthRequestBody extends PektinApiRequestBodyBase {}
-
-export interface VaultAuthJSON {
-    vaultEndpoint: string;
-    username: string;
-    password: string;
-}
 
 export type ApiRecord =
     | ApiRecordA

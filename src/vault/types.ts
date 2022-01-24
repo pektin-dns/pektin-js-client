@@ -25,6 +25,12 @@ export interface VaultSecretEngineOptions {
     };
 }
 
+export interface VaultAuthJSON {
+    vaultEndpoint: string;
+    username: string;
+    password: string;
+}
+
 // https://www.vaultproject.io/api-docs/secret/identity/entity#create-an-entity
 export interface IdentityEntityDataRequestBody {
     name?: string;

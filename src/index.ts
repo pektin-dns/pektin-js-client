@@ -35,6 +35,7 @@ import { PektinConfig } from "@pektin/config/src/types.js";
 import f from "cross-fetch";
 import { vaultLoginUserpass, getVaultValue } from "./vault/vault.js";
 import { colors } from "./colors.js";
+export { PektinRRType } from "./types.js";
 
 export class PektinClient {
     vaultEndpoint?: string;
@@ -406,6 +407,11 @@ export const getNodesNameservers = (pektinConfig: PektinConfig, nodeName: string
 };
 
 export const absoluteName = (name: string) => {
+    if (name === undefined) {
+        throw Error(
+            "Input was undefined. This error indicates an upstream undefined value. Check if all the keys have the right names or use TS."
+        );
+    }
     if (!name?.length) return "";
     name = name.replaceAll(/\s+/g, "");
     if (name[name.length - 1] !== ".") return name + ".";

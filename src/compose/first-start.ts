@@ -43,14 +43,11 @@ export const pektinComposeFirstStart = async (recursive: any) => {
 
 export class PektinComposeClient extends PektinClient {
     public setup = async (pektinConfig: PektinConfig) => {
-        if (pektinConfig?.nameservers) await this.createNameserverDNS(pektinConfig);
+        await this.createNameserverDNS(pektinConfig);
         await this.createPektinServiceEndpointsDNS(pektinConfig);
         //setup at the registrar
     };
     private createNameserverDNS = async (pektinConfig: PektinConfig) => {
-        if (pektinConfig.nameservers === undefined) {
-            throw Error("No main nameservers found in config");
-        }
         const records: ApiRecord[] = [];
         pektinConfig.nameservers.forEach(ns => {
             if (ns.main) {
@@ -72,7 +69,6 @@ export class PektinComposeClient extends PektinClient {
                 });
 
                 const rr_set: { ttl: number; value: string }[] = [];
-                /*@ts-ignore*/
                 pektinConfig.nameservers.forEach(ns2 => {
                     if (ns2.domain === ns.domain) {
                         rr_set.push({

@@ -2,12 +2,13 @@
 # yarn lockfile v1
 
 
-"@pektin/config@^1.0.1":
-  version "1.0.1"
-  resolved "https://registry.yarnpkg.com/@pektin/config/-/config-1.0.1.tgz#5ff823461ad504841450a2d89791e0adb78e8ced"
-  integrity sha512-5iNAGXLIDEcgUCSZOUQJAwTtPfeVc1H90eRxrBz0Jo93IgarFx1qLoQ1Du6VShCtZF1tQjxivcKLRsbMRfV5GQ==
+"@pektin/config@^1.0.5":
+  version "1.0.5"
+  resolved "https://registry.yarnpkg.com/@pektin/config/-/config-1.0.5.tgz#ac6aa593b3881191bd5d2b63f25af8104fcc783a"
+  integrity sha512-mPi0rpuhQ1T89VsnNd2NcyXYKh64PoOtk+g3piQM9iJG1Hgf28P8HegvbVxKDrJn5GZripIFZTDll68XG1VVxw==
   dependencies:
     ajv "^8.9.0"
+    lodash "^4.17.21"
     yaml "^1.10.2"
 
 "@types/node@^16.11.12":
@@ -41,6 +42,11 @@ json-schema-traverse@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/json-schema-traverse/-/json-schema-traverse-1.0.0.tgz#ae7bcb3656ab77a73ba5c49bf654f38e6b6860e2"
   integrity sha512-NM8/P9n3XjXhIZn1lLhkFaACTOURQXjWhV4BA/RnOv8xvgqtqpAX9IO4mRQxSx1Rlo4tqzeqb0sOlruaOy3dug==
+
+lodash@^4.17.21:
+  version "4.17.21"
+  resolved "https://registry.yarnpkg.com/lodash/-/lodash-4.17.21.tgz#679591c564c3bffaae8454cf0b3df370c3d6911c"
+  integrity sha512-v2kDEe57lecTulaDIuNTPy3Ry4gLGJ6Z1O3vE1krgXZNrsQ+LFTGHVxVjcXPs17LhbZVGedAJv8XZ1tvj5FvSg==
 
 node-fetch@2.6.1:
   version "2.6.1"
