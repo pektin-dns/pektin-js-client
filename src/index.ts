@@ -525,7 +525,7 @@ while client was trying to ${method} the following body:\n
 ${JSON.stringify(body, null, "    ")}${colors.reset}`
         );
     }
-    if (json.error === true && throwErrors) {
+    if (json.type === "error" && throwErrors) {
         body.client_username = "<REDACTED>";
         if (body.confidant_password) body.confidant_password = "<REDACTED>" as ConfidantPassword;
 
