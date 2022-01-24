@@ -309,7 +309,7 @@ export class PektinComposeClient extends BasicPektinClient {
                     rr_set: [
                         {
                             ttl: 60,
-                            mname: concatDomain(ns.domain, ns.subDomain),
+                            mname: absoluteName(concatDomain(ns.domain, ns.subDomain)),
                             rname: "hostmaster." + ns.domain,
                             serial: 0,
                             refresh: 0,
@@ -324,7 +324,10 @@ export class PektinComposeClient extends BasicPektinClient {
                 /*@ts-ignore*/
                 pektinConfig.nameservers.forEach(ns2 => {
                     if (ns2.domain === ns.domain) {
-                        rr_set.push({ ttl: 60, value: concatDomain(ns.domain, ns.subDomain) });
+                        rr_set.push({
+                            ttl: 60,
+                            value: absoluteName(concatDomain(ns.domain, ns.subDomain))
+                        });
                     }
                 });
                 records.push({
@@ -337,14 +340,14 @@ export class PektinComposeClient extends BasicPektinClient {
 
             if (currentNode.ips) {
                 records.push({
-                    name: concatDomain(ns.domain, ns.subDomain),
+                    name: absoluteName(concatDomain(ns.domain, ns.subDomain)),
                     rr_type: PektinRRType.AAAA,
                     rr_set: currentNode.ips.map(ip => ({ ttl: 60, value: ip }))
                 });
             }
             if (currentNode.legacyIps) {
                 records.push({
-                    name: concatDomain(ns.domain, ns.subDomain),
+                    name: absoluteName(concatDomain(ns.domain, ns.subDomain)),
                     rr_type: PektinRRType.A,
                     rr_set: currentNode.legacyIps.map(legacyIp => ({ ttl: 60, value: legacyIp }))
                 });
@@ -368,14 +371,14 @@ export class PektinComposeClient extends BasicPektinClient {
         enabledServices.forEach(s => {
             if (mainNode.ips) {
                 records.push({
-                    name: concatDomain(s.domain, s.subDomain),
+                    name: absoluteName(concatDomain(s.domain, s.subDomain)),
                     rr_type: PektinRRType.AAAA,
                     rr_set: mainNode.ips.map(ip => ({ ttl: 60, value: ip }))
                 });
             }
             if (mainNode.legacyIps) {
                 records.push({
-                    name: concatDomain(s.domain, s.subDomain),
+                    name: absoluteName(concatDomain(s.domain, s.subDomain)),
                     rr_type: PektinRRType.A,
                     rr_set: mainNode.legacyIps.map(legacyIp => ({ ttl: 60, value: legacyIp }))
                 });
