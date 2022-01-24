@@ -292,7 +292,7 @@ export class PektinComposeClient extends BasicPektinClient {
             if (!this.pektinConfig) throw Error("Couldn't obtain pektin config");
             pektinConfig = this.pektinConfig;
         }
-        if (this.pektinConfig?.nameservers) await this.createNameserverDNS(pektinConfig);
+        if (pektinConfig?.nameservers) await this.createNameserverDNS(pektinConfig);
         await this.createPektinServiceEndpointsDNS(pektinConfig);
         //setup at the registrar
     };
