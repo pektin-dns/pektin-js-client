@@ -27,7 +27,8 @@ import {
     SearchResponse,
     SearchResponseSuccess,
     SetResponse,
-    SetResponseSuccess
+    SetResponseSuccess,
+    SNSNameserver
 } from "./types.js";
 import { PektinConfig } from "@pektin/config/src/types.js";
 
@@ -281,10 +282,7 @@ export class PektinClient {
     };
 
     // fully setup a domain with soa record and nameservers
-    setupDomain = async (
-        domain: string,
-        nameServers: { name: string; ips: string[]; legacyIps: string[] }[]
-    ) => {
+    setupDomain = async (domain: string, nameServers: SNSNameserver[]) => {
         await this.setupSOA(domain, nameServers[0]);
         return await Promise.all([
             this.setupNameServers(domain, nameServers),
@@ -293,10 +291,7 @@ export class PektinClient {
     };
 
     // setup a soa record
-    setupSOA = async (
-        domain: string,
-        nameServer: { name: string; ips: string[]; legacyIps: string[] }
-    ) => {
+    setupSOA = async (domain: string, nameServer: SNSNameserver) => {
         const rr_set = [
             {
                 ttl: 60,
@@ -311,10 +306,7 @@ export class PektinClient {
         ];
         return await this.set([{ name: absoluteName(domain), rr_type: PektinRRType.SOA, rr_set }]);
     };
-    setupNameServers = async (
-        domain: string,
-        nameServers: { name: string; ips: string[]; legacyIps: string[] }[]
-    ) => {
+    setupNameServers = async (domain: string, nameServers: SNSNameserver[]) => {
         const subDomains = nameServers.map(ns => ns.name);
         const rr_set = subDomains.map(subDomain => {
             return {
@@ -324,9 +316,7 @@ export class PektinClient {
         });
         return await this.set([{ name: absoluteName(domain), rr_type: PektinRRType.NS, rr_set }]);
     };
-    setupNameServerIps = async (
-        nameServers: { name: string; ips: string[]; legacyIps: string[] }[]
-    ) => {
+    setupNameServerIps = async (nameServers: SNSNameserver[]) => {
         const records: ApiRecord[] = [];
         nameServers.forEach(ns => {
             if (ns.ips && ns.ips.length) {

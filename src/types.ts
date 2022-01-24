@@ -1,4 +1,11 @@
 import { PektinConfig } from "@pektin/config/src/types";
+
+export interface SNSNameserver {
+    name: string;
+    ips?: string[];
+    legacyIps?: string[];
+}
+
 export interface ClientCapabilities {
     ribstonPolicy: string;
     allowedSigningDomains?: string[];
