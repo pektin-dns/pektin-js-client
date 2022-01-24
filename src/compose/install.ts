@@ -15,7 +15,7 @@ import {
     createPektinVaultEngines,
     updatePektinSharedPasswords
 } from "./../auth.js";
-import { concatDomain, getNodesNameservers, getPektinEndpoint } from "../index.js";
+import { concatDomain, getMainNode, getNodesNameservers, getPektinEndpoint } from "../index.js";
 
 export const installPektinCompose = async (
     dir: string = "/pektin-compose/",
@@ -291,24 +291,11 @@ export const createArbeiterConfig = async (
                 redisFile
             );
 
-            const nodeNameServers = getNodesNameservers(v.pektinConfig, node.name);
-
-            // get the server name indication for the node
-            let sni = ``;
-            if (nodeNameServers) {
-                nodeNameServers.forEach((ns, i) => {
-                    if (i > 0) sni += ",";
-                    sni += `\`${concatDomain(ns.domain, ns.subDomain)}\``;
-                });
-            }
             const repls = [
                 ["R_PEKTIN_GEWERKSCHAFT_PASSWORD", v.R_PEKTIN_GEWERKSCHAFT_PASSWORD],
                 ["R_PEKTIN_SERVER_PASSWORD", R_PEKTIN_SERVER_PASSWORD],
-                ["SERVER_DOMAINS_SNI", sni],
-                [
-                    "SERVER_DOMAIN",
-                    nodeNameServers && nodeNameServers[0] ? nodeNameServers[0].domain : ""
-                ]
+                ["SERVER_DOMAINS_SNI", getSNI(v.pektinConfig, node.name)],
+                ["SERVER_DOMAIN", ""]
             ];
             // TODO SERVER_DOMAIN server certificates seperation for multiple domains
             /*
@@ -393,6 +380,19 @@ const addAllowedConnectSources = (connectSources: string) => {
     return connectSources;
 };
 
+export const getSNI = (pektinConfig: PektinConfig, nodeName: string) => {
+    const nodeNameServers = getNodesNameservers(pektinConfig, nodeName);
+
+    let sni = ``;
+    if (nodeNameServers) {
+        nodeNameServers.forEach((ns, i) => {
+            if (i > 0) sni += ",";
+            sni += `\`${concatDomain(ns.domain, ns.subDomain)}\``;
+        });
+    }
+    return sni;
+};
+
 export const envSetValues = async (
     v: {
         pektinConfig: PektinConfig;
@@ -424,22 +424,9 @@ export const envSetValues = async (
     }
     CSP_CONNECT_SRC = addAllowedConnectSources(CSP_CONNECT_SRC);
 
-    const nodeNameServers = getNodesNameservers(
-        v.pektinConfig,
-        v.pektinConfig.nodes.filter(n => n.main)[0].name
-    );
-    console.log(nodeNameServers);
-
-    let sni = ``;
-    if (nodeNameServers) {
-        nodeNameServers.forEach((ns, i) => {
-            if (i > 0) sni += ",";
-            sni += `\`${concatDomain(ns.domain, ns.subDomain)}\``;
-        });
-    }
     // TODO SERVER_DOMAIN is only singular: see todo notice above
     const repls = [
-        ["SERVER_DOMAIN", nodeNameServers && nodeNameServers[0] ? nodeNameServers[0].domain : ""],
+        ["SERVER_DOMAIN", ""],
         ["V_PEKTIN_API_PASSWORD", v.V_PEKTIN_API_PASSWORD],
         ["R_PEKTIN_API_PASSWORD", v.R_PEKTIN_API_PASSWORD],
         ["R_PEKTIN_SERVER_PASSWORD", v.R_PEKTIN_SERVER_PASSWORD],
@@ -465,7 +452,7 @@ export const envSetValues = async (
         ["LETSENCRYPT_EMAIL", v.pektinConfig.certificates.letsencryptEmail],
         ["CSP_CONNECT_SRC", CSP_CONNECT_SRC],
         ["RECURSOR_AUTH", v.recursorBasicAuthHashed],
-        ["SERVER_DOMAINS_SNI", sni],
+        ["SERVER_DOMAINS_SNI", getSNI(v.pektinConfig, getMainNode(v.pektinConfig).name)],
         ["UI_BUILD_PATH", v.pektinConfig.build.ui.path],
         ["API_BUILD_PATH", v.pektinConfig.build.api.path],
         ["SERVER_BUILD_PATH", v.pektinConfig.build.server.path]

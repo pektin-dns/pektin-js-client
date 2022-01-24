@@ -441,9 +441,7 @@ export const getRecursorAuth = async (vaultEndpoint: string, vaultToken: string)
 
 export const getNodesNameservers = (pektinConfig: PektinConfig, nodeName: string) => {
     if (!pektinConfig.nameservers) return false;
-    return pektinConfig.nameservers.filter(ns => {
-        ns.node === nodeName;
-    });
+    return pektinConfig.nameservers.filter(ns => ns.node === nodeName);
 };
 
 export const absoluteName = (name: string) => {
