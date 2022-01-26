@@ -12,16 +12,16 @@ import {
     HealthResponse,
     HealthResponseSuccess,
     ManagerPassword,
-    PektinApiDeleteRequestBody,
-    PektinApiGetRequestBody,
-    PektinApiGetZoneRecordsRequestBody,
-    PektinApiHealthRequestBody,
-    PektinApiMethod,
-    PektinApiRequestBody,
-    PektinApiResponseBody,
-    PektinApiResponseBodyReturnErrors,
-    PektinApiSearchRequestBody,
-    PektinApiSetRequestBody,
+    ApiDeleteRequestBody,
+    ApiGetRequestBody,
+    ApiGetZoneRecordsRequestBody,
+    ApiHealthRequestBody,
+    ApiMethod,
+    ApiRequestBody,
+    ApiResponseBodyReturnErrors,
+    ApiResponseBodyThrowErrors,
+    ApiSearchRequestBody,
+    ApiSetRequestBody,
     PektinClientConnectionConfigOverride,
     PektinRRType,
     SearchResponse,
@@ -278,8 +278,14 @@ export class PektinClient {
     // returns number of removed keys
     deleteZone = async (name: string): Promise<number> => {
         const records = (await this.getZoneRecords([name])) as GetZoneRecordsResponseSuccess;
-        const tbd = records.data[absoluteName(name)].map(entry => entry.name);
-        return ((await this.deleteRecords(tbd)) as DeleteResponseSuccess).data.keys_removed;
+        const tbd = records.data.flatMap(item => {
+            if (item.data) {
+                return item.data.map(record => record.name + ":" + record.rr_type);
+            } else {
+                return [];
+            }
+        });
+        return ((await this.deleteRecords(tbd)) as DeleteResponseSuccess).data;
     };
 
     // fully setup a domain with soa record and nameservers
@@ -433,7 +439,7 @@ export const getPektinConfig = async (vaultEndpoint: string, vaultToken: string)
 // get records from the api/redis based on their key
 export const get = async (
     apiEndpoint: string,
-    body: PektinApiGetRequestBody,
+    body: ApiGetRequestBody,
     throwErrors?: boolean
 ): Promise<GetResponse> => {
     const res = await pektinApiRequest(apiEndpoint, "get", body, throwErrors);
@@ -445,7 +451,7 @@ export const get = async (
 // set records via the api in redis
 export const set = async (
     apiEndpoint: string,
-    body: PektinApiSetRequestBody,
+    body: ApiSetRequestBody,
     throwErrors?: boolean
 ): Promise<SetResponse> => {
     const res = await pektinApiRequest(apiEndpoint, "set", body, throwErrors);
@@ -456,7 +462,7 @@ export const set = async (
 // search for records in redis by providing a glob search string
 export const search = async (
     apiEndpoint: string,
-    body: PektinApiSearchRequestBody,
+    body: ApiSearchRequestBody,
     throwErrors?: boolean
 ): Promise<SearchResponse> => {
     const res = await pektinApiRequest(apiEndpoint, "search", body, throwErrors);
@@ -467,7 +473,7 @@ export const search = async (
 // delete records based on their keys
 export const deleteRecords = async (
     apiEndpoint: string,
-    body: PektinApiDeleteRequestBody,
+    body: ApiDeleteRequestBody,
     throwErrors?: boolean
 ): Promise<DeleteResponse> => {
     const res = await pektinApiRequest(apiEndpoint, "delete", body, throwErrors);
@@ -478,7 +484,7 @@ export const deleteRecords = async (
 // get api health status
 export const health = async (
     apiEndpoint: string,
-    body: PektinApiHealthRequestBody,
+    body: ApiHealthRequestBody,
     throwErrors?: boolean
 ): Promise<HealthResponse> => {
     const res = await pektinApiRequest(apiEndpoint, "health", body, throwErrors);
@@ -489,7 +495,7 @@ export const health = async (
 // get all records for zones
 export const getZoneRecords = async (
     apiEndpoint: string,
-    body: PektinApiGetZoneRecordsRequestBody,
+    body: ApiGetZoneRecordsRequestBody,
     throwErrors?: boolean
 ): Promise<GetZoneRecordsResponse> => {
     const res = await pektinApiRequest(apiEndpoint, "get-zone-records", body, throwErrors);
@@ -500,10 +506,10 @@ export const getZoneRecords = async (
 // send any request to the pektin api
 export const pektinApiRequest = async (
     apiEndpoint: string,
-    method: PektinApiMethod,
-    body: PektinApiRequestBody,
+    method: ApiMethod,
+    body: ApiRequestBody,
     throwErrors = true
-): Promise<PektinApiResponseBody> => {
+): Promise<ApiResponseBodyReturnErrors> => {
     if (!apiEndpoint) throw Error("Pektin API details weren't obtained yet");
     const tStart = performance.now();
     const res = await f(`${apiEndpoint}/${method}`, {
@@ -542,8 +548,8 @@ ${colors.bold}while client was trying to ${method} the following body: ${colors.
 ${JSON.stringify(body, null, "    ")}${colors.reset}`
         );
     }
-    if (throwErrors) return json as PektinApiResponseBodyReturnErrors;
-    return json as PektinApiResponseBody;
+    if (throwErrors) return json as ApiResponseBodyThrowErrors;
+    return json as ApiResponseBodyReturnErrors;
 };
 
 export const deAbsolute = (domainName: string) => {

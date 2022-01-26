@@ -48,110 +48,133 @@ export interface OverrideClientCredentials {
     pektinConfig?: PektinConfig;
 }
 
-export type PektinApiResponseBodyReturnErrors =
-    | SetResponseSuccess
+export type ApiResponseBodyThrowErrors =
     | GetResponseSuccess
-    | SearchResponseSuccess
+    | GetZoneRecordsResponseSuccess
+    | SetResponseSuccess
     | DeleteResponseSuccess
-    | HealthResponseSuccess
-    | GetZoneRecordsResponseSuccess;
+    | SearchResponseSuccess
+    | HealthResponseSuccess;
 
-export type PektinApiResponseBodyError =
-    | SetResponseError
-    | GetResponseError
-    | SearchResponseError
-    | DeleteResponseError
-    | HealthResponseError
-    | GetZoneRecordsResponseError;
+export type ApiResponseBodyError = SetResponseError | UnauthorizedError | InternalServerError;
 
-export type PektinApiResponseBody =
-    | SetResponse
+export type ApiResponseBodyReturnErrors =
     | GetResponse
-    | SearchResponse
+    | GetZoneRecordsResponse
+    | SetResponse
     | DeleteResponse
-    | HealthResponse
-    | GetZoneRecordsResponse;
+    | SearchResponse
+    | HealthResponse;
 
-export type SetResponse = SetResponseSuccess | SetResponseError;
-export type GetResponse = GetResponseSuccess | GetResponseError;
-export type SearchResponse = SearchResponseSuccess | SearchResponseError;
-export type DeleteResponse = DeleteResponseSuccess | DeleteResponseError;
-export type HealthResponse = HealthResponseSuccess | HealthResponseError;
-export type GetZoneRecordsResponse = GetZoneRecordsResponseSuccess | GetZoneRecordsResponseError;
+export type GetResponse = GetResponseSuccess | UnauthorizedError | InternalServerError;
+export type GetZoneRecordsResponse =
+    | GetZoneRecordsResponseSuccess
+    | UnauthorizedError
+    | InternalServerError;
+export type SetResponse =
+    | SetResponseSuccess
+    | SetResponseError
+    | UnauthorizedError
+    | InternalServerError;
+export type DeleteResponse = DeleteResponseSuccess | UnauthorizedError | InternalServerError;
+export type SearchResponse = SearchResponseSuccess | UnauthorizedError | InternalServerError;
+export type HealthResponse = HealthResponseSuccess | UnauthorizedError | InternalServerError;
 
-export interface PektinApiResponseBase {
+export interface UnauthorizedError extends ApiResponseErrorBase {}
+export interface InternalServerError extends ApiResponseErrorBase {}
+
+export interface ApiResponseBase {
     message: string;
     time: number;
+    type: ApiResponseType;
 }
 
-export type PektinApiReponseType = "success" | "error";
+export type ApiResponseType = "success" | "error" | "ignored";
 // response success
-export interface PektinApiResponseSuccessBase extends PektinApiResponseBase {
+export interface ApiResponseSuccessBase extends ApiResponseBase {
     type: "success";
 }
 
-export interface SetResponseSuccess extends PektinApiResponseSuccessBase {
-    data: null;
+export interface GetResponseSuccessItem extends ApiResponseBase {
+    data: ApiRecord | null;
+}
+export interface GetResponseSuccess extends ApiResponseSuccessBase {
+    data: GetResponseSuccessItem[];
 }
 
-export interface GetResponseSuccess extends PektinApiResponseSuccessBase {
-    data: ApiRecord[];
+export interface GetZoneRecordsResponseSuccessItem extends ApiResponseBase {
+    data: ApiRecord[] | null;
 }
-export interface SearchResponseSuccess extends PektinApiResponseSuccessBase {
+export interface GetZoneRecordsResponseSuccess extends ApiResponseSuccessBase {
+    data: GetZoneRecordsResponseSuccessItem[];
+}
+
+export interface SetResponseSuccess extends ApiResponseSuccessBase {
+    data: ApiResponseSuccessBase[];
+}
+
+export interface DeleteResponseSuccess extends ApiResponseSuccessBase {
+    data: number;
+}
+
+export interface SearchResponseSuccess extends ApiResponseSuccessBase {
     data: string[];
 }
-export interface DeleteResponseSuccess extends PektinApiResponseSuccessBase {
-    data: { keys_removed: number };
+
+export interface HealthResponseSuccessData {
+    api: boolean;
+    db: boolean;
+    vault: number;
+    ribston: number;
+    all: boolean;
 }
-export interface HealthResponseSuccess extends PektinApiResponseSuccessBase {}
-export interface GetZoneRecordsResponseSuccess extends PektinApiResponseSuccessBase {
-    data: { [domainName: DomainName]: ApiRecord[] };
+export interface HealthResponseSuccess extends ApiResponseSuccessBase {
+    data: HealthResponseSuccessData;
 }
 
 // response errors
-export interface PektinApiResponseErrorBase extends PektinApiResponseBase {
+export interface ApiResponseErrorBase extends ApiResponseBase {
     type: "error";
 }
-export interface SetResponseError extends PektinApiResponseErrorBase {
-    data: Array<string | null>;
+
+export interface SetResponseErrorItem extends ApiResponseBase {
+    type: "error" | "ignored";
 }
-export interface GetResponseError extends PektinApiResponseErrorBase {}
-export interface SearchResponseError extends PektinApiResponseErrorBase {}
-export interface DeleteResponseError extends PektinApiResponseErrorBase {}
-export interface HealthResponseError extends PektinApiResponseErrorBase {}
-export interface GetZoneRecordsResponseError extends PektinApiResponseErrorBase {}
+export interface SetResponseError extends ApiResponseErrorBase {
+    data: SetResponseErrorItem[];
+}
 
-export type PektinApiMethod = "get" | "set" | "search" | "delete" | "get-zone-records" | "health";
+export type ApiMethod = "get" | "set" | "search" | "delete" | "get-zone-records" | "health";
 
-export type PektinApiRequestBody =
-    | PektinApiGetRequestBody
-    | PektinApiSetRequestBody
-    | PektinApiSearchRequestBody
-    | PektinApiDeleteRequestBody
-    | PektinApiGetZoneRecordsRequestBody
-    | PektinApiHealthRequestBody;
+export type ApiRequestBody =
+    | ApiGetRequestBody
+    | ApiSetRequestBody
+    | ApiSearchRequestBody
+    | ApiDeleteRequestBody
+    | ApiGetZoneRecordsRequestBody
+    | ApiHealthRequestBody;
 
-export interface PektinApiRequestBodyBase {
+export interface ApiRequestBodyBase {
     confidant_password: ConfidantPassword;
     client_username: ClientName;
 }
 
-export interface PektinApiGetRequestBody extends PektinApiRequestBodyBase {
+export interface ApiGetRequestBody extends ApiRequestBodyBase {
     keys: string[];
 }
-export interface PektinApiSetRequestBody extends PektinApiRequestBodyBase {
+export interface ApiSetRequestBody extends ApiRequestBodyBase {
     records: ApiRecord[];
 }
-export interface PektinApiSearchRequestBody extends PektinApiRequestBodyBase {
+export interface ApiSearchRequestBody extends ApiRequestBodyBase {
     glob: string;
 }
-export interface PektinApiDeleteRequestBody extends PektinApiRequestBodyBase {
+export interface ApiDeleteRequestBody extends ApiRequestBodyBase {
     keys: string[];
 }
-export interface PektinApiGetZoneRecordsRequestBody extends PektinApiRequestBodyBase {
+export interface ApiGetZoneRecordsRequestBody extends ApiRequestBodyBase {
     names: string[];
 }
-export interface PektinApiHealthRequestBody extends PektinApiRequestBodyBase {}
+export interface ApiHealthRequestBody extends ApiRequestBodyBase {}
 
 export type ApiRecord =
     | ApiRecordA
@@ -173,47 +196,45 @@ export interface ApiRecordA extends ApiRecordBase {
     rr_type: PektinRRType.A;
     rr_set: ARecord[];
 }
-
 export interface ApiRecordAAAA extends ApiRecordBase {
     rr_type: PektinRRType.AAAA;
     rr_set: AAAARecord[];
 }
-export interface ApiRecordNS extends ApiRecordBase {
-    rr_type: PektinRRType.NS;
-    rr_set: NSRecord[];
+export interface ApiRecordCAA extends ApiRecordBase {
+    rr_type: PektinRRType.CAA;
+    rr_set: CAARecord[];
 }
 export interface ApiRecordCNAME extends ApiRecordBase {
     rr_type: PektinRRType.CNAME;
     rr_set: CNAMERecord[];
 }
-export interface ApiRecordSOA extends ApiRecordBase {
-    rr_type: PektinRRType.SOA;
-    rr_set: SOARecord[];
-}
 export interface ApiRecordMX extends ApiRecordBase {
     rr_type: PektinRRType.MX;
     rr_set: MXRecord[];
 }
-export interface ApiRecordTXT extends ApiRecordBase {
-    rr_type: PektinRRType.TXT;
-    rr_set: TXTRecord[];
-}
-export interface ApiRecordSRV extends ApiRecordBase {
-    rr_type: PektinRRType.SRV;
-    rr_set: SRVRecord[];
-}
-
-export interface ApiRecordCAA extends ApiRecordBase {
-    rr_type: PektinRRType.CAA;
-    rr_set: CAARecord[];
+export interface ApiRecordNS extends ApiRecordBase {
+    rr_type: PektinRRType.NS;
+    rr_set: NSRecord[];
 }
 export interface ApiRecordOPENPGPKEY extends ApiRecordBase {
     rr_type: PektinRRType.OPENPGPKEY;
     rr_set: OPENPGPKEYRecord[];
 }
+export interface ApiRecordSOA extends ApiRecordBase {
+    rr_type: PektinRRType.SOA;
+    rr_set: SOARecord[];
+}
+export interface ApiRecordSRV extends ApiRecordBase {
+    rr_type: PektinRRType.SRV;
+    rr_set: SRVRecord[];
+}
 export interface ApiRecordTLSA extends ApiRecordBase {
     rr_type: PektinRRType.TLSA;
     rr_set: TLSARecord[];
+}
+export interface ApiRecordTXT extends ApiRecordBase {
+    rr_type: PektinRRType.TXT;
+    rr_set: TXTRecord[];
 }
 
 export interface ResourceRecordBase {
@@ -223,15 +244,15 @@ export interface ResourceRecordBase {
 export type ResourceRecord =
     | ARecord
     | AAAARecord
-    | NSRecord
-    | CNAMERecord
-    | SOARecord
-    | OPENPGPKEYRecord
-    | TXTRecord
-    | MXRecord
-    | SRVRecord
     | CAARecord
-    | TLSARecord;
+    | CNAMERecord
+    | MXRecord
+    | NSRecord
+    | OPENPGPKEYRecord
+    | SOARecord
+    | SRVRecord
+    | TLSARecord
+    | TXTRecord;
 
 export interface ARecord extends ResourceRecordBase {
     value: string;
@@ -239,10 +260,28 @@ export interface ARecord extends ResourceRecordBase {
 export interface AAAARecord extends ResourceRecordBase {
     value: string;
 }
+export type CAARecord = CAARecordIssue | CAARecordIodef;
+export interface CAARecordIssue extends ResourceRecordBase {
+    issuer_critical: boolean;
+    tag: "issue" | "issuewild";
+    value: DomainName;
+}
+export interface CAARecordIodef extends ResourceRecordBase {
+    issuer_critical: boolean;
+    tag: "iodef";
+    value: `https://${string}` | `http://${string}` | `mailto:${string}`;
+}
+export interface CNAMERecord extends ResourceRecordBase {
+    value: string;
+}
+export interface MXRecord extends ResourceRecordBase {
+    preference: number;
+    exchange: string;
+}
 export interface NSRecord extends ResourceRecordBase {
     value: string;
 }
-export interface CNAMERecord extends ResourceRecordBase {
+export interface OPENPGPKEYRecord extends ResourceRecordBase {
     value: string;
 }
 export interface SOARecord extends ResourceRecordBase {
@@ -254,57 +293,32 @@ export interface SOARecord extends ResourceRecordBase {
     expire: number;
     minimum: number;
 }
-
-export interface OPENPGPKEYRecord extends ResourceRecordBase {
-    value: string;
-}
-export interface TXTRecord extends ResourceRecordBase {
-    value: string;
-}
-
-export interface MXRecord extends ResourceRecordBase {
-    preference: number;
-    exchange: string;
-}
-
 export interface SRVRecord extends ResourceRecordBase {
     priority: number;
     weight: number;
     port: number;
     target: string;
 }
-
-export type CAARecord = CAARecordIssue | CAARecordIodef;
-
-export interface CAARecordIssue extends ResourceRecordBase {
-    issuer_critical: boolean;
-    tag: "issue" | "issuewild";
-    value: DomainName;
-}
-
-export interface CAARecordIodef extends ResourceRecordBase {
-    issuer_critical: boolean;
-    tag: "iodef";
-    value: `https://${string}` | `http://${string}` | `mailto:${string}`;
-}
-
 export interface TLSARecord extends ResourceRecordBase {
     cert_usage: 0 | 1 | 2 | 3;
     selector: 0 | 1;
     matching: 0 | 1 | 2;
     cert_data: string;
 }
+export interface TXTRecord extends ResourceRecordBase {
+    value: string;
+}
 
 export enum PektinRRType {
     A = "A",
     AAAA = "AAAA",
-    NS = "NS",
-    CNAME = "CNAME",
-    SOA = "SOA",
-    MX = "MX",
-    TXT = "TXT",
-    SRV = "SRV",
     CAA = "CAA",
+    CNAME = "CNAME",
+    MX = "MX",
+    NS = "NS",
     OPENPGPKEY = "OPENPGPKEY",
-    TLSA = "TLSA"
+    SOA = "SOA",
+    SRV = "SRV",
+    TLSA = "TLSA",
+    TXT = "TXT"
 }

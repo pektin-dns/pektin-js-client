@@ -307,7 +307,7 @@ export const createArbeiterConfig = async (
             repls.forEach(repl => {
                 file = file += `${repl[0]}="${repl[1]}"\n`;
             });
-
+            file += `# redis-cli --pass ${R_PEKTIN_SERVER_PASSWORD} --user r-pektin-server`;
             const composeCommand = `docker-compose --env-file secrets/.env -f pektin-compose/arbeiter/base.yml -f pektin-compose/arbeiter/traefik-config.yml -f pektin-compose/traefik.yml`;
 
             await fs.writeFile(path.join(dir, "arbeiter", node.name, "secrets", ".env"), file);
