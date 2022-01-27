@@ -108,7 +108,7 @@ export const installPektinCompose = async (
     };
 
     const pektinAdminRibstonPolicy = await fs.readFile(
-        `/app/node_modules/@pektin/client/dist/ribston-policies/allow-everything.ribston.js`,
+        `/app/node_modules/@pektin/client/dist/js/ribston-policies/allow-everything.ribston.js`,
         "utf-8"
     );
 
@@ -141,7 +141,7 @@ export const installPektinCompose = async (
             }
         };
         const acmeClientRibstonPolicy = await fs.readFile(
-            `/app/node_modules/@pektin/client/dist/ribston-policies/acme.ribston.js`,
+            `/app/node_modules/@pektin/client/dist/js/ribston-policies/acme.ribston.js`,
             "utf-8"
         );
         await createPektinClient({
