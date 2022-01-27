@@ -35,7 +35,7 @@ import { PektinConfig } from "@pektin/config/src/types.js";
 import f from "cross-fetch";
 import { vaultLoginUserpass, getVaultValue } from "./vault/vault.js";
 import { colors } from "./colors.js";
-export { PektinRRType } from "./types.js";
+export { PektinRRType, ApiResponseType } from "./types.js";
 
 export class PektinClient {
     vaultEndpoint?: string;
