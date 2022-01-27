@@ -70,9 +70,14 @@ export type ApiResponseBodyReturnErrors =
     | SearchResponse
     | HealthResponse;
 
-export type GetResponse = GetResponseSuccess | UnauthorizedError | InternalServerError;
+export type GetResponse =
+    | GetResponseSuccess
+    | GetResponsePartialSuccess
+    | UnauthorizedError
+    | InternalServerError;
 export type GetZoneRecordsResponse =
     | GetZoneRecordsResponseSuccess
+    | GetZoneRecordsResponsePartialSuccess
     | UnauthorizedError
     | InternalServerError;
 export type SetResponse =
@@ -89,10 +94,10 @@ export type SearchResponse = SearchResponseSuccess | UnauthorizedError | Interna
 export type HealthResponse = HealthResponseSuccess | UnauthorizedError | InternalServerError;
 
 export interface UnauthorizedError extends ApiResponseErrorBase {
-    data?: null;
+    data: null;
 }
 export interface InternalServerError extends ApiResponseErrorBase {
-    data?: null;
+    data: null;
 }
 
 export interface ApiResponseBase {
@@ -101,21 +106,22 @@ export interface ApiResponseBase {
     type: ApiResponseType;
 }
 
-export type ApiResponseType = "success" | "error" | "ignored";
+export type ApiResponseType = "success" | "partial-success" | "error" | "ignored";
+
 // response success
 export interface ApiResponseSuccessBase extends ApiResponseBase {
     type: "success";
 }
 
 export interface GetResponseSuccessItem extends ApiResponseBase {
-    data: ApiRecord | null;
+    data: ApiRecord;
 }
 export interface GetResponseSuccess extends ApiResponseSuccessBase {
     data: GetResponseSuccessItem[];
 }
 
 export interface GetZoneRecordsResponseSuccessItem extends ApiResponseBase {
-    data: ApiRecord[] | null;
+    data: ApiRecord[];
 }
 export interface GetZoneRecordsResponseSuccess extends ApiResponseSuccessBase {
     data: GetZoneRecordsResponseSuccessItem[];
@@ -142,6 +148,25 @@ export interface HealthResponseSuccessData {
 }
 export interface HealthResponseSuccess extends ApiResponseSuccessBase {
     data: HealthResponseSuccessData;
+}
+
+// response partial success
+export interface ApiResponsePartialSuccessBase extends ApiResponseBase {
+    type: "partial-success";
+}
+
+export interface GetResponsePartialSuccessItem extends ApiResponseBase {
+    data: ApiRecord | null;
+}
+export interface GetResponsePartialSuccess extends ApiResponseSuccessBase {
+    data: GetResponsePartialSuccessItem[];
+}
+
+export interface GetZoneRecordsResponsePartialSuccessItem extends ApiResponseBase {
+    data: ApiRecord[] | null;
+}
+export interface GetZoneRecordsResponsePartialSuccess extends ApiResponseSuccessBase {
+    data: GetZoneRecordsResponsePartialSuccessItem[];
 }
 
 // response errors
