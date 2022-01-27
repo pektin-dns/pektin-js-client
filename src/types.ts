@@ -98,11 +98,16 @@ export interface ApiResponseBase {
     type: ApiResponseType;
 }
 
-export type ApiResponseType = "success" | "partial-success" | "error" | "ignored";
+export enum ApiResponseType {
+    Success = "success",
+    PartialSuccess = "partial-success",
+    Error = "error",
+    Ignored = "ignored"
+}
 
 // response success
 export interface ApiResponseSuccessBase extends ApiResponseBase {
-    type: "success";
+    type: ApiResponseType.Success;
 }
 
 export interface GetResponseSuccessItem extends ApiResponseBase {
@@ -144,7 +149,7 @@ export interface HealthResponseSuccess extends ApiResponseSuccessBase {
 
 // response partial success
 export interface ApiResponsePartialSuccessBase extends ApiResponseBase {
-    type: "partial-success";
+    type: ApiResponseType.PartialSuccess;
 }
 
 export interface GetResponsePartialSuccessItem extends ApiResponseBase {
@@ -163,18 +168,18 @@ export interface GetZoneRecordsResponsePartialSuccess extends ApiResponseSuccess
 
 // response errors
 export interface ApiResponseErrorBase extends ApiResponseBase {
-    type: "error";
+    type: ApiResponseType.Error;
 }
 
 export interface SetResponseErrorItem extends ApiResponseBase {
-    type: "error" | "ignored";
+    type: ApiResponseType.Error | ApiResponseType.Ignored;
 }
 export interface SetResponseError extends ApiResponseErrorBase {
     data: SetResponseErrorItem[];
 }
 
 export interface DeleteResponseErrorItem extends ApiResponseBase {
-    type: "error" | "ignored";
+    type: ApiResponseType.Error | ApiResponseType.Ignored;
 }
 export interface DeleteResponseError extends ApiResponseErrorBase {
     data: DeleteResponseErrorItem[];
