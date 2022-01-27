@@ -1,3 +1,4 @@
+import { PektinRRType } from "../types";
 import {
     DeleteInput,
     GetInput,
@@ -23,15 +24,28 @@ const err = (msg: string) => {
     output.message = msg;
 };
 
-if (input.api_method === "get" || input.api_method === "delete") {
-    const body = input.api_method === "get" ? input.request_body.Get : input.request_body.Delete;
-    if (!body.keys.every(key => key.startsWith("_acme-challenge") && key.endsWith(".:TXT"))) {
+if (input.api_method === "get") {
+    if (
+        !input.request_body.Get.keys.every(
+            key => key.startsWith("_acme-challenge") && key.endsWith(".:TXT")
+        )
+    ) {
+        err("Invalid key");
+    }
+} else if (input.api_method === "delete") {
+    if (
+        !input.request_body.Delete.records.every(
+            record =>
+                record.name.startsWith("_acme-challenge") && record.rr_type === PektinRRType.TXT
+        )
+    ) {
         err("Invalid key");
     }
 } else if (input.api_method === "set") {
     if (
         !input.request_body.Set.records.every(
-            record => record.name.startsWith("_acme-challenge") && record.name.endsWith(".:TXT")
+            record =>
+                record.name.startsWith("_acme-challenge") && record.rr_type === PektinRRType.TXT
         )
     ) {
         err("Invalid key");

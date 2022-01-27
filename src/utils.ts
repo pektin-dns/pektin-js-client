@@ -70,9 +70,11 @@ export const createSingleScript = async (
     return out;
 };
 
+// TODO fix ribston policies, check acme client in vault
+
 export const configToCertbotIni = (cc: PektinClientConnectionConfigOverride) => {
-    return `username = ${cc.username}
-confidantPassword = ${cc.confidantPassword}
-pektinApiEndpoint = ${cc.override?.pektinApiEndpoint}
+    return `dns_pektin_username = ${cc.username}
+dns_pektin_confidant_password = ${cc.confidantPassword}
+dns_pektin_api_endpoint = ${cc.override?.pektinApiEndpoint}
 `;
 };
