@@ -28,7 +28,8 @@ import {
     SearchResponseSuccess,
     SetResponse,
     SetResponseSuccess,
-    SNSNameserver
+    SNSNameserver,
+    ApiDeleteRequestRecord
 } from "./types.js";
 import { PektinConfig } from "@pektin/config/src/types.js";
 
@@ -224,7 +225,7 @@ export class PektinClient {
     };
 
     // delete records based on their keys
-    deleteRecords = async (keys: string[], throwErrors = this.throwErrors) => {
+    deleteRecords = async (records: ApiDeleteRequestRecord[], throwErrors = this.throwErrors) => {
         if (!this.pektinApiEndpoint) {
             await this.getPektinConfig();
             if (!this.pektinApiEndpoint) {
@@ -240,7 +241,7 @@ export class PektinClient {
             {
                 confidant_password: this.confidantPassword,
                 client_username: this.username,
-                keys
+                records
             },
             throwErrors
         );
@@ -280,7 +281,7 @@ export class PektinClient {
         const records = (await this.getZoneRecords([name])) as GetZoneRecordsResponseSuccess;
         const tbd = records.data.flatMap(item => {
             if (item.data) {
-                return item.data.map(record => record.name + ":" + record.rr_type);
+                return item.data.map(record => ({ name: record.name, rr_type: record.rr_type }));
             } else {
                 return [];
             }

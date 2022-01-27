@@ -2,10 +2,10 @@
 # yarn lockfile v1
 
 
-"@pektin/config@^1.0.5":
-  version "1.0.5"
-  resolved "https://registry.yarnpkg.com/@pektin/config/-/config-1.0.5.tgz#ac6aa593b3881191bd5d2b63f25af8104fcc783a"
-  integrity sha512-mPi0rpuhQ1T89VsnNd2NcyXYKh64PoOtk+g3piQM9iJG1Hgf28P8HegvbVxKDrJn5GZripIFZTDll68XG1VVxw==
+"@pektin/config@^1.0.11":
+  version "1.0.11"
+  resolved "https://registry.yarnpkg.com/@pektin/config/-/config-1.0.11.tgz#511c010a2cf0e1dd2d1a93d40d22ae40eeff5bfb"
+  integrity sha512-yGT1ZfOvmWb6dhJqkOk9mh31rGBlhyihj8iVPAof5Un+6q498e0n/Coiykpgea+Mio8IwdCwMBABXfH5Kr/1Kg==
   dependencies:
     ajv "^8.9.0"
     lodash "^4.17.21"

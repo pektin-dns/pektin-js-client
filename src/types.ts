@@ -56,7 +56,11 @@ export type ApiResponseBodyThrowErrors =
     | SearchResponseSuccess
     | HealthResponseSuccess;
 
-export type ApiResponseBodyError = SetResponseError | UnauthorizedError | InternalServerError;
+export type ApiResponseBodyError =
+    | SetResponseError
+    | DeleteResponseError
+    | UnauthorizedError
+    | InternalServerError;
 
 export type ApiResponseBodyReturnErrors =
     | GetResponse
@@ -76,7 +80,11 @@ export type SetResponse =
     | SetResponseError
     | UnauthorizedError
     | InternalServerError;
-export type DeleteResponse = DeleteResponseSuccess | UnauthorizedError | InternalServerError;
+export type DeleteResponse =
+    | DeleteResponseSuccess
+    | DeleteResponseError
+    | UnauthorizedError
+    | InternalServerError;
 export type SearchResponse = SearchResponseSuccess | UnauthorizedError | InternalServerError;
 export type HealthResponse = HealthResponseSuccess | UnauthorizedError | InternalServerError;
 
@@ -144,6 +152,13 @@ export interface SetResponseError extends ApiResponseErrorBase {
     data: SetResponseErrorItem[];
 }
 
+export interface DeleteResponseErrorItem extends ApiResponseBase {
+    type: "error" | "ignored";
+}
+export interface DeleteResponseError extends ApiResponseErrorBase {
+    data: DeleteResponseErrorItem[];
+}
+
 export type ApiMethod = "get" | "set" | "search" | "delete" | "get-zone-records" | "health";
 
 export type ApiRequestBody =
@@ -168,8 +183,12 @@ export interface ApiSetRequestBody extends ApiRequestBodyBase {
 export interface ApiSearchRequestBody extends ApiRequestBodyBase {
     glob: string;
 }
+export interface ApiDeleteRequestRecord {
+    name: string;
+    rr_type: PektinRRType;
+}
 export interface ApiDeleteRequestBody extends ApiRequestBodyBase {
-    keys: string[];
+    records: ApiDeleteRequestRecord[];
 }
 export interface ApiGetZoneRecordsRequestBody extends ApiRequestBodyBase {
     names: string[];

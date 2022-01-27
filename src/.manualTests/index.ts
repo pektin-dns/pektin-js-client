@@ -8,27 +8,25 @@ const serverAdminConfig = await fs.readFile(
 
 const pc = new PektinClient(JSON.parse(serverAdminConfig));
 
-await pc.setupDomain("pektin.xyz.", [{ name: "ns1.pektin.xyz.", ips: ["1::1"] }]);
-
+await pc.setupDomain("pektin.aaa.", [{ name: "ns1.pektin.aaa.", ips: ["1::1"] }]);
 await pc.set([
-    { name: "xxx.pektin.xyz.", rr_type: PektinRRType.A, rr_set: [{ ttl: 60, value: "1.1.1.1" }] }
+    { name: "xxx.pektin.aaa.", rr_type: PektinRRType.A, rr_set: [{ ttl: 60, value: "1.1.1.1" }] }
 ]);
 await pc.set([
-    { name: "xyz.pektin.xyz.", rr_type: PektinRRType.A, rr_set: [{ ttl: 60, value: "1.1.1.1" }] }
+    { name: "xyz.pektin.aaa.", rr_type: PektinRRType.A, rr_set: [{ ttl: 60, value: "1.1.1.1" }] }
 ]);
 
-await pc.setupDomain("pektin.xxx.", [{ name: "ns1.pektin.xyz.", ips: ["1::1"] }]);
-await pc.set([
-    { name: "xxx.pektin.xxx.", rr_type: PektinRRType.A, rr_set: [{ ttl: 60, value: "1.1.1.1" }] }
-]);
-await pc.set([
-    { name: "xyz.pektin.xxx.", rr_type: PektinRRType.A, rr_set: [{ ttl: 60, value: "1.1.1.1" }] }
-]);
+console.log(
+    JSON.stringify(
+        await pc.deleteRecords([
+            {
+                name: "xxx.pektin.aaa.",
+                rr_type: PektinRRType.A
+            }
+        ]),
+        null,
+        "   "
+    )
+);
 
-console.log(JSON.stringify(await pc.getZoneRecords(["pektin.xyz."]), null, "   "));
-console.log(JSON.stringify(await pc.getZoneRecords(["pektin.xxx."]), null, "   "));
-
-await pc.deleteZone("pektin.xyz.");
-
-console.log(JSON.stringify(await pc.getZoneRecords(["pektin.xyz."]), null, "   "));
-console.log(JSON.stringify(await pc.getZoneRecords(["pektin.xxx."]), null, "   "));
+console.log(JSON.stringify(await pc.getZoneRecords(["pektin.aaa."]), null, "   "));
