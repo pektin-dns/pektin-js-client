@@ -48,21 +48,13 @@ export interface OverrideClientCredentials {
     pektinConfig?: PektinConfig;
 }
 
-export type ApiResponseBodyThrowErrors =
-    | GetResponseSuccess
-    | GetZoneRecordsResponseSuccess
-    | SetResponseSuccess
-    | DeleteResponseSuccess
-    | SearchResponseSuccess
-    | HealthResponseSuccess;
-
 export type ApiResponseBodyError =
     | SetResponseError
     | DeleteResponseError
     | UnauthorizedError
     | InternalServerError;
 
-export type ApiResponseBodyReturnErrors =
+export type ApiResponseBody =
     | GetResponse
     | GetZoneRecordsResponse
     | SetResponse

@@ -18,8 +18,7 @@ import {
     ApiHealthRequestBody,
     ApiMethod,
     ApiRequestBody,
-    ApiResponseBodyReturnErrors,
-    ApiResponseBodyThrowErrors,
+    ApiResponseBody as ApiResponseBody,
     ApiSearchRequestBody,
     ApiSetRequestBody,
     PektinClientConnectionConfigOverride,
@@ -510,7 +509,7 @@ export const pektinApiRequest = async (
     method: ApiMethod,
     body: ApiRequestBody,
     throwErrors = true
-): Promise<ApiResponseBodyReturnErrors> => {
+): Promise<ApiResponseBody> => {
     if (!apiEndpoint) throw Error("Pektin API details weren't obtained yet");
     const tStart = performance.now();
     const res = await f(`${apiEndpoint}/${method}`, {
@@ -549,8 +548,8 @@ ${colors.bold}while client was trying to ${method} the following body: ${colors.
 ${JSON.stringify(body, null, "    ")}${colors.reset}`
         );
     }
-    if (throwErrors) return json as ApiResponseBodyThrowErrors;
-    return json as ApiResponseBodyReturnErrors;
+    if (throwErrors) return json as ApiResponseBody;
+    return json as ApiResponseBody;
 };
 
 export const deAbsolute = (domainName: string) => {
