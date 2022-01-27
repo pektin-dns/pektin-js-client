@@ -88,8 +88,12 @@ export type DeleteResponse =
 export type SearchResponse = SearchResponseSuccess | UnauthorizedError | InternalServerError;
 export type HealthResponse = HealthResponseSuccess | UnauthorizedError | InternalServerError;
 
-export interface UnauthorizedError extends ApiResponseErrorBase {}
-export interface InternalServerError extends ApiResponseErrorBase {}
+export interface UnauthorizedError extends ApiResponseErrorBase {
+    data?: null;
+}
+export interface InternalServerError extends ApiResponseErrorBase {
+    data?: null;
+}
 
 export interface ApiResponseBase {
     message: string;
