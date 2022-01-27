@@ -25,10 +25,9 @@ const err = (msg: string) => {
 
 const domains = ["pektin.xyz."];
 
-if (input.api_method === "get" || input.api_method === "delete") {
-    const body = input.api_method === "get" ? input.request_body.Get : input.request_body.Delete;
+if (input.api_method === "get") {
     if (
-        !body.keys.every(key => {
+        !input.request_body.Get.keys.every(key => {
             const inputDomain = key.replace(/\.\:.*$/, ".");
             for (const domain of domains) {
                 if (inputDomain.endsWith(domain)) {
@@ -40,12 +39,15 @@ if (input.api_method === "get" || input.api_method === "delete") {
     ) {
         err("Invalid key");
     }
-} else if (input.api_method === "set") {
+} else if (input.api_method === "delete" || input.api_method === "set") {
+    const records =
+        input.api_method === "delete"
+            ? input.request_body.Delete.records
+            : input.request_body.Set.records;
     if (
-        !input.request_body.Set.records.every(record => {
-            const inputDomain = record.name.replace(/\.\:.*$/, ".");
+        !records.every(record => {
             for (const domain of domains) {
-                if (inputDomain.endsWith(domain)) {
+                if (record.name.endsWith(domain)) {
                     return true;
                 }
             }

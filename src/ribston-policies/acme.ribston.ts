@@ -32,18 +32,13 @@ if (input.api_method === "get") {
     ) {
         err("Invalid key");
     }
-} else if (input.api_method === "delete") {
+} else if (input.api_method === "delete" || input.api_method === "set") {
+    const records =
+        input.api_method === "delete"
+            ? input.request_body.Delete.records
+            : input.request_body.Set.records;
     if (
-        !input.request_body.Delete.records.every(
-            record =>
-                record.name.startsWith("_acme-challenge") && record.rr_type === PektinRRType.TXT
-        )
-    ) {
-        err("Invalid key");
-    }
-} else if (input.api_method === "set") {
-    if (
-        !input.request_body.Set.records.every(
+        !records.every(
             record =>
                 record.name.startsWith("_acme-challenge") && record.rr_type === PektinRRType.TXT
         )

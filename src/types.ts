@@ -1,4 +1,4 @@
-import { PektinConfig } from "@pektin/config/src/types";
+import { PektinConfig } from "@pektin/config/src/types.js";
 
 export interface SNSNameserver {
     name: string;
