@@ -1,6 +1,6 @@
 {
     "name": "@pektin/client",
-    "version": "1.1.9",
+    "version": "1.1.10",
     "description": "A client to facilitate the control of pektin dns servers",
     "main": "dist/js/index.js",
     "types": "src/index.ts",
@@ -32,7 +32,7 @@
     "scripts": {
         "build": "tsc",
         "start": "tsc --watch",
-        "compile-policies": "tsc src/ribston-policies/* --outDir dist/js/ribston-policies --target es2021 --strict --moduleResolution node",
+        "compile-policies": "tsc src/ribston-policies/* --outDir dist/js/ --target es2021 --strict --moduleResolution node",
         "before-publish": "yarn build && yarn compile-policies && yarn compile-deno",
         "manual-test": "RED='\u001b[1;91m' ; NO_COLOR='\u001b[0m' ; echo \"${RED}Don't forget to compile the TS files first with: yarn start ${NO_COLOR}\" ; node dist/js/.manualTests/index.js",
         "compile-deno": "sh scripts/compile-deno.sh",
