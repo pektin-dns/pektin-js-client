@@ -313,11 +313,13 @@ export const createArbeiterConfig = async (
             traefik.tcp.routers.pektin-server-dot.tls.domains[0].sans: "*.${SERVER_DOMAIN}"
             */
 
-            let file = "# DO NOT EDIT THESE MANUALLY\n";
+            let file = "# DO NOT EDIT THESE VARIABLES MANUALLY \n";
             repls.forEach(repl => {
                 file = file += `${repl[0]}="${repl[1]}"\n`;
             });
-            file += `# redis-cli --pass ${R_PEKTIN_SERVER_PASSWORD} --user r-pektin-server`;
+            file += `# Some commands for debugging\n`;
+            file += `# Logs into redis (then try 'KEYS *' for example to get all record keys):\n`;
+            file += `# bash -c 'docker exec -it $(docker ps --filter name=pektin-redis --format {{.ID}}) redis-cli --pass ${R_PEKTIN_SERVER_PASSWORD} --user r-pektin-server'`;
             const composeCommand = `docker-compose --env-file secrets/.env -f pektin-compose/arbeiter/base.yml -f pektin-compose/arbeiter/traefik-config.yml -f pektin-compose/traefik.yml`;
 
             await fs.writeFile(path.join(dir, "arbeiter", node.name, "secrets", ".env"), file);
@@ -467,12 +469,13 @@ export const envSetValues = async (
         ["API_BUILD_PATH", v.pektinConfig.build.api.path],
         ["SERVER_BUILD_PATH", v.pektinConfig.build.server.path]
     ];
-    let file = "# DO NOT EDIT THESE MANUALLY \n";
+    let file = "# DO NOT EDIT THESE VARIABLES MANUALLY  \n";
     repls.forEach(repl => {
         file = file += `${repl[0]}="${repl[1]}"\n`;
     });
     file += `# Some commands for debugging\n`;
-    file += `# redis-cli --pass ${v.R_PEKTIN_API_PASSWORD} --user r-pektin-api`;
+    file += `# Logs into redis (then try 'KEYS *' for example to get all record keys):\n`;
+    file += `# bash -c 'docker exec -it $(docker ps --filter name=pektin-redis --format {{.ID}}) redis-cli --pass ${v.R_PEKTIN_API_PASSWORD} --user r-pektin-api'`;
     await fs.writeFile(path.join(dir, "secrets", ".env"), file);
 };
 
