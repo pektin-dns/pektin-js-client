@@ -1,1 +1,1 @@
-// @skip-ribston
+export default "@skip-ribston";

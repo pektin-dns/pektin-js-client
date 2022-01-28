@@ -5,7 +5,7 @@ import {
     HealthInput,
     SearchInput,
     SetInput
-} from "./ribston-types";
+} from "./ribston-types.js";
 
 type Input = GetInput | GetZoneRecordsInput | DeleteInput | SetInput | SearchInput | HealthInput;
 

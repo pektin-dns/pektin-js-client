@@ -1,4 +1,4 @@
-import { PektinRRType } from "../types";
+import { PektinRRType } from "../types.js";
 import {
     DeleteInput,
     GetInput,
@@ -6,7 +6,7 @@ import {
     HealthInput,
     SearchInput,
     SetInput
-} from "./ribston-types";
+} from "./ribston-types.js";
 
 type Input = GetInput | GetZoneInput | DeleteInput | SetInput | SearchInput | HealthInput;
 
