@@ -278,22 +278,31 @@ export const createArbeiterConfig = async (
                 .mkdir(path.join(dir, "arbeiter", node.name, "secrets", "redis"))
                 .catch(() => {});
             const R_PEKTIN_SERVER_PASSWORD = randomString();
-            const redisFile = await setRedisPasswordHashes(
+            const redisAclFile = await setRedisPasswordHashes(
                 [["R_PEKTIN_SERVER_PASSWORD", R_PEKTIN_SERVER_PASSWORD]],
                 v.pektinConfig,
                 dir,
                 true
             );
-            if (redisFile === undefined) {
+            if (redisAclFile === undefined) {
                 throw new Error("This should never happen: createArbeiterConfig");
             }
             await fs.writeFile(
                 path.join(dir, "arbeiter", node.name, "secrets", "redis", "users.acl"),
-                redisFile
+                redisAclFile
+            );
+
+            const redisConf = await fs.readFile(
+                path.join(dir, "config", "redis", "arbeiter", "redis.conf"),
+                { encoding: "utf8" }
+            );
+
+            await fs.writeFile(
+                path.join(dir, "arbeiter", node.name, "secrets", "redis", "redis.conf"),
+                redisConf.replace("#MASTERAUTH", v.R_PEKTIN_GEWERKSCHAFT_PASSWORD)
             );
 
             const repls = [
-                ["R_PEKTIN_GEWERKSCHAFT_PASSWORD", v.R_PEKTIN_GEWERKSCHAFT_PASSWORD],
                 ["R_PEKTIN_SERVER_PASSWORD", R_PEKTIN_SERVER_PASSWORD],
                 ["SERVER_DOMAINS_SNI", getSNI(v.pektinConfig, node.name)],
                 ["SERVER_DOMAIN", ""]

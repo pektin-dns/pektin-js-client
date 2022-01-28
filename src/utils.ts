@@ -36,7 +36,7 @@ export const createSingleScript = async (
     let content = ``;
 
     if (node?.setup?.cloneRepo) {
-        content += `git clone https://github.com/pektin-dns/pektin-compose ; cd pektin-compose; `;
+        content += `rm -rf pektin-compose; git clone https://github.com/pektin-dns/pektin-compose ; cd pektin-compose; bash reset.sh;`;
     }
 
     for (let i = 0; i < dirs.length; i++) {
@@ -66,7 +66,7 @@ export const createSingleScript = async (
     if (node?.setup?.start) {
         content += `bash start.sh; `;
     }
-    await fs.writeFile(scriptDestination, content + "history -d $(history 1)");
+    await fs.writeFile(scriptDestination, content + "history -d -1 || true");
     return out;
 };
 
