@@ -175,11 +175,15 @@ export class PektinClient {
             );
         }
 
-        return await get(this.pektinApiEndpoint, {
-            confidant_password: this.confidantPassword,
-            client_username: this.username,
-            keys,
-        });
+        return await get(
+            this.pektinApiEndpoint,
+            {
+                confidant_password: this.confidantPassword,
+                client_username: this.username,
+                keys,
+            },
+            throwErrors
+        );
     };
 
     // get whether or not the pektin setup is healthy
@@ -350,6 +354,7 @@ export class PektinClient {
 
     // setup a soa record
     setupSOA = async (domain: string, nameServer: SNSNameserver) => {
+        // eslint-disable-next-line camelcase
         const rr_set = [
             {
                 ttl: 60,
@@ -363,17 +368,20 @@ export class PektinClient {
             },
         ];
         return await this.set([
+            // eslint-disable-next-line camelcase
             { name: absoluteName(domain), rr_type: PektinRRType.SOA, rr_set },
         ]);
     };
 
     setupNameServers = async (domain: string, nameServers: SNSNameserver[]) => {
         const subDomains = nameServers.map((ns) => ns.name);
+        // eslint-disable-next-line camelcase
         const rr_set = subDomains.map((subDomain) => ({
             ttl: 60,
             value: absoluteName(subDomain),
         }));
         return await this.set([
+            // eslint-disable-next-line camelcase
             { name: absoluteName(domain), rr_type: PektinRRType.NS, rr_set },
         ]);
     };

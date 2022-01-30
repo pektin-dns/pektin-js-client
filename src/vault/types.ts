@@ -44,7 +44,7 @@ export interface IdentityEntityDataRequestBody {
 export interface IdentityEntityAliasRequestBody {
     name: string;
     id?: string;
-    canonical_id: string; //Entity ID to which this alias belongs to.
-    mount_accessor: string; //Accessor of the mount to which the alias should belong to.
+    canonical_id: string; // Entity ID to which this alias belongs to.
+    mount_accessor: string; // Accessor of the mount to which the alias should belong to.
     custom_metadata?: object;
 }

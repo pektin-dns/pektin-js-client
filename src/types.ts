@@ -127,6 +127,7 @@ export interface GetResponseSuccess extends ApiResponseSuccessBase {
 export interface GetZoneRecordsResponseSuccessItem extends ApiResponseBase {
     data: ApiRecord[];
 }
+
 export interface GetZoneRecordsResponseSuccess extends ApiResponseSuccessBase {
     data: GetZoneRecordsResponseSuccessItem[];
 }

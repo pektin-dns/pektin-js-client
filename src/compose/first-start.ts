@@ -103,6 +103,7 @@ const registrarSetup = async (config: PektinConfig) => {
                     gr.setupGlueAndNS(domain, glueRecords)
                 );
         });
+
         const setGlueRecordReponses = await Promise.all(setGlueRecordRequests);
     }
 };

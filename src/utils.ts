@@ -1,12 +1,12 @@
 import crypto from "crypto";
 
 import { promisify } from "util";
-import { exec as exec_default } from "child_process";
+import { exec as execDefault } from "child_process";
 import fs from "fs/promises";
 import path from "path";
 import { PektinConfig } from "@pektin/config/src/types";
 import { PektinClientConnectionConfigOverride } from "./types";
-const exec = promisify(exec_default);
+const exec = promisify(execDefault);
 
 export const randomString = (length = 100) =>
     crypto.randomBytes(length).toString(`base64url`).replaceAll(`=`, ``);
