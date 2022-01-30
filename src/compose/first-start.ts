@@ -88,7 +88,9 @@ const registrarSetup = async (config: PektinConfig) => {
             if (nameservers.length) setNsRequests.push(gr.setNameServers(domain, nameservers));
             if (glueRecords.length) setGlueRecordRequests.push(gr.setGlueRecords(glueRecords));
         });
+        const setNsResponses = await Promise.all(setNsRequests);
         const setGlueRecordReponses = await Promise.all(setGlueRecordRequests);
+        console.log(setNsResponses, setGlueRecordReponses);
     }
 };
 
