@@ -1,4 +1,4 @@
-import { PektinConfig } from "@pektin/config/src/types.js";
+import { PektinConfig } from "@pektin/config/src/config-types.js";
 
 export interface SNSNameserver {
     name: string;
@@ -39,8 +39,7 @@ export interface PektinClientConnectionConfig {
     managerPassword?: ManagerPassword;
 }
 
-export interface PektinClientConnectionConfigOverride
-    extends PektinClientConnectionConfig {
+export interface PektinClientConnectionConfigOverride extends PektinClientConnectionConfig {
     override?: OverrideClientCredentials;
 }
 
@@ -83,14 +82,8 @@ export type DeleteResponse =
     | DeleteResponseError
     | UnauthorizedError
     | InternalServerError;
-export type SearchResponse =
-    | SearchResponseSuccess
-    | UnauthorizedError
-    | InternalServerError;
-export type HealthResponse =
-    | HealthResponseSuccess
-    | UnauthorizedError
-    | InternalServerError;
+export type SearchResponse = SearchResponseSuccess | UnauthorizedError | InternalServerError;
+export type HealthResponse = HealthResponseSuccess | UnauthorizedError | InternalServerError;
 
 export interface UnauthorizedError extends ApiResponseErrorBase {
     data: null;
@@ -167,12 +160,10 @@ export interface GetResponsePartialSuccess extends ApiResponseSuccessBase {
     data: GetResponsePartialSuccessItem[];
 }
 
-export interface GetZoneRecordsResponsePartialSuccessItem
-    extends ApiResponseBase {
+export interface GetZoneRecordsResponsePartialSuccessItem extends ApiResponseBase {
     data: ApiRecord[] | null;
 }
-export interface GetZoneRecordsResponsePartialSuccess
-    extends ApiResponseSuccessBase {
+export interface GetZoneRecordsResponsePartialSuccess extends ApiResponseSuccessBase {
     data: GetZoneRecordsResponsePartialSuccessItem[];
 }
 
@@ -195,13 +186,7 @@ export interface DeleteResponseError extends ApiResponseErrorBase {
     data: DeleteResponseErrorItem[];
 }
 
-export type ApiMethod =
-    | `get`
-    | `set`
-    | `search`
-    | `delete`
-    | `get-zone-records`
-    | `health`;
+export type ApiMethod = `get` | `set` | `search` | `delete` | `get-zone-records` | `health`;
 
 export type ApiRequestBody =
     | ApiGetRequestBody

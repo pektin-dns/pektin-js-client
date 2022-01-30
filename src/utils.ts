@@ -4,7 +4,7 @@ import { promisify } from "util";
 import { exec as execDefault } from "child_process";
 import fs from "fs/promises";
 import path from "path";
-import { PektinConfig } from "@pektin/config/src/types";
+import { PektinConfig } from "@pektin/config/src/config-types.js";
 import { PektinClientConnectionConfigOverride } from "./types.js";
 const exec = promisify(execDefault);
 
@@ -19,11 +19,7 @@ export const chown = async (path: string, uid: string, gid: string) => {
     await exec(`chown ${uid}:${gid} ${path}`);
 };
 
-export const chownRecursive = async (
-    path: string,
-    uid: string,
-    gid: string
-) => {
+export const chownRecursive = async (path: string, uid: string, gid: string) => {
     await exec(`chown -R ${uid}:${gid} ${path}`);
 };
 
@@ -54,10 +50,7 @@ export const createSingleScript = async (
         });
         content += `mkdir -p ${path.join(`.`, path.dirname(filePath))};`;
 
-        content += `echo -ne '${contents.replaceAll(
-            `\n`,
-            `\\n`
-        )}' > ${path.join(`.`, filePath)};`;
+        content += `echo -ne '${contents.replaceAll(`\n`, `\\n`)}' > ${path.join(`.`, filePath)};`;
     }
 
     if (node?.setup?.root?.installDocker) {

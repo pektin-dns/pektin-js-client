@@ -8,9 +8,7 @@ const serverAdminConfig = await fs.readFile(
 
 const pc = new PektinClient(JSON.parse(serverAdminConfig));
 
-await pc.setupDomain(`pektin.aaa.`, [
-    { name: `ns1.pektin.aaa.`, ips: [`1::1`] },
-]);
+await pc.setupDomain(`pektin.aaa.`, [{ name: `ns1.pektin.aaa.`, ips: [`1::1`] }]);
 await pc.set([
     {
         name: `xxx.pektin.aaa.`,
@@ -39,6 +37,4 @@ console.log(
     )
 );
 
-console.log(
-    JSON.stringify(await pc.getZoneRecords([`pektin.aaa.`]), null, `   `)
-);
+console.log(JSON.stringify(await pc.getZoneRecords([`pektin.aaa.`]), null, `   `));

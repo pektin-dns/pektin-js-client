@@ -1,13 +1,9 @@
-import { PektinConfig } from "@pektin/config/src/types.js";
+import { PektinConfig } from "@pektin/config/src/config-types.js";
 import fs from "fs/promises";
 import path from "path";
 import GlobalRegistrar from "@pektin/global-registrar";
 import { absoluteName, PektinClient, concatDomain } from "../index.js";
-import {
-    ApiRecord,
-    PektinClientConnectionConfigOverride,
-    PektinRRType,
-} from "../types.js";
+import { ApiRecord, PektinClientConnectionConfigOverride, PektinRRType } from "../types.js";
 import { createSingleScript } from "../utils.js";
 import { GlueRecord, PluginNames } from "@pektin/global-registrar/src/types.js";
 
@@ -19,10 +15,7 @@ export const pektinComposeFirstStart = async (recursive: any) => {
     ) as PektinConfig;
 
     const adminCreds: PektinClientConnectionConfigOverride = JSON.parse(
-        await fs.readFile(
-            path.join(dir, `secrets`, `server-admin-connection-config.json`),
-            `utf-8`
-        )
+        await fs.readFile(path.join(dir, `secrets`, `server-admin-connection-config.json`), `utf-8`)
     );
 
     if (pektinConfig.nameservers?.length) {
@@ -76,14 +69,10 @@ const registrarSetup = async (config: PektinConfig) => {
         registrar.domains.forEach((domain) => {
             const glueRecords: GlueRecord[] = [];
             config.nameservers
-                .filter(
-                    (ns) => absoluteName(ns.domain) === absoluteName(domain)
-                )
+                .filter((ns) => absoluteName(ns.domain) === absoluteName(domain))
                 .forEach((ns) => {
                     // get the node for the current nameserver
-                    const nsNode = config.nodes.filter(
-                        (node) => node.name === ns.node
-                    )[0];
+                    const nsNode = config.nodes.filter((node) => node.name === ns.node)[0];
 
                     // create the glue record object for this nameserver
                     if (!ns.subDomain) return;
@@ -100,9 +89,7 @@ const registrarSetup = async (config: PektinConfig) => {
                     glueRecords.push(glueRecord);
                 });
             if (glueRecords.length) {
-                setGlueRecordRequests.push(
-                    gr.setupGlueAndNS(absoluteName(domain), glueRecords)
-                );
+                setGlueRecordRequests.push(gr.setupGlueAndNS(absoluteName(domain), glueRecords));
             }
         });
 
@@ -127,9 +114,7 @@ export class PektinComposeClient extends PektinClient {
                     rr_set: [
                         {
                             ttl: 60,
-                            mname: absoluteName(
-                                concatDomain(ns.domain, ns.subDomain)
-                            ),
+                            mname: absoluteName(concatDomain(ns.domain, ns.subDomain)),
                             rname: absoluteName(`hostmaster.` + ns.domain),
                             serial: 0,
                             refresh: 0,
@@ -145,9 +130,7 @@ export class PektinComposeClient extends PektinClient {
                     if (ns2.domain === ns.domain) {
                         rr_set.push({
                             ttl: 60,
-                            value: absoluteName(
-                                concatDomain(ns.domain, ns.subDomain)
-                            ),
+                            value: absoluteName(concatDomain(ns.domain, ns.subDomain)),
                         });
                     }
                 });
@@ -157,9 +140,7 @@ export class PektinComposeClient extends PektinClient {
                     rr_set,
                 });
             }
-            const currentNode = pektinConfig.nodes.filter(
-                (node) => node.name === ns.node
-            )[0];
+            const currentNode = pektinConfig.nodes.filter((node) => node.name === ns.node)[0];
 
             if (currentNode.ips) {
                 records.push({
@@ -186,12 +167,8 @@ export class PektinComposeClient extends PektinClient {
     };
 
     // create AAAA and A records for endabled service endpoints
-    private createPektinServiceEndpointsDNS = async (
-        pektinConfig: PektinConfig
-    ) => {
-        const mainNode = pektinConfig.nodes.filter(
-            (node) => node.main === true
-        )[0];
+    private createPektinServiceEndpointsDNS = async (pektinConfig: PektinConfig) => {
+        const mainNode = pektinConfig.nodes.filter((node) => node.main === true)[0];
 
         const enabledServices = [
             pektinConfig.ui,
