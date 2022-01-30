@@ -76,7 +76,9 @@ const registrarSetup = async (config: PektinConfig) => {
         registrar.domains.forEach((domain) => {
             const glueRecords: GlueRecord[] = [];
             config.nameservers
-                .filter((ns) => ns.domain === domain)
+                .filter(
+                    (ns) => absoluteName(ns.domain) === absoluteName(domain)
+                )
                 .forEach((ns) => {
                     // get the node for the current nameserver
                     const nsNode = config.nodes.filter(
@@ -86,7 +88,7 @@ const registrarSetup = async (config: PektinConfig) => {
                     // create the glue record object for this nameserver
                     if (!ns.subDomain) return;
                     const glueRecord: GlueRecord = {
-                        domain: ns.domain,
+                        domain: absoluteName(ns.domain),
                         subDomain: ns.subDomain,
                     };
                     if (nsNode.ips) {
@@ -99,7 +101,7 @@ const registrarSetup = async (config: PektinConfig) => {
                 });
             if (glueRecords.length) {
                 setGlueRecordRequests.push(
-                    gr.setupGlueAndNS(domain, glueRecords)
+                    gr.setupGlueAndNS(absoluteName(domain), glueRecords)
                 );
             }
         });
