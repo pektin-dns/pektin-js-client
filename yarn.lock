@@ -90,10 +90,10 @@
     cross-fetch "^3.1.5"
     lodash "^4.17.21"
 
-"@pektin/global-registrar@^1.0.4":
-  version "1.0.4"
-  resolved "https://registry.yarnpkg.com/@pektin/global-registrar/-/global-registrar-1.0.4.tgz#16ae9d881c669a30c3297e43cd285b800ab8d36d"
-  integrity sha512-I5bgbm4FcoGnYk5xTudtQEiVoF036bL8vJk5gzoJ0xNoXroE2TwBKKOZ/egadwQmX5SnjIlANniG+HGDynebEg==
+"@pektin/global-registrar@^1.0.5":
+  version "1.0.5"
+  resolved "https://registry.yarnpkg.com/@pektin/global-registrar/-/global-registrar-1.0.5.tgz#66b4c37ebc3686ac54ad8b491a2aebbcaeff5036"
+  integrity sha512-BIntAjZpEDHXPf12NeYb9Pm3V+RdUKKj/J9dlkzGjJnf4dqc6aoo5YESJnQrX6PlpAP+Z80KLqCJTUp9L6JYpQ==
   dependencies:
     "@pektin/client" "^1.1.19"
     "@pektin/config" "^1.0.22"
