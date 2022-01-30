@@ -4,6 +4,8 @@ import path from "path";
 import { absoluteName, PektinClient, concatDomain } from "../index.js";
 import { ApiRecord, PektinClientConnectionConfigOverride, PektinRRType } from "../types.js";
 import { createSingleScript } from "../utils.js";
+import GlobalRegistrar from "@pektin/global-registrar";
+import { GlueRecord, PluginNames } from "@pektin/global-registrar/src/types";
 
 const dir = "/pektin-compose/";
 
@@ -28,7 +30,8 @@ export const pektinComposeFirstStart = async (recursive: any) => {
 
         await pc.setup(pektinConfig);
     }
-    pektinConfig.nodes.forEach(async (node, i) => {
+    for (let i = 0; i < pektinConfig.nodes.length; i++) {
+        const node = pektinConfig.nodes[i];
         if (i === 0) return;
         if (node.setup && node.setup.system) {
             await createSingleScript(
@@ -38,7 +41,55 @@ export const pektinComposeFirstStart = async (recursive: any) => {
                 recursive
             );
         }
-    });
+    }
+
+    await registrarSetup(pektinConfig);
+};
+
+const registrarSetup = async (config: PektinConfig) => {
+    if (!config.registrarApi.enabled) return;
+    if (!config.registrarApi.registrars) {
+        throw Error(
+            "Your config is invalid: registrarApi is enabled but no registrars were provided"
+        );
+    }
+
+    for (let i = 0; i < config.registrarApi.registrars.length; i++) {
+        const registrar = config.registrarApi.registrars[i];
+        const data = JSON.parse(
+            await fs.readFile(path.join(dir, registrar.dataPath), { encoding: "utf8" })
+        );
+        const gr = new GlobalRegistrar({ type: registrar.type as PluginNames, data });
+
+        const setNsRequests: Promise<any>[] = [];
+
+        const setGlueRecordRequests: Promise<any>[] = [];
+        registrar.domains.forEach(domain => {
+            const glueRecords: GlueRecord[] = [];
+            const nameservers: string[] = [];
+            config.nameservers
+                .filter(ns => ns.domain === domain)
+                .forEach(ns => {
+                    nameservers.push(concatDomain(domain, ns.subDomain));
+                    // get the node for the current nameserver
+                    const nsNode = config.nodes.filter(node => node.name === ns.node)[0];
+
+                    // create the glue record for this nameserver
+                    if (!ns.subDomain) return;
+                    const glueRecord: GlueRecord = { domain: ns.domain, subDomain: ns.subDomain };
+                    if (nsNode.ips) {
+                        glueRecord.ips = nsNode.ips;
+                    }
+                    if (nsNode.legacyIps) {
+                        glueRecord.legacyIps = nsNode.legacyIps;
+                    }
+                    glueRecords.push(glueRecord);
+                });
+            if (nameservers.length) setNsRequests.push(gr.setNameServers(domain, nameservers));
+            if (glueRecords.length) setGlueRecordRequests.push(gr.setGlueRecords(glueRecords));
+        });
+        const setGlueRecordReponses = await Promise.all(setGlueRecordRequests);
+    }
 };
 
 export class PektinComposeClient extends PektinClient {
