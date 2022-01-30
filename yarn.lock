@@ -11,10 +11,10 @@
     lodash "^4.17.21"
     yaml "^1.10.2"
 
-"@pektin/global-registrar@^0.0.2":
-  version "0.0.2"
-  resolved "https://registry.yarnpkg.com/@pektin/global-registrar/-/global-registrar-0.0.2.tgz#30bbdd943c7f4525e18008649abca9637517efea"
-  integrity sha512-OSRzYgtpNHTjXAo5E9jsh8Pe7YhR/IYuqyolXf/MbZtnQVNYFsiybHDL60AnzFnRVxwj4ZNVFgXSqWBa61aj8g==
+"@pektin/global-registrar@^1.0.0":
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/@pektin/global-registrar/-/global-registrar-1.0.0.tgz#2bc997fa6e957844d11f8fb4d5637bbb6f9fd17e"
+  integrity sha512-H7ZqRjW7vRfQfb50p2TOqwUIg8dpuBzGzUIJRi3yWRWyoKMwwASB3iTJOtvdlMRJTZZ4H8ULn+5pyP3JYru79g==
   dependencies:
     "@pektin/config" "^1.0.12"
     cross-fetch "^3.1.5"
