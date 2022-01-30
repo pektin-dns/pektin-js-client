@@ -1,6 +1,6 @@
 {
     "name": "@pektin/client",
-    "version": "1.1.20",
+    "version": "1.1.21",
     "description": "A client to facilitate the control of pektin dns servers",
     "main": "dist/js/index.js",
     "types": "src/index.ts",
