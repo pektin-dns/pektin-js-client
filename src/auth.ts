@@ -6,7 +6,7 @@ import {
     ManagerName,
     OfficerName,
     RibstonPolicy,
-} from "./types";
+} from "./types.js";
 import { randomString } from "./utils.js";
 import {
     pektinApiPolicy,
@@ -14,7 +14,7 @@ import {
     pektinOfficerPolicy,
     pektinSignerPolicy,
 } from "./vault/pektinVaultPolicies.js";
-import { VaultAuthEngine, VaultSecretEngine } from "./vault/types";
+import { VaultAuthEngine, VaultSecretEngine } from "./vault/types.js";
 import {
     createEntity,
     createEntityAlias,

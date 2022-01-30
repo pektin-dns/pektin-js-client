@@ -37,9 +37,8 @@ export const pektinComposeFirstStart = async (recursive: any) => {
 
         await pc.setup(pektinConfig);
     }
-    for (let i = 0; i < pektinConfig.nodes.length; i++) {
+    for (let i = 1; i < pektinConfig.nodes.length; i++) {
         const node = pektinConfig.nodes[i];
-        if (i === 0) return;
         if (node.setup && node.setup.system) {
             await createSingleScript(
                 path.join(dir, `arbeiter`, node.name),

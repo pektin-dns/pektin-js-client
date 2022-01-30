@@ -7,7 +7,7 @@ import {
     IdentityEntityAliasRequestBody,
     VaultPolicy,
     VaultAuthJSON,
-} from "./types";
+} from "./types.js";
 
 export const getAuthMethods = async (endpoint: string, token: string) => {
     const res = await f(`${endpoint}/v1/sys/auth`, {

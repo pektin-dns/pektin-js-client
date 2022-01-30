@@ -2,15 +2,16 @@
 DENO_DIR=dist/deno/
 rm -r ${DENO_DIR}
 mkdir -p ${DENO_DIR}.vscode/
-echo '{
-    "deno.enable": true,
-    "deno.lint": true,
-    "deno.unstable": true,
-    "deno.suggest.imports.hosts": {
-        "https://deno.land": true
-    }
-}
-' > ${DENO_DIR}.vscode/settings.json
+#
+#echo '{
+#    "deno.enable": true,
+#    "deno.lint": true,
+#    "deno.unstable": true,
+#    "deno.suggest.imports.hosts": {
+#        "https://deno.land": true
+#    }
+#}
+#' > ${DENO_DIR}.vscode/settings.json
 cp -r src/ ${DENO_DIR}
 
 

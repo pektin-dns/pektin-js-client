@@ -5,7 +5,7 @@ import { exec as execDefault } from "child_process";
 import fs from "fs/promises";
 import path from "path";
 import { PektinConfig } from "@pektin/config/src/types";
-import { PektinClientConnectionConfigOverride } from "./types";
+import { PektinClientConnectionConfigOverride } from "./types.js";
 const exec = promisify(execDefault);
 
 export const randomString = (length = 100) =>
