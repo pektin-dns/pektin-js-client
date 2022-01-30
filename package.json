@@ -1,6 +1,6 @@
 {
     "name": "@pektin/client",
-    "version": "1.1.25",
+    "version": "1.1.26",
     "description": "A client to facilitate the control of pektin dns servers",
     "main": "dist/js/index.js",
     "types": "src/index.ts",
@@ -35,7 +35,7 @@
     },
     "dependencies": {
         "@pektin/config": "^1.0.22",
-        "@pektin/global-registrar": "^1.0.5",
+        "@pektin/global-registrar": "^1.0.6",
         "cross-fetch": "^3.1.4"
     },
     "scripts": {
