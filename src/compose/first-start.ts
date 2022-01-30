@@ -97,13 +97,14 @@ const registrarSetup = async (config: PektinConfig) => {
                     }
                     glueRecords.push(glueRecord);
                 });
-            if (glueRecords.length)
-                setGlueRecordReponses.push(
+            if (glueRecords.length) {
+                setGlueRecordRequests.push(
                     gr.setupGlueAndNS(domain, glueRecords)
                 );
+            }
         });
 
-        const setGlueRecordReponses = await Promise.all(setGlueRecordRequests);
+        await Promise.all(setGlueRecordRequests);
     }
 };
 
