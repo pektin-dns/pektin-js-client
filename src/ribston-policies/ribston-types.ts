@@ -1,12 +1,12 @@
 import { ApiRecord, ApiDeleteRequestRecord } from "../types.js";
 
 export enum RequestType {
-    Get = "get",
-    GetZone = "get-zone",
-    Delete = "delete",
-    Set = "set",
-    Search = "search",
-    Health = "health"
+    Get = `get`,
+    GetZone = `get-zone`,
+    Delete = `delete`,
+    Set = `set`,
+    Search = `search`,
+    Health = `health`,
 }
 
 export interface BaseInput {

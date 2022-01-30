@@ -5,10 +5,16 @@ import {
     GetZoneInput,
     HealthInput,
     SearchInput,
-    SetInput
+    SetInput,
 } from "./ribston-types.js";
 
-type Input = GetInput | GetZoneInput | DeleteInput | SetInput | SearchInput | HealthInput;
+type Input =
+    | GetInput
+    | GetZoneInput
+    | DeleteInput
+    | SetInput
+    | SearchInput
+    | HealthInput;
 
 interface Output {
     error: boolean;
@@ -24,26 +30,27 @@ const err = (msg: string) => {
     output.message = msg;
 };
 
-if (input.api_method === "get") {
+if (input.api_method === `get`) {
     if (
         !input.request_body.Get.keys.every(
-            key => key.startsWith("_acme-challenge") && key.endsWith(".:TXT")
+            (key) => key.startsWith(`_acme-challenge`) && key.endsWith(`.:TXT`)
         )
     ) {
-        err("Invalid key");
+        err(`Invalid key`);
     }
-} else if (input.api_method === "delete" || input.api_method === "set") {
+} else if (input.api_method === `delete` || input.api_method === `set`) {
     const records =
-        input.api_method === "delete"
+        input.api_method === `delete`
             ? input.request_body.Delete.records
             : input.request_body.Set.records;
     if (
         !records.every(
-            record =>
-                record.name.startsWith("_acme-challenge") && record.rr_type === PektinRRType.TXT
+            (record) =>
+                record.name.startsWith(`_acme-challenge`) &&
+                record.rr_type === PektinRRType.TXT
         )
     ) {
-        err("Invalid key");
+        err(`Invalid key`);
     }
 } else {
     err(`API method '${input.api_method}' not allowed`);
@@ -51,5 +58,5 @@ if (input.api_method === "get") {
 
 if (output.error === undefined) {
     output.error = false;
-    output.message = "Success";
+    output.message = `Success`;
 }

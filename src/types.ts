@@ -30,7 +30,7 @@ export type OfficerName = `pektin-officer-${ClientName}`;
 export type ManagerPassword = `m.${string}`;
 export type ConfidantPassword = `c.${string}`;
 
-export type ClientVaultAccountType = "confidant" | "manager";
+export type ClientVaultAccountType = `confidant` | `manager`;
 
 export interface PektinClientConnectionConfig {
     vaultEndpoint?: string;
@@ -39,7 +39,8 @@ export interface PektinClientConnectionConfig {
     managerPassword?: ManagerPassword;
 }
 
-export interface PektinClientConnectionConfigOverride extends PektinClientConnectionConfig {
+export interface PektinClientConnectionConfigOverride
+    extends PektinClientConnectionConfig {
     override?: OverrideClientCredentials;
 }
 
@@ -82,8 +83,14 @@ export type DeleteResponse =
     | DeleteResponseError
     | UnauthorizedError
     | InternalServerError;
-export type SearchResponse = SearchResponseSuccess | UnauthorizedError | InternalServerError;
-export type HealthResponse = HealthResponseSuccess | UnauthorizedError | InternalServerError;
+export type SearchResponse =
+    | SearchResponseSuccess
+    | UnauthorizedError
+    | InternalServerError;
+export type HealthResponse =
+    | HealthResponseSuccess
+    | UnauthorizedError
+    | InternalServerError;
 
 export interface UnauthorizedError extends ApiResponseErrorBase {
     data: null;
@@ -99,10 +106,10 @@ export interface ApiResponseBase {
 }
 
 export enum ApiResponseType {
-    Success = "success",
-    PartialSuccess = "partial-success",
-    Error = "error",
-    Ignored = "ignored"
+    Success = `success`,
+    PartialSuccess = `partial-success`,
+    Error = `error`,
+    Ignored = `ignored`,
 }
 
 // response success
@@ -159,10 +166,12 @@ export interface GetResponsePartialSuccess extends ApiResponseSuccessBase {
     data: GetResponsePartialSuccessItem[];
 }
 
-export interface GetZoneRecordsResponsePartialSuccessItem extends ApiResponseBase {
+export interface GetZoneRecordsResponsePartialSuccessItem
+    extends ApiResponseBase {
     data: ApiRecord[] | null;
 }
-export interface GetZoneRecordsResponsePartialSuccess extends ApiResponseSuccessBase {
+export interface GetZoneRecordsResponsePartialSuccess
+    extends ApiResponseSuccessBase {
     data: GetZoneRecordsResponsePartialSuccessItem[];
 }
 
@@ -185,7 +194,13 @@ export interface DeleteResponseError extends ApiResponseErrorBase {
     data: DeleteResponseErrorItem[];
 }
 
-export type ApiMethod = "get" | "set" | "search" | "delete" | "get-zone-records" | "health";
+export type ApiMethod =
+    | `get`
+    | `set`
+    | `search`
+    | `delete`
+    | `get-zone-records`
+    | `health`;
 
 export type ApiRequestBody =
     | ApiGetRequestBody
@@ -308,12 +323,12 @@ export interface AAAARecord extends ResourceRecordBase {
 export type CAARecord = CAARecordIssue | CAARecordIodef;
 export interface CAARecordIssue extends ResourceRecordBase {
     issuer_critical: boolean;
-    tag: "issue" | "issuewild";
+    tag: `issue` | `issuewild`;
     value: DomainName;
 }
 export interface CAARecordIodef extends ResourceRecordBase {
     issuer_critical: boolean;
-    tag: "iodef";
+    tag: `iodef`;
     value: `https://${string}` | `http://${string}` | `mailto:${string}`;
 }
 export interface CNAMERecord extends ResourceRecordBase {
@@ -355,15 +370,15 @@ export interface TXTRecord extends ResourceRecordBase {
 }
 
 export enum PektinRRType {
-    A = "A",
-    AAAA = "AAAA",
-    CAA = "CAA",
-    CNAME = "CNAME",
-    MX = "MX",
-    NS = "NS",
-    OPENPGPKEY = "OPENPGPKEY",
-    SOA = "SOA",
-    SRV = "SRV",
-    TLSA = "TLSA",
-    TXT = "TXT"
+    A = `A`,
+    AAAA = `AAAA`,
+    CAA = `CAA`,
+    CNAME = `CNAME`,
+    MX = `MX`,
+    NS = `NS`,
+    OPENPGPKEY = `OPENPGPKEY`,
+    SOA = `SOA`,
+    SRV = `SRV`,
+    TLSA = `TLSA`,
+    TXT = `TXT`,
 }

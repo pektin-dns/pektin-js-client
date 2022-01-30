@@ -9,9 +9,9 @@ export interface VaultAuthEngineOptions {
     type: VaultAuthEngineType;
     options?: {};
 }
-export type VaultAuthEngineType = "approle" | "jwt" | "token" | "userpass";
+export type VaultAuthEngineType = `approle` | `jwt` | `token` | `userpass`;
 
-export type VaultSecretEngineType = "kv" | "transit";
+export type VaultSecretEngineType = `kv` | `transit`;
 
 export interface VaultSecretEngine {
     path: string;

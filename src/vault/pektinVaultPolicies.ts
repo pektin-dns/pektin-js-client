@@ -40,7 +40,7 @@ path "pektin-signer-passwords-1/data/*" {
     capabilities = ["read"]
 }`;
     } else if (capabilities.allowedSigningDomains) {
-        capabilities.allowedSigningDomains.map(domain => {
+        capabilities.allowedSigningDomains.map((domain) => {
             policy += `
 path "pektin-signer-passwords-1/data/${deAbsolute(domain)}" {
     capabilities = ["read"]

@@ -9,7 +9,7 @@ export interface ToluolResponse {
 export interface ToluolAnswer {
     NONOPT: {
         atype: string;
-        class: "IN";
+        class: `IN`;
         name: string;
         rdata: string[];
         ttl: number;

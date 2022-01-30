@@ -1,3 +1,6 @@
 {
-    "window.title": "🧑‍💻 ${rootName}"
+    "window.title": "🧑‍💻 ${rootName}",
+    "editor.codeActionsOnSave": {
+        "source.fixAll.eslint": true
+    }
 }

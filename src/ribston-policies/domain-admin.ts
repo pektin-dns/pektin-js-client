@@ -4,10 +4,16 @@ import {
     GetZoneInput as GetZoneRecordsInput,
     HealthInput,
     SearchInput,
-    SetInput
+    SetInput,
 } from "./ribston-types.js";
 
-type Input = GetInput | GetZoneRecordsInput | DeleteInput | SetInput | SearchInput | HealthInput;
+type Input =
+    | GetInput
+    | GetZoneRecordsInput
+    | DeleteInput
+    | SetInput
+    | SearchInput
+    | HealthInput;
 
 interface Output {
     error: boolean;
@@ -23,12 +29,12 @@ const err = (msg: string) => {
     output.message = msg;
 };
 
-const domains = ["pektin.xyz."];
+const domains = [`pektin.xyz.`];
 
-if (input.api_method === "get") {
+if (input.api_method === `get`) {
     if (
-        !input.request_body.Get.keys.every(key => {
-            const inputDomain = key.replace(/\.\:.*$/, ".");
+        !input.request_body.Get.keys.every((key) => {
+            const inputDomain = key.replace(/\.\:.*$/, `.`);
             for (const domain of domains) {
                 if (inputDomain.endsWith(domain)) {
                     return true;
@@ -37,15 +43,15 @@ if (input.api_method === "get") {
             return false;
         })
     ) {
-        err("Invalid key");
+        err(`Invalid key`);
     }
-} else if (input.api_method === "delete" || input.api_method === "set") {
+} else if (input.api_method === `delete` || input.api_method === `set`) {
     const records =
-        input.api_method === "delete"
+        input.api_method === `delete`
             ? input.request_body.Delete.records
             : input.request_body.Set.records;
     if (
-        !records.every(record => {
+        !records.every((record) => {
             for (const domain of domains) {
                 if (record.name.endsWith(domain)) {
                     return true;
@@ -54,11 +60,11 @@ if (input.api_method === "get") {
             return false;
         })
     ) {
-        err("Invalid key");
+        err(`Invalid key`);
     }
-} else if (input.api_method === "search") {
+} else if (input.api_method === `search`) {
     const inputDomain = input.request_body.Search.glob.substring(
-        input.request_body.Search.glob.lastIndexOf(":")
+        input.request_body.Search.glob.lastIndexOf(`:`)
     );
     let validDomain = false;
     for (const domain of domains) {
@@ -67,7 +73,7 @@ if (input.api_method === "get") {
         }
     }
     if (!validDomain) {
-        err("Invalid key");
+        err(`Invalid key`);
     }
 } else {
     err(`API method '${input.api_method}' not allowed`);
@@ -75,7 +81,7 @@ if (input.api_method === "get") {
 
 if (output.error === undefined) {
     output.error = false;
-    output.message = "Success";
+    output.message = `Success`;
 }
 
 // TODO make this easier

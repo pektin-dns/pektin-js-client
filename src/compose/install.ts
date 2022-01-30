@@ -1,9 +1,20 @@
 import { promises as fs } from "fs";
 import path from "path";
-import { chownRecursive, chown, chmod, randomString, configToCertbotIni } from "./../utils.js";
+import {
+    chownRecursive,
+    chown,
+    chmod,
+    randomString,
+    configToCertbotIni,
+} from "./../utils.js";
 import crypto from "crypto";
 
-import { unsealVault, initVault, enableVaultCors, updateKvValue } from "./../vault/vault.js";
+import {
+    unsealVault,
+    initVault,
+    enableVaultCors,
+    updateKvValue,
+} from "./../vault/vault.js";
 import { PektinClientConnectionConfigOverride } from "./../types";
 import { PektinConfig } from "@pektin/config/src/types.js";
 
@@ -13,28 +24,35 @@ import {
     createPektinAuthVaultPolicies,
     createPektinSigner,
     createPektinVaultEngines,
-    updatePektinSharedPasswords
+    updatePektinSharedPasswords,
 } from "./../auth.js";
-import { concatDomain, getMainNode, getNodesNameservers, getPektinEndpoint } from "../index.js";
+import {
+    concatDomain,
+    getMainNode,
+    getNodesNameservers,
+    getPektinEndpoint,
+} from "../index.js";
 
 export const installPektinCompose = async (
-    dir: string = "/pektin-compose/",
-    internalVaultUrl: string = "http://pektin-vault:8200"
+    dir: string = `/pektin-compose/`,
+    internalVaultUrl: string = `http://pektin-vault:8200`
 ) => {
     if (process.env.UID === undefined || process.env.GID === undefined)
         throw Error(
-            "No UID and/or GID defined. Current is: UID: " +
+            `No UID and/or GID defined. Current is: UID: ` +
                 process.env.UID +
-                ", GID: " +
+                `, GID: ` +
                 process.env.GID
         );
 
     const pektinConfig: PektinConfig = JSON.parse(
-        await fs.readFile(path.join(dir, "pektin-config.json"), { encoding: "utf-8" })
+        await fs.readFile(path.join(dir, `pektin-config.json`), {
+            encoding: `utf-8`,
+        })
     );
 
     // creates secrets directory
-    await fs.mkdir(path.join(dir, "secrets")).catch(() => {});
+    await fs.mkdir(path.join(dir, `secrets`)).catch(() => {});
 
     // HTTP API CALL RELATED
     // init vault
@@ -46,31 +64,52 @@ export const installPektinCompose = async (
         internalVaultUrl,
         vaultTokens.rootToken,
         [
-            { path: "pektin-transit", options: { type: "transit" } },
-            { path: "pektin-kv", options: { type: "kv", options: { version: 2 } } },
-            { path: "pektin-signer-passwords-1", options: { type: "kv", options: { version: 2 } } },
-            { path: "pektin-signer-passwords-2", options: { type: "kv", options: { version: 2 } } },
-            { path: "pektin-signer-passwords", options: { type: "kv", options: { version: 2 } } },
+            { path: `pektin-transit`, options: { type: `transit` } },
             {
-                path: "pektin-officer-passwords-1",
-                options: { type: "kv", options: { version: 2 } }
+                path: `pektin-kv`,
+                options: { type: `kv`, options: { version: 2 } },
             },
             {
-                path: "pektin-officer-passwords-2",
-                options: { type: "kv", options: { version: 2 } }
+                path: `pektin-signer-passwords-1`,
+                options: { type: `kv`, options: { version: 2 } },
             },
-            { path: "pektin-officer-passwords", options: { type: "kv", options: { version: 2 } } },
-            { path: "pektin-ribston-policies", options: { type: "kv", options: { version: 2 } } }
+            {
+                path: `pektin-signer-passwords-2`,
+                options: { type: `kv`, options: { version: 2 } },
+            },
+            {
+                path: `pektin-signer-passwords`,
+                options: { type: `kv`, options: { version: 2 } },
+            },
+            {
+                path: `pektin-officer-passwords-1`,
+                options: { type: `kv`, options: { version: 2 } },
+            },
+            {
+                path: `pektin-officer-passwords-2`,
+                options: { type: `kv`, options: { version: 2 } },
+            },
+            {
+                path: `pektin-officer-passwords`,
+                options: { type: `kv`, options: { version: 2 } },
+            },
+            {
+                path: `pektin-ribston-policies`,
+                options: { type: `kv`, options: { version: 2 } },
+            },
         ],
-        [{ path: "userpass", options: { type: "userpass" } }]
+        [{ path: `userpass`, options: { type: `userpass` } }]
     );
 
     // create the 2 not domain or client related policies
-    await createPektinAuthVaultPolicies(internalVaultUrl, vaultTokens.rootToken);
+    await createPektinAuthVaultPolicies(
+        internalVaultUrl,
+        vaultTokens.rootToken
+    );
 
     if (pektinConfig.nameservers !== undefined) {
         // create the signer vault infra for the nameserver domains
-        pektinConfig.nameservers.forEach(async ns => {
+        pektinConfig.nameservers.forEach(async (ns) => {
             if (ns.main) {
                 const domainSignerPassword = randomString();
                 await createPektinSigner(
@@ -83,7 +122,7 @@ export const installPektinCompose = async (
                 await updatePektinSharedPasswords(
                     internalVaultUrl,
                     vaultTokens.rootToken,
-                    "signer",
+                    `signer`,
                     domainSignerPassword,
                     ns.domain
                 );
@@ -93,9 +132,13 @@ export const installPektinCompose = async (
     // create the vault infra for the api
     const V_PEKTIN_API_PASSWORD = randomString();
 
-    createPektinApiAccount(internalVaultUrl, vaultTokens.rootToken, V_PEKTIN_API_PASSWORD);
+    createPektinApiAccount(
+        internalVaultUrl,
+        vaultTokens.rootToken,
+        V_PEKTIN_API_PASSWORD
+    );
 
-    let vaultEndpoint = getPektinEndpoint(pektinConfig, "vault");
+    let vaultEndpoint = getPektinEndpoint(pektinConfig, `vault`);
 
     await enableVaultCors(internalVaultUrl, vaultTokens.rootToken);
 
@@ -104,12 +147,12 @@ export const installPektinCompose = async (
         username: `admin-${randomString(10)}`,
         managerPassword: `m.${randomString()}`,
         confidantPassword: `c.${randomString()}`,
-        vaultEndpoint
+        vaultEndpoint,
     };
 
     const pektinAdminRibstonPolicy = await fs.readFile(
         `/app/node_modules/@pektin/client/dist/policies/allow-everything.ribston.js`,
-        "utf-8"
+        `utf-8`
     );
 
     await createPektinClient({
@@ -122,12 +165,12 @@ export const installPektinCompose = async (
             allowAllSigningDomains: true,
             recursorAccess: true,
             configAccess: true,
-            ribstonPolicy: pektinAdminRibstonPolicy
-        }
+            ribstonPolicy: pektinAdminRibstonPolicy,
+        },
     });
 
     await fs.writeFile(
-        path.join(dir, "secrets", "server-admin-connection-config.json"),
+        path.join(dir, `secrets`, `server-admin-connection-config.json`),
         JSON.stringify(pektinAdminConnectionConfig)
     );
 
@@ -137,12 +180,12 @@ export const installPektinCompose = async (
             username: `acme-${randomString(10)}`,
             confidantPassword: `c.${randomString()}`,
             override: {
-                pektinApiEndpoint: getPektinEndpoint(pektinConfig, "api")
-            }
+                pektinApiEndpoint: getPektinEndpoint(pektinConfig, `api`),
+            },
         };
         const acmeClientRibstonPolicy = await fs.readFile(
             `/app/node_modules/@pektin/client/dist/policies/acme.ribston.js`,
-            "utf-8"
+            `utf-8`
         );
         await createPektinClient({
             endpoint: internalVaultUrl,
@@ -151,42 +194,51 @@ export const installPektinCompose = async (
             confidantPassword: acmeClientConnectionConfig.confidantPassword,
             capabilities: {
                 ribstonPolicy: acmeClientRibstonPolicy,
-                allowAllSigningDomains: true
-            }
+                allowAllSigningDomains: true,
+            },
         });
         await fs.writeFile(
-            path.join(dir, "secrets", "acme-client-connection-config.json"),
+            path.join(dir, `secrets`, `acme-client-connection-config.json`),
             JSON.stringify(acmeClientConnectionConfig)
         );
         await fs.writeFile(
-            path.join(dir, "secrets", "certbot-acme-client-connection-config.ini"),
-            configToCertbotIni(acmeClientConnectionConfig as PektinClientConnectionConfigOverride)
+            path.join(
+                dir,
+                `secrets`,
+                `certbot-acme-client-connection-config.ini`
+            ),
+            configToCertbotIni(
+                acmeClientConnectionConfig as PektinClientConnectionConfigOverride
+            )
         );
     }
 
     // create basic auth for recursor
     const RECURSOR_USER = randomString(20);
     const RECURSOR_PASSWORD = randomString();
-    const recursorBasicAuthHashed = genBasicAuthHashed(RECURSOR_USER, RECURSOR_PASSWORD);
+    const recursorBasicAuthHashed = genBasicAuthHashed(
+        RECURSOR_USER,
+        RECURSOR_PASSWORD
+    );
 
     // set recursor basic auth string on vault
     await updateKvValue(
         internalVaultUrl,
         vaultTokens.rootToken,
-        "recursor-auth",
+        `recursor-auth`,
         {
-            basicAuth: genBasicAuthString(RECURSOR_USER, RECURSOR_PASSWORD)
+            basicAuth: genBasicAuthString(RECURSOR_USER, RECURSOR_PASSWORD),
         },
-        "pektin-kv"
+        `pektin-kv`
     );
 
     // set the pektin config on vault for easy service discovery
     await updateKvValue(
         internalVaultUrl,
         vaultTokens.rootToken,
-        "pektin-config",
+        `pektin-config`,
         pektinConfig,
-        "pektin-kv"
+        `pektin-kv`
     );
 
     // HARD DRIVE RELATED
@@ -197,22 +249,32 @@ export const installPektinCompose = async (
     const R_PEKTIN_GEWERKSCHAFT_PASSWORD = randomString();
 
     const redisPasswords = [
-        ["R_PEKTIN_API_PASSWORD", R_PEKTIN_API_PASSWORD],
-        ["R_PEKTIN_SERVER_PASSWORD", R_PEKTIN_SERVER_PASSWORD]
+        [`R_PEKTIN_API_PASSWORD`, R_PEKTIN_API_PASSWORD],
+        [`R_PEKTIN_SERVER_PASSWORD`, R_PEKTIN_SERVER_PASSWORD],
     ];
 
     if (pektinConfig.nodes.length > 1) {
-        redisPasswords.push(["R_PEKTIN_GEWERKSCHAFT_PASSWORD", R_PEKTIN_GEWERKSCHAFT_PASSWORD]);
+        redisPasswords.push([
+            `R_PEKTIN_GEWERKSCHAFT_PASSWORD`,
+            R_PEKTIN_GEWERKSCHAFT_PASSWORD,
+        ]);
 
-        await createArbeiterConfig({ R_PEKTIN_GEWERKSCHAFT_PASSWORD, pektinConfig }, dir);
+        await createArbeiterConfig(
+            { R_PEKTIN_GEWERKSCHAFT_PASSWORD, pektinConfig },
+            dir
+        );
         await createSwarmScript(pektinConfig, dir);
 
         await chownRecursive(
             path.join(dir, `arbeiter`),
-            process.env.UID || "700",
-            process.env.GID || "700"
+            process.env.UID || `700`,
+            process.env.GID || `700`
         );
-        await chown(path.join(dir, `swarm.sh`), process.env.UID, process.env.GID);
+        await chown(
+            path.join(dir, `swarm.sh`),
+            process.env.UID,
+            process.env.GID
+        );
     }
 
     await setRedisPasswordHashes(redisPasswords, pektinConfig, dir);
@@ -225,7 +287,7 @@ export const installPektinCompose = async (
             R_PEKTIN_SERVER_PASSWORD,
             V_PEKTIN_API_PASSWORD,
             pektinConfig,
-            recursorBasicAuthHashed
+            recursorBasicAuthHashed,
         },
         dir
     );
@@ -239,22 +301,35 @@ export const installPektinCompose = async (
     await chown(path.join(dir, `start.sh`), process.env.UID, process.env.GID);
     await chown(path.join(dir, `stop.sh`), process.env.UID, process.env.GID);
     await chown(path.join(dir, `update.sh`), process.env.UID, process.env.GID);
-    await chownRecursive(path.join(dir, `secrets`), process.env.UID, process.env.GID);
+    await chownRecursive(
+        path.join(dir, `secrets`),
+        process.env.UID,
+        process.env.GID
+    );
     await chmod(path.join(dir, `secrets`), `700`);
     await chmod(path.join(dir, `secrets`, `.env`), `600`);
-    await chmod(path.join(dir, `secrets`, `acme-client-connection-config.json`), `600`);
-    await chmod(path.join(dir, `secrets`, `server-admin-connection-config.json`), `600`);
-    await chmod(path.join(dir, `secrets`, `certbot-acme-client-connection-config.ini`), `600`);
+    await chmod(
+        path.join(dir, `secrets`, `acme-client-connection-config.json`),
+        `600`
+    );
+    await chmod(
+        path.join(dir, `secrets`, `server-admin-connection-config.json`),
+        `600`
+    );
+    await chmod(
+        path.join(dir, `secrets`, `certbot-acme-client-connection-config.ini`),
+        `600`
+    );
 };
 
 export const genBasicAuthHashed = (username: string, password: string) => {
     const hash = (a: string) =>
-        crypto.createHash("sha1").update(a, "utf8").digest().toString("base64");
+        crypto.createHash(`sha1`).update(a, `utf8`).digest().toString(`base64`);
     return `${username}:{SHA}${hash(password)}`;
 };
 
 export const genBasicAuthString = (username: string, password: string) => {
-    const s = Buffer.from(`${username}:${password}`).toString("base64");
+    const s = Buffer.from(`${username}:${password}`).toString(`base64`);
     return `Basic ${s}`;
 };
 
@@ -265,47 +340,72 @@ export const createArbeiterConfig = async (
     },
     dir: string
 ) => {
-    await fs.mkdir(path.join(dir, "arbeiter")).catch(() => {});
+    await fs.mkdir(path.join(dir, `arbeiter`)).catch(() => {});
 
     for (let i = 0; i < v.pektinConfig.nodes.length; i++) {
         const node = v.pektinConfig.nodes[i];
 
         if (i !== 0) {
-            await fs.mkdir(path.join(dir, "arbeiter", node.name)).catch(() => {});
-
-            await fs.mkdir(path.join(dir, "arbeiter", node.name, "secrets")).catch(() => {});
             await fs
-                .mkdir(path.join(dir, "arbeiter", node.name, "secrets", "redis"))
+                .mkdir(path.join(dir, `arbeiter`, node.name))
+                .catch(() => {});
+
+            await fs
+                .mkdir(path.join(dir, `arbeiter`, node.name, `secrets`))
+                .catch(() => {});
+            await fs
+                .mkdir(
+                    path.join(dir, `arbeiter`, node.name, `secrets`, `redis`)
+                )
                 .catch(() => {});
             const R_PEKTIN_SERVER_PASSWORD = randomString();
             const redisAclFile = await setRedisPasswordHashes(
-                [["R_PEKTIN_SERVER_PASSWORD", R_PEKTIN_SERVER_PASSWORD]],
+                [[`R_PEKTIN_SERVER_PASSWORD`, R_PEKTIN_SERVER_PASSWORD]],
                 v.pektinConfig,
                 dir,
                 true
             );
             if (redisAclFile === undefined) {
-                throw new Error("This should never happen: createArbeiterConfig");
+                throw new Error(
+                    `This should never happen: createArbeiterConfig`
+                );
             }
             await fs.writeFile(
-                path.join(dir, "arbeiter", node.name, "secrets", "redis", "users.acl"),
+                path.join(
+                    dir,
+                    `arbeiter`,
+                    node.name,
+                    `secrets`,
+                    `redis`,
+                    `users.acl`
+                ),
                 redisAclFile
             );
 
             const redisConf = await fs.readFile(
-                path.join(dir, "config", "redis", "arbeiter", "redis.conf"),
-                { encoding: "utf8" }
+                path.join(dir, `config`, `redis`, `arbeiter`, `redis.conf`),
+                { encoding: `utf8` }
             );
 
             await fs.writeFile(
-                path.join(dir, "arbeiter", node.name, "secrets", "redis", "redis.conf"),
-                redisConf.replace("#MASTERAUTH", v.R_PEKTIN_GEWERKSCHAFT_PASSWORD)
+                path.join(
+                    dir,
+                    `arbeiter`,
+                    node.name,
+                    `secrets`,
+                    `redis`,
+                    `redis.conf`
+                ),
+                redisConf.replace(
+                    `#MASTERAUTH`,
+                    v.R_PEKTIN_GEWERKSCHAFT_PASSWORD
+                )
             );
 
             const repls = [
-                ["R_PEKTIN_SERVER_PASSWORD", R_PEKTIN_SERVER_PASSWORD],
-                ["SERVER_DOMAINS_SNI", getSNI(v.pektinConfig, node.name)],
-                ["SERVER_DOMAIN", ""]
+                [`R_PEKTIN_SERVER_PASSWORD`, R_PEKTIN_SERVER_PASSWORD],
+                [`SERVER_DOMAINS_SNI`, getSNI(v.pektinConfig, node.name)],
+                [`SERVER_DOMAIN`, ``],
             ];
             // TODO SERVER_DOMAIN server certificates seperation for multiple domains
             /*
@@ -313,8 +413,8 @@ export const createArbeiterConfig = async (
             traefik.tcp.routers.pektin-server-dot.tls.domains[0].sans: "*.${SERVER_DOMAIN}"
             */
 
-            let file = "# DO NOT EDIT THESE VARIABLES MANUALLY \n";
-            repls.forEach(repl => {
+            let file = `# DO NOT EDIT THESE VARIABLES MANUALLY \n`;
+            repls.forEach((repl) => {
                 file = file += `${repl[0]}="${repl[1]}"\n`;
             });
             file += `# Some commands for debugging\n`;
@@ -322,34 +422,55 @@ export const createArbeiterConfig = async (
             file += `# bash -c 'docker exec -it $(docker ps --filter name=pektin-redis --format {{.ID}}) redis-cli --pass ${R_PEKTIN_SERVER_PASSWORD} --user r-pektin-server'`;
             const composeCommand = `docker-compose --env-file secrets/.env -f pektin-compose/arbeiter/base.yml -f pektin-compose/arbeiter/traefik-config.yml -f pektin-compose/traefik.yml`;
 
-            await fs.writeFile(path.join(dir, "arbeiter", node.name, "secrets", ".env"), file);
+            await fs.writeFile(
+                path.join(dir, `arbeiter`, node.name, `secrets`, `.env`),
+                file
+            );
             const startScript = `${composeCommand} up -d`;
 
-            await fs.writeFile(path.join(dir, "arbeiter", node.name, "start.sh"), startScript);
+            await fs.writeFile(
+                path.join(dir, `arbeiter`, node.name, `start.sh`),
+                startScript
+            );
 
             const setupScript = `docker swarm leave\n`;
-            await fs.writeFile(path.join(dir, "arbeiter", node.name, "setup.sh"), setupScript);
+            await fs.writeFile(
+                path.join(dir, `arbeiter`, node.name, `setup.sh`),
+                setupScript
+            );
 
             const stopScript = `${composeCommand} down --remove-orphans`;
-            await fs.writeFile(path.join(dir, "arbeiter", node.name, "stop.sh"), stopScript);
+            await fs.writeFile(
+                path.join(dir, `arbeiter`, node.name, `stop.sh`),
+                stopScript
+            );
 
             const updateScript = `${composeCommand} pull\nsh start.sh`;
-            await fs.writeFile(path.join(dir, "arbeiter", node.name, "update.sh"), updateScript);
+            await fs.writeFile(
+                path.join(dir, `arbeiter`, node.name, `update.sh`),
+                updateScript
+            );
 
             const resetScript = `${composeCommand} down --remove-orphans\ndocker swarm leave --force\ndocker volume rm pektin-compose_db\nrm -rf update.sh start.sh stop.sh secrets/ `;
-            await fs.writeFile(path.join(dir, "arbeiter", node.name, "reset.sh"), resetScript);
+            await fs.writeFile(
+                path.join(dir, `arbeiter`, node.name, `reset.sh`),
+                resetScript
+            );
         }
     }
 };
 
-export const createSwarmScript = async (pektinConfig: PektinConfig, dir: string) => {
+export const createSwarmScript = async (
+    pektinConfig: PektinConfig,
+    dir: string
+) => {
     let swarmScript = `docker swarm init \n`;
     pektinConfig.nodes.forEach((node, i) => {
         if (i === 0) return;
         swarmScript += `docker swarm join-token worker | grep docker >> arbeiter/${node.name}/setup.sh\n`;
     });
 
-    await fs.writeFile(path.join(dir, "swarm.sh"), swarmScript);
+    await fs.writeFile(path.join(dir, `swarm.sh`), swarmScript);
 };
 
 export const setRedisPasswordHashes = async (
@@ -360,35 +481,54 @@ export const setRedisPasswordHashes = async (
 ) => {
     let readPath;
     if (arbeiter) {
-        readPath = path.join(dir, "config", "redis", "arbeiter", "users.template.acl");
+        readPath = path.join(
+            dir,
+            `config`,
+            `redis`,
+            `arbeiter`,
+            `users.template.acl`
+        );
     } else {
         readPath =
             pektinConfig.nodes.length > 1
-                ? path.join(dir, "config", "redis", "direktor", "users.template.acl")
-                : path.join(dir, "config", "redis", "users.template.acl");
+                ? path.join(
+                      dir,
+                      `config`,
+                      `redis`,
+                      `direktor`,
+                      `users.template.acl`
+                  )
+                : path.join(dir, `config`, `redis`, `users.template.acl`);
     }
     let file = await fs.readFile(readPath, {
-        encoding: "utf-8"
+        encoding: `utf-8`,
     });
 
     const hash = (a: string) => {
-        return crypto.createHash("sha256").update(a, "utf8").digest().toString("hex");
+        return crypto
+            .createHash(`sha256`)
+            .update(a, `utf8`)
+            .digest()
+            .toString(`hex`);
     };
 
-    repls.forEach(repl => {
-        file = file.replaceAll(RegExp(`${repl[0]}_SHA256$`, "gm"), `${hash(repl[1])}`);
+    repls.forEach((repl) => {
+        file = file.replaceAll(
+            RegExp(`${repl[0]}_SHA256$`, `gm`),
+            `${hash(repl[1])}`
+        );
     });
     if (arbeiter) {
         return file;
     }
-    await fs.mkdir(path.join(dir, "secrets", "redis")).catch(() => {});
-    await fs.writeFile(path.join(dir, "secrets", "redis", "users.acl"), file);
+    await fs.mkdir(path.join(dir, `secrets`, `redis`)).catch(() => {});
+    await fs.writeFile(path.join(dir, `secrets`, `redis`, `users.acl`), file);
     //crypto.create;
 };
 
 const addAllowedConnectSources = (connectSources: string) => {
     const sources: string[] = [];
-    if (sources.length) sources.forEach(e => (connectSources += " " + e));
+    if (sources.length) sources.forEach((e) => (connectSources += ` ` + e));
     return connectSources;
 };
 
@@ -398,7 +538,7 @@ export const getSNI = (pektinConfig: PektinConfig, nodeName: string) => {
     let sni = ``;
     if (nodeNameServers) {
         nodeNameServers.forEach((ns, i) => {
-            if (i > 0) sni += ",";
+            if (i > 0) sni += `,`;
             sni += `\`${concatDomain(ns.domain, ns.subDomain)}\``;
         });
     }
@@ -419,18 +559,21 @@ export const envSetValues = async (
     },
     dir: string
 ) => {
-    let CSP_CONNECT_SRC = "";
-    if (v.pektinConfig.devmode.enabled && v.pektinConfig.devmode.type === "local") {
+    let CSP_CONNECT_SRC = ``;
+    if (
+        v.pektinConfig.devmode.enabled &&
+        v.pektinConfig.devmode.type === `local`
+    ) {
         CSP_CONNECT_SRC = `*`;
     } else {
         const enabledServices = [
             v.pektinConfig.ui,
             v.pektinConfig.api,
             v.pektinConfig.vault,
-            v.pektinConfig.recursor
-        ].filter(s => s.enabled);
+            v.pektinConfig.recursor,
+        ].filter((s) => s.enabled);
         enabledServices.forEach((s, i) => {
-            if (i > 0) CSP_CONNECT_SRC += " ";
+            if (i > 0) CSP_CONNECT_SRC += ` `;
             CSP_CONNECT_SRC += concatDomain(s.domain, s.subDomain);
         });
     }
@@ -438,49 +581,67 @@ export const envSetValues = async (
 
     // TODO SERVER_DOMAIN is only singular: see todo notice above
     const repls = [
-        ["SERVER_DOMAIN", ""],
-        ["V_PEKTIN_API_PASSWORD", v.V_PEKTIN_API_PASSWORD],
-        ["R_PEKTIN_API_PASSWORD", v.R_PEKTIN_API_PASSWORD],
-        ["R_PEKTIN_SERVER_PASSWORD", v.R_PEKTIN_SERVER_PASSWORD],
-        ["V_KEY", v.vaultTokens.key],
-        ["V_ROOT_TOKEN", v.vaultTokens.rootToken],
-        ["UI_CONCAT_DOMAIN", concatDomain(v.pektinConfig.ui.domain, v.pektinConfig.ui.subDomain)],
-        ["UI_DOMAIN", v.pektinConfig.ui.domain],
+        [`SERVER_DOMAIN`, ``],
+        [`V_PEKTIN_API_PASSWORD`, v.V_PEKTIN_API_PASSWORD],
+        [`R_PEKTIN_API_PASSWORD`, v.R_PEKTIN_API_PASSWORD],
+        [`R_PEKTIN_SERVER_PASSWORD`, v.R_PEKTIN_SERVER_PASSWORD],
+        [`V_KEY`, v.vaultTokens.key],
+        [`V_ROOT_TOKEN`, v.vaultTokens.rootToken],
         [
-            "API_CONCAT_DOMAIN",
-            concatDomain(v.pektinConfig.api.domain, v.pektinConfig.api.subDomain)
+            `UI_CONCAT_DOMAIN`,
+            concatDomain(v.pektinConfig.ui.domain, v.pektinConfig.ui.subDomain),
         ],
-        ["API_DOMAIN", v.pektinConfig.api.domain],
+        [`UI_DOMAIN`, v.pektinConfig.ui.domain],
         [
-            "VAULT_CONCAT_DOMAIN",
-            concatDomain(v.pektinConfig.vault.domain, v.pektinConfig.vault.subDomain)
+            `API_CONCAT_DOMAIN`,
+            concatDomain(
+                v.pektinConfig.api.domain,
+                v.pektinConfig.api.subDomain
+            ),
         ],
-        ["VAULT_DOMAIN", v.pektinConfig.vault.domain],
+        [`API_DOMAIN`, v.pektinConfig.api.domain],
         [
-            "RECURSOR_CONCAT_DOMAIN",
-            concatDomain(v.pektinConfig.recursor.domain, v.pektinConfig.recursor.subDomain)
+            `VAULT_CONCAT_DOMAIN`,
+            concatDomain(
+                v.pektinConfig.vault.domain,
+                v.pektinConfig.vault.subDomain
+            ),
         ],
-        ["RECURSOR_DOMAIN", v.pektinConfig.recursor.domain],
-        ["LETSENCRYPT_EMAIL", v.pektinConfig.certificates.letsencryptEmail],
-        ["CSP_CONNECT_SRC", CSP_CONNECT_SRC],
-        ["RECURSOR_AUTH", v.recursorBasicAuthHashed],
-        ["SERVER_DOMAINS_SNI", getSNI(v.pektinConfig, getMainNode(v.pektinConfig).name)],
-        ["UI_BUILD_PATH", v.pektinConfig.build.ui.path],
-        ["API_BUILD_PATH", v.pektinConfig.build.api.path],
-        ["SERVER_BUILD_PATH", v.pektinConfig.build.server.path]
+        [`VAULT_DOMAIN`, v.pektinConfig.vault.domain],
+        [
+            `RECURSOR_CONCAT_DOMAIN`,
+            concatDomain(
+                v.pektinConfig.recursor.domain,
+                v.pektinConfig.recursor.subDomain
+            ),
+        ],
+        [`RECURSOR_DOMAIN`, v.pektinConfig.recursor.domain],
+        [`LETSENCRYPT_EMAIL`, v.pektinConfig.certificates.letsencryptEmail],
+        [`CSP_CONNECT_SRC`, CSP_CONNECT_SRC],
+        [`RECURSOR_AUTH`, v.recursorBasicAuthHashed],
+        [
+            `SERVER_DOMAINS_SNI`,
+            getSNI(v.pektinConfig, getMainNode(v.pektinConfig).name),
+        ],
+        [`UI_BUILD_PATH`, v.pektinConfig.build.ui.path],
+        [`API_BUILD_PATH`, v.pektinConfig.build.api.path],
+        [`SERVER_BUILD_PATH`, v.pektinConfig.build.server.path],
     ];
-    let file = "# DO NOT EDIT THESE VARIABLES MANUALLY  \n";
-    repls.forEach(repl => {
+    let file = `# DO NOT EDIT THESE VARIABLES MANUALLY  \n`;
+    repls.forEach((repl) => {
         file = file += `${repl[0]}="${repl[1]}"\n`;
     });
     file += `# Some commands for debugging\n`;
     file += `# Logs into redis (then try 'KEYS *' for example to get all record keys):\n`;
     file += `# bash -c 'docker exec -it $(docker ps --filter name=pektin-redis --format {{.ID}}) redis-cli --pass ${v.R_PEKTIN_API_PASSWORD} --user r-pektin-api'`;
-    await fs.writeFile(path.join(dir, "secrets", ".env"), file);
+    await fs.writeFile(path.join(dir, `secrets`, `.env`), file);
 };
 
-export const createStartScript = async (pektinConfig: PektinConfig, dir: string) => {
-    const p = path.join(dir, "start.sh");
+export const createStartScript = async (
+    pektinConfig: PektinConfig,
+    dir: string
+) => {
+    const p = path.join(dir, `start.sh`);
     let file = `#!/bin/sh\n`;
     // create pektin compose command with different options
     let composeCommand = `docker-compose --env-file secrets/.env`;
@@ -491,7 +652,7 @@ export const createStartScript = async (pektinConfig: PektinConfig, dir: string)
         pektinConfig.build.ui.enabled ||
         pektinConfig.build.api.enabled ||
         pektinConfig.build.server.enabled;
-    composeCommand += buildAny ? " --build" : "";
+    composeCommand += buildAny ? ` --build` : ``;
 
     // create start script
     // start vault
@@ -506,8 +667,11 @@ export const createStartScript = async (pektinConfig: PektinConfig, dir: string)
     await fs.writeFile(p, file);
 };
 
-export const createStopScript = async (pektinConfig: PektinConfig, dir: string) => {
-    const p = path.join(dir, "stop.sh");
+export const createStopScript = async (
+    pektinConfig: PektinConfig,
+    dir: string
+) => {
+    const p = path.join(dir, `stop.sh`);
     let file = `#!/bin/sh\n`;
     let composeCommand = `docker-compose --env-file secrets/.env`;
     composeCommand += activeComposeFiles(pektinConfig);
@@ -517,15 +681,18 @@ export const createStopScript = async (pektinConfig: PektinConfig, dir: string) 
     await fs.writeFile(p, file);
 };
 
-export const createUpdateScript = async (pektinConfig: PektinConfig, dir: string) => {
-    const p = path.join(dir, "update.sh");
+export const createUpdateScript = async (
+    pektinConfig: PektinConfig,
+    dir: string
+) => {
+    const p = path.join(dir, `update.sh`);
     let file = `#!/bin/sh\n`;
     let composeCommand = `docker-compose --env-file secrets/.env`;
     composeCommand += activeComposeFiles(pektinConfig);
 
     composeCommand += ` pull`;
 
-    file += composeCommand + "\n";
+    file += composeCommand + `\n`;
     file += `sh start.sh`;
     await fs.writeFile(p, file);
 };
@@ -537,11 +704,14 @@ export const activeComposeFiles = (pektinConfig: PektinConfig) => {
         composeCommand += ` -f pektin-compose/gewerkschaft-config.yml`;
     }
 
-    if (pektinConfig.devmode.enabled && pektinConfig.devmode.type === "insecure-online") {
+    if (
+        pektinConfig.devmode.enabled &&
+        pektinConfig.devmode.type === `insecure-online`
+    ) {
         composeCommand += ` -f pektin-compose/insecure-online-dev.yml`;
     }
 
-    if (pektinConfig.devmode.enabled && pektinConfig.devmode.type === "local") {
+    if (pektinConfig.devmode.enabled && pektinConfig.devmode.type === `local`) {
         composeCommand += ` -f pektin-compose/local-dev.yml`;
         if (pektinConfig.recursor.enabled) {
             composeCommand += ` -f pektin-compose/recursor-dev.yml`;
@@ -571,7 +741,8 @@ export const activeComposeFiles = (pektinConfig: PektinConfig) => {
     if (
         pektinConfig.reverseProxy.createTraefik &&
         (!pektinConfig.devmode.enabled ||
-            (pektinConfig.devmode.enabled && pektinConfig.devmode.type !== "local"))
+            (pektinConfig.devmode.enabled &&
+                pektinConfig.devmode.type !== `local`))
     ) {
         composeCommand += ` -f pektin-compose/traefik.yml`;
     }

@@ -1,3 +1,6 @@
+import { PektinConfig } from "@pektin/config/src/types.js";
+
+import f from "cross-fetch";
 import {
     ApiRecord,
     ClientName,
@@ -28,48 +31,60 @@ import {
     SetResponse,
     SetResponseSuccess,
     SNSNameserver,
-    ApiDeleteRequestRecord
+    ApiDeleteRequestRecord,
 } from "./types.js";
-import { PektinConfig } from "@pektin/config/src/types.js";
-
-import f from "cross-fetch";
 import { vaultLoginUserpass, getVaultValue } from "./vault/vault.js";
 import { colors } from "./colors.js";
+
 export { PektinRRType, ApiResponseType } from "./types.js";
 
 export class PektinClient {
     vaultEndpoint?: string;
+
     username: ClientName;
+
     confidantPassword?: ConfidantPassword;
+
     managerPassword?: ManagerPassword;
+
     recursorAuth?: string;
+
     throwErrors?: boolean;
 
     confidantToken: string | null;
+
     managerToken: string | null;
 
     pektinApiEndpoint: string | null;
 
     pektinConfig: PektinConfig | null;
 
-    constructor(credentials: PektinClientConnectionConfigOverride, throwErrors?: boolean) {
+    constructor(
+        credentials: PektinClientConnectionConfigOverride,
+        throwErrors?: boolean
+    ) {
         this.vaultEndpoint = credentials.vaultEndpoint;
         this.username = credentials.username;
 
-        this.confidantPassword = checkConfidantPassword(credentials.confidantPassword);
+        this.confidantPassword = checkConfidantPassword(
+            credentials.confidantPassword
+        );
 
-        this.managerPassword = checkManagerPassword(credentials.managerPassword);
+        this.managerPassword = checkManagerPassword(
+            credentials.managerPassword
+        );
 
         this.confidantToken = null;
         this.managerToken = null;
 
-        this.pektinApiEndpoint = credentials.override?.pektinApiEndpoint || null;
+        this.pektinApiEndpoint =
+            credentials.override?.pektinApiEndpoint || null;
         this.pektinConfig = credentials.override?.pektinConfig || null;
         this.throwErrors = throwErrors;
     }
 
     init = async () => {
-        await this.getVaultToken("confidant");
+        await this.getVaultToken(`confidant`);
         await this.getPektinConfig();
     };
 
@@ -77,59 +92,72 @@ export class PektinClient {
     getPektinConfig = async () => {
         if (!this.vaultEndpoint) {
             throw Error(
-                "Tried to execute an action that requires the vault endpoint without it being supplied"
+                `Tried to execute an action that requires the vault endpoint without it being supplied`
             );
         }
         if (!this.confidantToken) {
-            await this.getVaultToken("confidant");
+            await this.getVaultToken(`confidant`);
             if (!this.confidantToken) {
-                throw Error("Couldn't obtain vault token while getting config");
+                throw Error(`Couldn't obtain vault token while getting config`);
             }
         }
 
         if (!this.pektinConfig) {
-            this.pektinConfig = await getPektinConfig(this.vaultEndpoint, this.confidantToken);
+            this.pektinConfig = await getPektinConfig(
+                this.vaultEndpoint,
+                this.confidantToken
+            );
         }
 
         if (!this.pektinApiEndpoint) {
-            this.pektinApiEndpoint = getPektinEndpoint(this.pektinConfig, "api");
+            this.pektinApiEndpoint = getPektinEndpoint(
+                this.pektinConfig,
+                `api`
+            );
         }
     };
+
     getRecursorAuth = async () => {
         if (!this.vaultEndpoint) {
             throw Error(
-                "Tried to execute an action that requires the vault endpoint without it being supplied"
+                `Tried to execute an action that requires the vault endpoint without it being supplied`
             );
         }
         if (!this.confidantToken) {
-            await this.getVaultToken("confidant");
+            await this.getVaultToken(`confidant`);
             if (!this.confidantToken) {
-                throw Error("Couldn't obtain vault token while getting config");
+                throw Error(`Couldn't obtain vault token while getting config`);
             }
         }
-        this.recursorAuth = await getRecursorAuth(this.vaultEndpoint, this.confidantToken);
+        this.recursorAuth = await getRecursorAuth(
+            this.vaultEndpoint,
+            this.confidantToken
+        );
     };
 
     // obtain the vault token by sending username and password to the vault endpoint
     getVaultToken = async (clientType: ClientVaultAccountType) => {
         if (!this.vaultEndpoint) {
             throw Error(
-                "Tried to execute an action that requires the vault endpoint without it being supplied"
+                `Tried to execute an action that requires the vault endpoint without it being supplied`
             );
         }
         if (!this.confidantPassword) {
-            throw Error("Client cannot use this function because it requires a confidantPassword");
+            throw Error(
+                `Client cannot use this function because it requires a confidantPassword`
+            );
         }
-        if (clientType === undefined) throw Error("clientType cant be undefined");
-        if (clientType !== "manager" && clientType !== "confidant") {
-            throw Error("clientType must be either 'manager' or 'confidant'");
+        if (clientType === undefined)
+            throw Error(`clientType cant be undefined`);
+        if (clientType !== `manager` && clientType !== `confidant`) {
+            throw Error(`clientType must be either 'manager' or 'confidant'`);
         }
 
-        this[(clientType + "Token") as "confidantToken" | "managerToken"] =
+        this[`${clientType}Token` as `confidantToken` | `managerToken`] =
             await vaultLoginUserpass({
                 vaultEndpoint: this.vaultEndpoint,
                 username: `pektin-client-${clientType}-${this.username}`,
-                password: this.confidantPassword
+                password: this.confidantPassword,
             });
     };
 
@@ -138,17 +166,19 @@ export class PektinClient {
         if (!this.pektinApiEndpoint) {
             this.getPektinConfig();
             if (!this.pektinApiEndpoint) {
-                throw Error("Couldn't obtain pektinApiEndpoint");
+                throw Error(`Couldn't obtain pektinApiEndpoint`);
             }
         }
         if (!this.confidantPassword) {
-            throw Error("Client cannot use this function because it requires a confidantPassword");
+            throw Error(
+                `Client cannot use this function because it requires a confidantPassword`
+            );
         }
 
         return await get(this.pektinApiEndpoint, {
             confidant_password: this.confidantPassword,
             client_username: this.username,
-            keys
+            keys,
         });
     };
 
@@ -157,18 +187,20 @@ export class PektinClient {
         if (!this.pektinApiEndpoint) {
             this.getPektinConfig();
             if (!this.pektinApiEndpoint) {
-                throw Error("Couldn't obtain pektinApiEndpoint");
+                throw Error(`Couldn't obtain pektinApiEndpoint`);
             }
         }
         if (!this.confidantPassword) {
-            throw Error("Client cannot use this function because it requires a confidantPassword");
+            throw Error(
+                `Client cannot use this function because it requires a confidantPassword`
+            );
         }
 
         return await health(
             this.pektinApiEndpoint,
             {
                 confidant_password: this.confidantPassword,
-                client_username: this.username
+                client_username: this.username,
             },
             throwErrors
         );
@@ -179,11 +211,13 @@ export class PektinClient {
         if (!this.pektinApiEndpoint) {
             await this.getPektinConfig();
             if (!this.pektinApiEndpoint) {
-                throw Error("Couldn't obtain pektinApiEndpoint");
+                throw Error(`Couldn't obtain pektinApiEndpoint`);
             }
         }
         if (!this.confidantPassword) {
-            throw Error("Client cannot use this function because it requires a confidantPassword");
+            throw Error(
+                `Client cannot use this function because it requires a confidantPassword`
+            );
         }
 
         return await set(
@@ -191,7 +225,7 @@ export class PektinClient {
             {
                 confidant_password: this.confidantPassword,
                 client_username: this.username,
-                records
+                records,
             },
             throwErrors
         );
@@ -202,14 +236,18 @@ export class PektinClient {
         if (!this.pektinApiEndpoint) {
             await this.getPektinConfig();
             if (!this.pektinApiEndpoint) {
-                throw Error("Couldn't obtain pektinApiEndpoint");
+                throw Error(`Couldn't obtain pektinApiEndpoint`);
             }
         }
         if (!this.confidantPassword) {
-            throw Error("Client cannot use this function because it requires a confidantPassword");
+            throw Error(
+                `Client cannot use this function because it requires a confidantPassword`
+            );
         }
         if (!this.confidantPassword) {
-            throw Error("Client cannot use this function because it requires a confidantPassword");
+            throw Error(
+                `Client cannot use this function because it requires a confidantPassword`
+            );
         }
 
         return await search(
@@ -217,22 +255,27 @@ export class PektinClient {
             {
                 confidant_password: this.confidantPassword,
                 client_username: this.username,
-                glob
+                glob,
             },
             throwErrors
         );
     };
 
     // delete records based on their keys
-    deleteRecords = async (records: ApiDeleteRequestRecord[], throwErrors = this.throwErrors) => {
+    deleteRecords = async (
+        records: ApiDeleteRequestRecord[],
+        throwErrors = this.throwErrors
+    ) => {
         if (!this.pektinApiEndpoint) {
             await this.getPektinConfig();
             if (!this.pektinApiEndpoint) {
-                throw Error("Couldn't obtain pektinApiEndpoint");
+                throw Error(`Couldn't obtain pektinApiEndpoint`);
             }
         }
         if (!this.confidantPassword) {
-            throw Error("Client cannot use this function because it requires a confidantPassword");
+            throw Error(
+                `Client cannot use this function because it requires a confidantPassword`
+            );
         }
 
         return await deleteRecords(
@@ -240,22 +283,27 @@ export class PektinClient {
             {
                 confidant_password: this.confidantPassword,
                 client_username: this.username,
-                records
+                records,
             },
             throwErrors
         );
     };
 
     // get all records for zones
-    getZoneRecords = async (names: string[], throwErrors = this.throwErrors) => {
+    getZoneRecords = async (
+        names: string[],
+        throwErrors = this.throwErrors
+    ) => {
         if (!this.pektinApiEndpoint) {
             await this.getPektinConfig();
             if (!this.pektinApiEndpoint) {
-                throw Error("Couldn't obtain pektinApiEndpoint");
+                throw Error(`Couldn't obtain pektinApiEndpoint`);
             }
         }
         if (!this.confidantPassword) {
-            throw Error("Client cannot use this function because it requires a confidantPassword");
+            throw Error(
+                `Client cannot use this function because it requires a confidantPassword`
+            );
         }
 
         return await getZoneRecords(
@@ -263,27 +311,30 @@ export class PektinClient {
             {
                 confidant_password: this.confidantPassword,
                 client_username: this.username,
-                names
+                names,
             },
             throwErrors
         );
     };
 
-    getDomains = async (): Promise<string[]> => {
-        return ((await this.search("*.:SOA", true)) as SearchResponseSuccess).data.map(
-            (name: string) => name.replace(":SOA", "")
+    getDomains = async (): Promise<string[]> =>
+        ((await this.search(`*.:SOA`, true)) as SearchResponseSuccess).data.map(
+            (name: string) => name.replace(`:SOA`, ``)
         );
-    };
 
     // returns number of removed keys
     deleteZone = async (name: string): Promise<number> => {
-        const records = (await this.getZoneRecords([name])) as GetZoneRecordsResponseSuccess;
-        const tbd = records.data.flatMap(item => {
+        const records = (await this.getZoneRecords([
+            name,
+        ])) as GetZoneRecordsResponseSuccess;
+        const tbd = records.data.flatMap((item) => {
             if (item.data) {
-                return item.data.map(record => ({ name: record.name, rr_type: record.rr_type }));
-            } else {
-                return [];
+                return item.data.map((record) => ({
+                    name: record.name,
+                    rr_type: record.rr_type,
+                }));
             }
+            return [];
         });
         return ((await this.deleteRecords(tbd)) as DeleteResponseSuccess).data;
     };
@@ -293,7 +344,7 @@ export class PektinClient {
         await this.setupSOA(domain, nameServers[0]);
         return await Promise.all([
             this.setupNameServers(domain, nameServers),
-            this.setupNameServerIps(nameServers)
+            this.setupNameServerIps(nameServers),
         ]);
     };
 
@@ -303,51 +354,51 @@ export class PektinClient {
             {
                 ttl: 60,
                 mname: absoluteName(nameServer.name),
-                rname: absoluteName("hostmaster." + domain),
+                rname: absoluteName(`hostmaster.` + domain),
                 serial: 0,
                 refresh: 0,
                 retry: 0,
                 expire: 0,
-                minimum: 0
-            }
+                minimum: 0,
+            },
         ];
-        return await this.set([{ name: absoluteName(domain), rr_type: PektinRRType.SOA, rr_set }]);
+        return await this.set([
+            { name: absoluteName(domain), rr_type: PektinRRType.SOA, rr_set },
+        ]);
     };
+
     setupNameServers = async (domain: string, nameServers: SNSNameserver[]) => {
-        const subDomains = nameServers.map(ns => ns.name);
-        const rr_set = subDomains.map(subDomain => {
-            return {
-                ttl: 60,
-                value: absoluteName(subDomain)
-            };
-        });
-        return await this.set([{ name: absoluteName(domain), rr_type: PektinRRType.NS, rr_set }]);
+        const subDomains = nameServers.map((ns) => ns.name);
+        const rr_set = subDomains.map((subDomain) => ({
+            ttl: 60,
+            value: absoluteName(subDomain),
+        }));
+        return await this.set([
+            { name: absoluteName(domain), rr_type: PektinRRType.NS, rr_set },
+        ]);
     };
+
     setupNameServerIps = async (nameServers: SNSNameserver[]) => {
         const records: ApiRecord[] = [];
-        nameServers.forEach(ns => {
+        nameServers.forEach((ns) => {
             if (ns.ips && ns.ips.length) {
                 records.push({
                     name: absoluteName(ns.name),
                     rr_type: PektinRRType.AAAA,
-                    rr_set: ns.ips.map(ip => {
-                        return {
-                            ttl: 60,
-                            value: ip
-                        };
-                    })
+                    rr_set: ns.ips.map((ip) => ({
+                        ttl: 60,
+                        value: ip,
+                    })),
                 });
             }
             if (ns.legacyIps && ns.legacyIps.length) {
                 records.push({
                     name: absoluteName(ns.name),
                     rr_type: PektinRRType.A,
-                    rr_set: ns.legacyIps.map(legacyIp => {
-                        return {
-                            ttl: 60,
-                            value: legacyIp
-                        };
-                    })
+                    rr_set: ns.legacyIps.map((legacyIp) => ({
+                        ttl: 60,
+                        value: legacyIp,
+                    })),
                 });
             }
         });
@@ -358,31 +409,30 @@ export class PektinClient {
 
 export const concatDomain = (domain: string, subDomain?: string) => {
     if (subDomain === undefined) return domain;
-    return subDomain + "." + domain;
+    return `${subDomain}.${domain}`;
 };
 
-export const getMainNode = (pektinConfig: PektinConfig) => {
-    return pektinConfig.nodes.filter(node => node.main === true)[0];
-};
+export const getMainNode = (pektinConfig: PektinConfig) =>
+    pektinConfig.nodes.filter((node) => node.main === true)[0];
 
 export const defaultLocalPorts = {
-    api: "3001",
-    vault: "8200",
-    ui: "8080",
-    recursor: "80"
+    api: `3001`,
+    vault: `8200`,
+    ui: `8080`,
+    recursor: `80`,
 };
 
 // get the pektin api endpoint from  the pektin config
 export const getPektinEndpoint = (
     pektinConfig: PektinConfig,
-    endpointType: "api" | "vault" | "ui" | "recursor",
+    endpointType: `api` | `vault` | `ui` | `recursor`,
     ports = defaultLocalPorts
 ): string => {
     const devmode = pektinConfig.devmode.enabled;
-    const protocol = devmode ? "http://" : "https://";
-    let endpoint = "";
+    const protocol = devmode ? `http://` : `https://`;
+    let endpoint = ``;
     if (devmode) {
-        if (pektinConfig.devmode.type === "local") {
+        if (pektinConfig.devmode.type === `local`) {
             endpoint = `127.0.0.1:${ports[endpointType]}`;
         } else {
             const mainNode = getMainNode(pektinConfig);
@@ -391,59 +441,70 @@ export const getPektinEndpoint = (
             } else if (mainNode.legacyIps?.length) {
                 endpoint = mainNode.legacyIps[0];
             } else {
-                throw Error("Main node has no ips or legacy ips");
+                throw Error(`Main node has no ips or legacy ips`);
             }
         }
     } else {
-        pektinConfig[endpointType].subDomain + "." + pektinConfig[endpointType].domain;
+        `${pektinConfig[endpointType].subDomain}.${pektinConfig[endpointType].domain}`;
     }
 
     return protocol + endpoint;
 };
 
-export const getRecursorAuth = async (vaultEndpoint: string, vaultToken: string) => {
-    const res = await getVaultValue(vaultEndpoint, vaultToken, "recursor-auth", "pektin-kv");
-    if (!res || !res.basicAuth) throw Error("Couldnt obtain recursor auth");
+export const getRecursorAuth = async (
+    vaultEndpoint: string,
+    vaultToken: string
+) => {
+    const res = await getVaultValue(
+        vaultEndpoint,
+        vaultToken,
+        `recursor-auth`,
+        `pektin-kv`
+    );
+    if (!res || !res.basicAuth) throw Error(`Couldnt obtain recursor auth`);
     return res.basicAuth as string;
 };
 
-export const getNodesNameservers = (pektinConfig: PektinConfig, nodeName: string) => {
+export const getNodesNameservers = (
+    pektinConfig: PektinConfig,
+    nodeName: string
+) => {
     if (!pektinConfig.nameservers) return false;
-    return pektinConfig.nameservers.filter(ns => ns.node === nodeName);
+    return pektinConfig.nameservers.filter((ns) => ns.node === nodeName);
 };
 
 export const absoluteName = (name: string) => {
     if (name === undefined) {
         throw Error(
-            "Input was undefined. This error indicates an upstream undefined value. Check if all the keys have the right names or use TS."
+            `Input was undefined. This error indicates an upstream undefined value. Check if all the keys have the right names or use TS.`
         );
     }
-    if (name.endsWith(".")) {
+    if (name.endsWith(`.`)) {
         return name;
-    } else {
-        return name + ".";
     }
+    return name + `.`;
 };
 
-export const isAbsolute = (name: string): boolean => name.endsWith(".");
+export const isAbsolute = (name: string): boolean => name.endsWith(`.`);
 
 export const deAbsolute = (name: string) => {
-    if (name.endsWith(".")) {
+    if (name.endsWith(`.`)) {
         return name.substring(0, name.length - 1);
-    } else {
-        return name;
     }
+    return name;
 };
 
 // get the pektin config
-export const getPektinConfig = async (vaultEndpoint: string, vaultToken: string) => {
-    return (await getVaultValue(
+export const getPektinConfig = async (
+    vaultEndpoint: string,
+    vaultToken: string
+) =>
+    (await getVaultValue(
         vaultEndpoint,
         vaultToken,
-        "pektin-config",
-        "pektin-kv"
+        `pektin-config`,
+        `pektin-kv`
     )) as PektinConfig;
-};
 
 // get records from the api/redis based on their key
 export const get = async (
@@ -451,7 +512,7 @@ export const get = async (
     body: ApiGetRequestBody,
     throwErrors?: boolean
 ): Promise<GetResponse> => {
-    const res = await pektinApiRequest(apiEndpoint, "get", body, throwErrors);
+    const res = await pektinApiRequest(apiEndpoint, `get`, body, throwErrors);
     // TODO FIX TYPESCRIPT TYPES conditional types needed
     if (throwErrors) return res as GetResponseSuccess;
     return res as GetResponse;
@@ -463,7 +524,7 @@ export const set = async (
     body: ApiSetRequestBody,
     throwErrors?: boolean
 ): Promise<SetResponse> => {
-    const res = await pektinApiRequest(apiEndpoint, "set", body, throwErrors);
+    const res = await pektinApiRequest(apiEndpoint, `set`, body, throwErrors);
     if (throwErrors) return res as SetResponseSuccess;
     return res as SetResponse;
 };
@@ -474,7 +535,12 @@ export const search = async (
     body: ApiSearchRequestBody,
     throwErrors?: boolean
 ): Promise<SearchResponse> => {
-    const res = await pektinApiRequest(apiEndpoint, "search", body, throwErrors);
+    const res = await pektinApiRequest(
+        apiEndpoint,
+        `search`,
+        body,
+        throwErrors
+    );
     if (throwErrors) return res as SearchResponseSuccess;
     return res as SearchResponse;
 };
@@ -485,7 +551,12 @@ export const deleteRecords = async (
     body: ApiDeleteRequestBody,
     throwErrors?: boolean
 ): Promise<DeleteResponse> => {
-    const res = await pektinApiRequest(apiEndpoint, "delete", body, throwErrors);
+    const res = await pektinApiRequest(
+        apiEndpoint,
+        `delete`,
+        body,
+        throwErrors
+    );
     if (throwErrors) return res as DeleteResponseSuccess;
     return res as DeleteResponse;
 };
@@ -496,7 +567,12 @@ export const health = async (
     body: ApiHealthRequestBody,
     throwErrors?: boolean
 ): Promise<HealthResponse> => {
-    const res = await pektinApiRequest(apiEndpoint, "health", body, throwErrors);
+    const res = await pektinApiRequest(
+        apiEndpoint,
+        `health`,
+        body,
+        throwErrors
+    );
     if (throwErrors) return res as HealthResponseSuccess;
     return res as HealthResponse;
 };
@@ -507,7 +583,12 @@ export const getZoneRecords = async (
     body: ApiGetZoneRecordsRequestBody,
     throwErrors?: boolean
 ): Promise<GetZoneRecordsResponse> => {
-    const res = await pektinApiRequest(apiEndpoint, "get-zone-records", body, throwErrors);
+    const res = await pektinApiRequest(
+        apiEndpoint,
+        `get-zone-records`,
+        body,
+        throwErrors
+    );
     if (throwErrors) return res as GetZoneRecordsResponseSuccess;
     return res as GetZoneRecordsResponse;
 };
@@ -519,14 +600,14 @@ export const pektinApiRequest = async (
     body: ApiRequestBody,
     throwErrors = true
 ): Promise<ApiResponseBody> => {
-    if (!apiEndpoint) throw Error("Pektin API details weren't obtained yet");
+    if (!apiEndpoint) throw Error(`Pektin API details weren't obtained yet`);
     const tStart = performance.now();
     const res = await f(`${apiEndpoint}/${method}`, {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify(body)
-    }).catch(e => {
-        throw Error("Couldn't fetch: " + e);
+        method: `POST`,
+        headers: { "content-type": `application/json` },
+        body: JSON.stringify(body),
+    }).catch((e) => {
+        throw Error(`Couldn't fetch: ` + e);
     });
     const tEnd = performance.now();
     const text = await res.text();
@@ -536,25 +617,33 @@ export const pektinApiRequest = async (
         json = JSON.parse(text);
         json.time = tEnd - tStart;
     } catch (e) {
-        body.client_username = "<REDACTED>";
-        if (body.confidant_password) body.confidant_password = "<REDACTED>" as ConfidantPassword;
+        body.client_username = `<REDACTED>`;
+        if (body.confidant_password)
+            body.confidant_password = `<REDACTED>` as ConfidantPassword;
         throw Error(
-            `${colors.boldRed}Pektin client couldn't parse JSON response from API${colors.reset}\n
+            `${
+                colors.boldRed
+            }Pektin client couldn't parse JSON response from API${
+                colors.reset
+            }\n
 Pektin-API returned this body:\n
 ${text}\n
 while client was trying to ${method} the following body:\n 
-${JSON.stringify(body, null, "    ")}${colors.reset}`
+${JSON.stringify(body, null, `    `)}${colors.reset}`
         );
     }
-    if (json.type === "error" && throwErrors) {
-        body.client_username = "<REDACTED>";
-        if (body.confidant_password) body.confidant_password = "<REDACTED>" as ConfidantPassword;
+    if (json.type === `error` && throwErrors) {
+        body.client_username = `<REDACTED>`;
+        if (body.confidant_password)
+            body.confidant_password = `<REDACTED>` as ConfidantPassword;
 
         throw Error(
             `${colors.boldRed}API Error:${colors.reset}\n 
-${JSON.stringify(json, null, "    ")}\n 
-${colors.bold}while client was trying to ${method} the following body: ${colors.reset}\n
-${JSON.stringify(body, null, "    ")}${colors.reset}`
+${JSON.stringify(json, null, `    `)}\n 
+${colors.bold}while client was trying to ${method} the following body: ${
+                colors.reset
+            }\n
+${JSON.stringify(body, null, `    `)}${colors.reset}`
         );
     }
     if (throwErrors) return json as ApiResponseBody;
@@ -565,18 +654,22 @@ export const checkConfidantPassword = (
     input: string | undefined
 ): ConfidantPassword | undefined => {
     if (input === undefined) return undefined;
-    if (typeof input !== "string") throw Error("confidantPassword is not a string");
+    if (typeof input !== `string`)
+        throw Error(`confidantPassword is not a string`);
 
-    if (input.startsWith("c.")) return input as ConfidantPassword;
-    throw Error("Passed confidantPassword is not a confidant password");
+    if (input.startsWith(`c.`)) return input as ConfidantPassword;
+    throw Error(`Passed confidantPassword is not a confidant password`);
 };
 
-export const checkManagerPassword = (input: string | undefined): ManagerPassword | undefined => {
+export const checkManagerPassword = (
+    input: string | undefined
+): ManagerPassword | undefined => {
     if (input === undefined) return undefined;
 
-    if (typeof input !== "string") throw Error("managerPassword is not a string");
-    if (input.startsWith("m.")) return input as ManagerPassword;
-    throw Error("Passed managerPassword is not a manager password");
+    if (typeof input !== `string`)
+        throw Error(`managerPassword is not a string`);
+    if (input.startsWith(`m.`)) return input as ManagerPassword;
+    throw Error(`Passed managerPassword is not a manager password`);
 };
 
 export const isSupportedRecordType = (type: string) => {
@@ -587,15 +680,15 @@ export const isSupportedRecordType = (type: string) => {
 // TODO coloring only shows special characters in browser
 
 export const supportedRecordTypes = [
-    "A",
-    "AAAA",
-    "NS",
-    "CNAME",
-    "SOA",
-    "MX",
-    "TXT",
-    "SRV",
-    "CAA",
-    "OPENPGPKEY",
-    "TLSA"
+    `A`,
+    `AAAA`,
+    `NS`,
+    `CNAME`,
+    `SOA`,
+    `MX`,
+    `TXT`,
+    `SRV`,
+    `CAA`,
+    `OPENPGPKEY`,
+    `TLSA`,
 ];

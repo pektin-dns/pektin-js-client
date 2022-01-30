@@ -1,1 +1,1 @@
-export default "@skip-ribston";
+export default `@skip-ribston`;
