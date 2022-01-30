@@ -2,6 +2,15 @@
 # yarn lockfile v1
 
 
+"@pektin/client@^1.1.19":
+  version "1.1.19"
+  resolved "https://registry.yarnpkg.com/@pektin/client/-/client-1.1.19.tgz#c2ee1dc2716b1b24fd996f509e4eb4681be75014"
+  integrity sha512-zh7XjROzn16hcrF0iRG03RvPlT89j6y9FNg+s1P2d3SLl4TpVA3OKOjjf9Tfxoik534VNcLl3oNgWoz2zfW7vg==
+  dependencies:
+    "@pektin/config" "^1.0.22"
+    "@pektin/global-registrar" "^1.0.0"
+    cross-fetch "^3.1.4"
+
 "@pektin/config@^1.0.12", "@pektin/config@^1.0.22":
   version "1.0.22"
   resolved "https://registry.yarnpkg.com/@pektin/config/-/config-1.0.22.tgz#9d77c4ed5e7e5ec0fd694db5e297a57708dee330"
@@ -18,6 +27,16 @@
   dependencies:
     "@pektin/config" "^1.0.12"
     cross-fetch "^3.1.5"
+
+"@pektin/global-registrar@^1.0.1":
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/@pektin/global-registrar/-/global-registrar-1.0.1.tgz#e69ad23f1a79654ab32110d5d9b345e8b46f34e7"
+  integrity sha512-AtaWOe4aBO6zdbt1MWKV1XS7Z/HbzikhAJ9RbiXPqvRbqe39lQWPFcyOeHXGbWI+YaBCugcw3C9aOCCe9fUQSg==
+  dependencies:
+    "@pektin/client" "^1.1.19"
+    "@pektin/config" "^1.0.22"
+    cross-fetch "^3.1.5"
+    lodash "^4.17.21"
 
 "@types/node@^16.11.12":
   version "16.11.21"

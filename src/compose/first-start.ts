@@ -61,16 +61,12 @@ const registrarSetup = async (config: PektinConfig) => {
         );
         const gr = new GlobalRegistrar({ type: registrar.type as PluginNames, data });
 
-        const setNsRequests: Promise<any>[] = [];
-
         const setGlueRecordRequests: Promise<any>[] = [];
         registrar.domains.forEach(domain => {
             const glueRecords: GlueRecord[] = [];
-            const nameservers: string[] = [];
             config.nameservers
                 .filter(ns => ns.domain === domain)
                 .forEach(ns => {
-                    nameservers.push(concatDomain(domain, ns.subDomain));
                     // get the node for the current nameserver
                     const nsNode = config.nodes.filter(node => node.name === ns.node)[0];
 
@@ -85,12 +81,10 @@ const registrarSetup = async (config: PektinConfig) => {
                     }
                     glueRecords.push(glueRecord);
                 });
-            if (nameservers.length) setNsRequests.push(gr.setNameServers(domain, nameservers));
-            if (glueRecords.length) setGlueRecordRequests.push(gr.setGlueRecords(glueRecords));
+            if (glueRecords.length)
+                setGlueRecordReponses.push(gr.setupGlueAndNS(domain, glueRecords));
         });
-        const setNsResponses = await Promise.all(setNsRequests);
         const setGlueRecordReponses = await Promise.all(setGlueRecordRequests);
-        console.log(setNsResponses, setGlueRecordReponses);
     }
 };
 
