@@ -35,6 +35,7 @@ import {
 } from "./types.js";
 import { vaultLoginUserpass, getVaultValue } from "./vault/vault.js";
 import { colors } from "./utils/colors.js";
+import { absoluteName } from "./utils/index.js";
 
 export { PektinRRType, ApiResponseType } from "./types.js";
 
@@ -372,11 +373,6 @@ export class PektinClient {
     };
 }
 
-export const concatDomain = (domain: string, subDomain?: string) => {
-    if (subDomain === undefined) return domain;
-    return `${subDomain}.${domain}`;
-};
-
 export const getMainNode = (pektinConfig: PektinConfig) =>
     pektinConfig.nodes.filter((node) => node.main === true)[0];
 
@@ -425,27 +421,6 @@ export const getRecursorAuth = async (vaultEndpoint: string, vaultToken: string)
 export const getNodesNameservers = (pektinConfig: PektinConfig, nodeName: string) => {
     if (!pektinConfig.nameservers) return false;
     return pektinConfig.nameservers.filter((ns) => ns.node === nodeName);
-};
-
-export const absoluteName = (name: string) => {
-    if (name === undefined) {
-        throw Error(
-            `Input was undefined. This error indicates an upstream undefined value. Check if all the keys have the right names or use TS.`
-        );
-    }
-    if (name.endsWith(`.`)) {
-        return name;
-    }
-    return name + `.`;
-};
-
-export const isAbsolute = (name: string): boolean => name.endsWith(`.`);
-
-export const deAbsolute = (name: string) => {
-    if (name.endsWith(`.`)) {
-        return name.substring(0, name.length - 1);
-    }
-    return name;
 };
 
 // get the pektin config

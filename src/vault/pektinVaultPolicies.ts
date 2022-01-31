@@ -1,5 +1,5 @@
-import { deAbsolute } from "../index.js";
 import { ClientCapabilities, ClientName } from "../types.js";
+import { deAbsolute } from "../utils/index.js";
 import { VaultPolicy } from "./types.js";
 
 export const pektinOfficerPolicy = `

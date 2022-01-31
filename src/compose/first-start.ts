@@ -2,10 +2,11 @@ import { PektinConfig } from "@pektin/config/src/config-types.js";
 import fs from "fs/promises";
 import path from "path";
 import GlobalRegistrar from "@pektin/global-registrar";
-import { absoluteName, PektinClient, concatDomain } from "../index.js";
+import { PektinClient } from "../index.js";
 import { ApiRecord, PektinClientConnectionConfigOverride, PektinRRType } from "../types.js";
 import { createSingleScript } from "./utils.js";
 import { GlueRecord, PluginNames } from "@pektin/global-registrar/src/types.js";
+import { absoluteName, concatDomain } from "../utils/index.js";
 
 const dir = `/pektin-compose/`;
 
