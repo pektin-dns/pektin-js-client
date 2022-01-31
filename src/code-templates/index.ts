@@ -1,9 +1,6 @@
-import { ApiRecord, PektinClientConnectionConfig } from "../types";
+import { ApiRecord, PektinClientConnectionConfig } from "../types.js";
 
-export const jsTemp = (
-    pccc: PektinClientConnectionConfig,
-    redisEntries: ApiRecord[]
-) => {
+export const jsTemp = (pccc: PektinClientConnectionConfig, redisEntries: ApiRecord[]) => {
     // TODO
     /*
     return `const pc = new PektinClient({});

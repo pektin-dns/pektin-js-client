@@ -34,7 +34,7 @@ import {
     ApiDeleteRequestRecord,
 } from "./types.js";
 import { vaultLoginUserpass, getVaultValue } from "./vault/vault.js";
-import { colors } from "./colors.js";
+import { colors } from "./utils/colors.js";
 
 export { PektinRRType, ApiResponseType } from "./types.js";
 

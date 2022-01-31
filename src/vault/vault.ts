@@ -1,5 +1,5 @@
 import f from "cross-fetch";
-import { colors } from "../colors.js";
+import { colors } from "../utils/colors.js";
 import {
     VaultSecretEngineOptions,
     VaultAuthEngineType,
@@ -19,9 +19,7 @@ export const getAuthMethods = async (endpoint: string, token: string) => {
         throw Error(`${colors.boldRed}Couldn't fetch: ${colors.reset}` + e);
     });
     const json = await res.json().catch((e) => {
-        throw Error(
-            `${colors.boldRed}Couldn't parse JSON response: ${colors.reset}` + e
-        );
+        throw Error(`${colors.boldRed}Couldn't parse JSON response: ${colors.reset}` + e);
     });
     return json;
 };
@@ -77,11 +75,7 @@ export const createEntity = async (
     }
 };
 
-export const getEntityByName = async (
-    endpoint: string,
-    token: string,
-    entityName: string
-) => {
+export const getEntityByName = async (endpoint: string, token: string, entityName: string) => {
     const res = await f(`${endpoint}/v1/identity/entity/name/${entityName}`, {
         method: `GET`,
         headers: {
@@ -91,9 +85,7 @@ export const getEntityByName = async (
         throw Error(`${colors.boldRed}Couldn't fetch: ${colors.reset}` + e);
     });
     const json = await res.json().catch((e) => {
-        throw Error(
-            `${colors.boldRed}Couldn't parse JSON response: ${colors.reset}` + e
-        );
+        throw Error(`${colors.boldRed}Couldn't parse JSON response: ${colors.reset}` + e);
     });
     return json?.data;
 };
@@ -129,25 +121,19 @@ export const createAppRole = async (
         body: JSON.stringify({ policies }),
     });
     // get role id
-    const roleIdRes = await await f(
-        `${endpoint}/v1/auth/approle/role/${name}/role-id`,
-        {
-            headers: {
-                "X-Vault-Token": token,
-            },
-        }
-    );
+    const roleIdRes = await await f(`${endpoint}/v1/auth/approle/role/${name}/role-id`, {
+        headers: {
+            "X-Vault-Token": token,
+        },
+    });
     const roleIdParsed = await roleIdRes.json();
     // get secret
-    const secretIdRes = await f(
-        `${endpoint}/v1/auth/approle/role/${name}/secret-id`,
-        {
-            method: `POST`,
-            headers: {
-                "X-Vault-Token": token,
-            },
-        }
-    );
+    const secretIdRes = await f(`${endpoint}/v1/auth/approle/role/${name}/secret-id`, {
+        method: `POST`,
+        headers: {
+            "X-Vault-Token": token,
+        },
+    });
     const secretIdParsed = await secretIdRes.json();
 
     return {
@@ -228,25 +214,18 @@ export const initVault = async (vaultEndpoint: string) => {
 };
 
 // obtain the vault token by sending username and password to the vault endpoint
-export const vaultLoginUserpass = async (
-    auth: VaultAuthJSON
-): Promise<string> => {
-    const res = await f(
-        `${auth.vaultEndpoint}/v1/auth/userpass/login/${auth.username}`,
-        {
-            method: `POST`,
-            body: JSON.stringify({
-                password: auth.password,
-            }),
-        }
-    ).catch((e) => {
+export const vaultLoginUserpass = async (auth: VaultAuthJSON): Promise<string> => {
+    const res = await f(`${auth.vaultEndpoint}/v1/auth/userpass/login/${auth.username}`, {
+        method: `POST`,
+        body: JSON.stringify({
+            password: auth.password,
+        }),
+    }).catch((e) => {
         throw Error(`${colors.boldRed}Couldn't fetch: ${colors.reset}` + e);
     });
 
     const json = await res.json().catch((e) => {
-        throw Error(
-            `${colors.boldRed}Couldn't parse JSON response: ${colors.reset}` + e
-        );
+        throw Error(`${colors.boldRed}Couldn't parse JSON response: ${colors.reset}` + e);
     });
 
     if (json.errors) {
@@ -261,10 +240,7 @@ It looks like this: V_KEY="3ad0e26a9248a2ee6a07bc2c4a4d967589e74f02319d0f7ccb169
 ${colors.reset}`
             );
         }
-        throw Error(
-            `${colors.boldRed}Couldn't obtain vault token: ${colors.reset}` +
-                json.errors
-        );
+        throw Error(`${colors.boldRed}Couldn't obtain vault token: ${colors.reset}` + json.errors);
     }
     return json.auth.client_token;
 };
@@ -317,11 +293,7 @@ export const updateKvValue = async (
     }
 };
 
-export const createSigningKey = async (
-    endpoint: string,
-    token: string,
-    domainName: string
-) => {
+export const createSigningKey = async (endpoint: string, token: string, domainName: string) => {
     await f(`${endpoint}/v1/pektin-transit/keys/${domainName}`, {
         method: `POST`,
         headers: {
@@ -332,20 +304,13 @@ export const createSigningKey = async (
 };
 
 // get keys for a domain with vault metadata
-export const getPubVaultKeys = async (
-    endpoint: string,
-    token: string,
-    domainName: string
-) => {
-    const getPubKeyRes = await f(
-        `${endpoint}/v1/pektin-transit/keys/${domainName}`,
-        {
-            method: `GET`,
-            headers: {
-                "X-Vault-Token": token,
-            },
-        }
-    );
+export const getPubVaultKeys = async (endpoint: string, token: string, domainName: string) => {
+    const getPubKeyRes = await f(`${endpoint}/v1/pektin-transit/keys/${domainName}`, {
+        method: `GET`,
+        headers: {
+            "X-Vault-Token": token,
+        },
+    });
     try {
         return (await getPubKeyRes.json()).data.keys;
     } catch (error) {
