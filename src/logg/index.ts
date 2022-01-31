@@ -1,4 +1,5 @@
 import { cwd } from "process";
+
 export enum LogCategory {
     DebugExcessive,
     Debug,
@@ -23,6 +24,7 @@ export class Logg {
         this.categories = logg.categories;
         this.logs = [];
         this.callNames = logg.callNames;
+        this.attach();
     }
     // inserts a log
     l = (message: string, category: LogCategory = 0) => {
@@ -61,5 +63,9 @@ export class Logg {
         }
         stack.forEach((se, i) => (s += `${i > 0 ? ` > ` : ``}${se}`));
         return s;
+    };
+    attach = () => {
+        /*@ts-ignore*/
+        global.l = this;
     };
 }

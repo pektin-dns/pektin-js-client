@@ -7,8 +7,13 @@ import { ApiRecord, PektinClientConnectionConfigOverride, PektinRRType } from ".
 import { createSingleScript } from "./utils.js";
 import { GlueRecord, PluginNames } from "@pektin/global-registrar/src/types.js";
 import { absoluteName, concatDomain } from "../utils/index.js";
+import { Logg } from "../logg/index.js";
 
 const dir = `/pektin-compose/`;
+
+new Logg({ categories: [0], callNames: { x: { name: `X-Function` } } });
+/*@ts-ignore*/
+const l = global.l as Logg;
 
 export const pektinComposeFirstStart = async (recursive: any) => {
     const pektinConfig = JSON.parse(

@@ -1,4 +1,3 @@
-import { deAbsolute } from "./index.js";
 import {
     ClientCapabilities,
     ClientName,
@@ -27,6 +26,7 @@ import {
     getEntityByName,
     updateKvValue,
 } from "./vault/vault.js";
+import { deAbsolute } from "./utils/index.js";
 
 export const createPektinSigner = async (
     endpoint: string,
