@@ -7,7 +7,7 @@ import {
     OfficerName,
     RibstonPolicy,
 } from "./types.js";
-import { randomString } from "./utils.js";
+import { randomString } from "./compose/utils.js";
 import {
     pektinApiPolicy,
     pektinConfidantPolicy,
@@ -39,9 +39,7 @@ export const createPektinSigner = async (
 
     const metadata = { domain: domainName };
 
-    createFullUserPass(endpoint, token, name, password, metadata, [
-        `pektin-signer`,
-    ]);
+    createFullUserPass(endpoint, token, name, password, metadata, [`pektin-signer`]);
 
     createSigningKey(endpoint, token, domainName);
 };
@@ -63,21 +61,11 @@ export const createPektinOfficer = async (
         `pektin-ribston-policies`
     );
 
-    await createVaultPolicy(
-        endpoint,
-        token,
-        `pektin-officer`,
-        pektinOfficerPolicy
-    );
+    await createVaultPolicy(endpoint, token, `pektin-officer`, pektinOfficerPolicy);
 
-    await createFullUserPass(
-        endpoint,
-        token,
-        officerName,
-        password,
-        { clientName },
-        [`pektin-officer`]
-    );
+    await createFullUserPass(endpoint, token, officerName, password, { clientName }, [
+        `pektin-officer`,
+    ]);
 };
 
 export const createPektinClient = async ({
@@ -97,13 +85,7 @@ export const createPektinClient = async ({
 }) => {
     const officerPassword = randomString();
 
-    await updatePektinSharedPasswords(
-        endpoint,
-        token,
-        `officer`,
-        officerPassword,
-        clientName
-    );
+    await updatePektinSharedPasswords(endpoint, token, `officer`, officerPassword, clientName);
 
     await createPektinOfficer(
         endpoint,
@@ -112,17 +94,9 @@ export const createPektinClient = async ({
         officerPassword,
         capabilities.ribstonPolicy
     );
-    if (managerPassword)
-        await createPektinManager(endpoint, token, clientName, managerPassword);
+    if (managerPassword) await createPektinManager(endpoint, token, clientName, managerPassword);
 
-    await createPektinConfidant(
-        endpoint,
-        token,
-        clientName,
-        confidantPassword,
-        {},
-        capabilities
-    );
+    await createPektinConfidant(endpoint, token, clientName, confidantPassword, {}, capabilities);
 
     return confidantPassword;
 };
@@ -135,9 +109,7 @@ export const createPektinManager = async (
 ) => {
     const name: ManagerName = `pektin-client-manager-${clientName}`;
 
-    await createFullUserPass(endpoint, token, name, password, {}, [
-        `pektin-client-manager`,
-    ]);
+    await createFullUserPass(endpoint, token, name, password, {}, [`pektin-client-manager`]);
 };
 
 export const createPektinConfidant = async (
@@ -149,14 +121,7 @@ export const createPektinConfidant = async (
     capabilities: ClientCapabilities
 ) => {
     const confidantName = `pektin-client-confidant-${clientName}`;
-    await createFullUserPass(
-        endpoint,
-        token,
-        confidantName,
-        password,
-        metadata,
-        [confidantName]
-    );
+    await createFullUserPass(endpoint, token, confidantName, password, metadata, [confidantName]);
 
     await createVaultPolicy(
         endpoint,
@@ -166,20 +131,11 @@ export const createPektinConfidant = async (
     );
 };
 
-export const createPektinApiAccount = async (
-    endpoint: string,
-    token: string,
-    password: string
-) => {
-    createFullUserPass(endpoint, token, `pektin-api`, password, {}, [
-        `pektin-api`,
-    ]);
+export const createPektinApiAccount = async (endpoint: string, token: string, password: string) => {
+    createFullUserPass(endpoint, token, `pektin-api`, password, {}, [`pektin-api`]);
 };
 
-export const createPektinAuthVaultPolicies = async (
-    endpoint: string,
-    token: string
-) => {
+export const createPektinAuthVaultPolicies = async (endpoint: string, token: string) => {
     const policyPairs = [
         { name: `pektin-signer`, policy: pektinSignerPolicy },
         { name: `pektin-api`, policy: pektinApiPolicy },
@@ -203,12 +159,7 @@ export const createPektinVaultEngines = async (
 
     for (let i = 0; i < authEngines.length; i++) {
         const engine = authEngines[i];
-        await enableAuthMethod(
-            endpoint,
-            token,
-            engine.options.type,
-            engine.path
-        );
+        await enableAuthMethod(endpoint, token, engine.options.type, engine.path);
     }
 };
 
@@ -230,8 +181,7 @@ export const updatePektinSharedPasswords = async (
     );
 
     for (let i = 1; i < 3; i++) {
-        if (password.length % 2 !== 0)
-            throw new Error(`Password must have a even length`);
+        if (password.length % 2 !== 0) throw new Error(`Password must have a even length`);
         const passwordHalf =
             i === 1
                 ? password.substring(0, password.length / 2)
@@ -266,9 +216,7 @@ export const createFullUserPass = async (
             : entityResponse?.data;
 
     if (!entity?.id)
-        throw new Error(
-            `Entity couldn't be created: ${JSON.stringify(entityResponse)}`
-        );
+        throw new Error(`Entity couldn't be created: ${JSON.stringify(entityResponse)}`);
 
     const authMethods = await getAuthMethods(endpoint, token);
 

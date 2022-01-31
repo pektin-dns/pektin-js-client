@@ -1,6 +1,6 @@
 import { promises as fs } from "fs";
 import path from "path";
-import { chownRecursive, chown, chmod, randomString, configToCertbotIni } from "./../utils.js";
+import { chownRecursive, chown, chmod, randomString, configToCertbotIni } from "./utils.js";
 import crypto from "crypto";
 
 import { unsealVault, initVault, enableVaultCors, updateKvValue } from "./../vault/vault.js";

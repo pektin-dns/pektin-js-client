@@ -4,7 +4,7 @@ import path from "path";
 import GlobalRegistrar from "@pektin/global-registrar";
 import { absoluteName, PektinClient, concatDomain } from "../index.js";
 import { ApiRecord, PektinClientConnectionConfigOverride, PektinRRType } from "../types.js";
-import { createSingleScript } from "../utils.js";
+import { createSingleScript } from "./utils.js";
 import { GlueRecord, PluginNames } from "@pektin/global-registrar/src/types.js";
 
 const dir = `/pektin-compose/`;

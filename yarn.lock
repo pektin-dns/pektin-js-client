@@ -61,39 +61,39 @@
     "@nodelib/fs.scandir" "2.1.5"
     fastq "^1.6.0"
 
-"@pektin/client@^1.1.19":
-  version "1.1.21"
-  resolved "https://registry.yarnpkg.com/@pektin/client/-/client-1.1.21.tgz#192640b14d4563af0b4b7fd4c1632d9942c08bb8"
-  integrity sha512-8dNx9K9WdbqO01wX3ZXvsuTZX+IjlEkCCyHDsMUldVbiIS/4S6D5xnY4hgLDwnxMkhyDkPGzC9x7RYDoFysrlw==
+"@pektin/client@^1.1.19", "@pektin/client@^1.1.27":
+  version "1.1.27"
+  resolved "https://registry.yarnpkg.com/@pektin/client/-/client-1.1.27.tgz#9d8a1a2d796717f9d971e955ebcbe4f9f7fc9262"
+  integrity sha512-xscYFNM7m/8XIQR1MzxPG8YLlG4T4yvHHVNQkyTTwj4AEmen3hN/o1qNtO3Ua+5TzLyHl+14hEwAAu+GmyS35g==
   dependencies:
     "@pektin/config" "^1.0.22"
-    "@pektin/global-registrar" "^1.0.3"
+    "@pektin/global-registrar" "^1.0.7"
     cross-fetch "^3.1.4"
 
-"@pektin/config@^1.0.22":
-  version "1.0.22"
-  resolved "https://registry.yarnpkg.com/@pektin/config/-/config-1.0.22.tgz#9d77c4ed5e7e5ec0fd694db5e297a57708dee330"
-  integrity sha512-fmznhAGzJdX4gMLjyiLr2GN+hZXRh/xCRDRo+Mcr2ktGdmuThjVYyRnKa4XnSFs5Yyu92sN8MAQrMDQbLg/7Nw==
+"@pektin/config@^1.0.22", "@pektin/config@^1.0.26":
+  version "1.0.26"
+  resolved "https://registry.yarnpkg.com/@pektin/config/-/config-1.0.26.tgz#0ba33eec4f6d19187911cfb0d0095189a9ff22e4"
+  integrity sha512-DQEO6+UVX+JJeTz+nRfEWeJaV40xPkHtGUHWpcPBmeVBfJFvgF96aLZMCHIUdFlaTmd37B7ZHaw13aUlCahitQ==
   dependencies:
+    "@pektin/client" "^1.1.27"
     ajv "^8.9.0"
     lodash "^4.17.21"
     yaml "^1.10.2"
 
-"@pektin/global-registrar@^1.0.3":
-  version "1.0.3"
-  resolved "https://registry.yarnpkg.com/@pektin/global-registrar/-/global-registrar-1.0.3.tgz#d6e7edb7773c8f2fc98bcdc5f7f00b3f2b48a3cf"
-  integrity sha512-cykcelRZChB9vv4ftolWnHqXoEv9au5llPdeWTvGuNQXjYr5ks79dkGVa8CIn5gLCtdtQW37kHkbyoF+eZZi7A==
+"@pektin/global-registrar@^1.0.10":
+  version "1.0.10"
+  resolved "https://registry.yarnpkg.com/@pektin/global-registrar/-/global-registrar-1.0.10.tgz#e5326146705e3001166662cc3337b36ff44e8c76"
+  integrity sha512-miYJN98fVVo/ixAsHe+5k9X2P16EebtYnnNW/DT0lY4CEgOgPhZ6uAQ950BsJ3firsd5jqPy6eZlMaRthQv6KA==
   dependencies:
-    "@pektin/client" "^1.1.19"
     "@pektin/config" "^1.0.22"
     "@types/lodash" "^4.14.178"
     cross-fetch "^3.1.5"
     lodash "^4.17.21"
 
 "@pektin/global-registrar@^1.0.7":
-  version "1.0.7"
-  resolved "https://registry.yarnpkg.com/@pektin/global-registrar/-/global-registrar-1.0.7.tgz#e56efc8f02a70373ce03b04d10dc09acdea90da1"
-  integrity sha512-XS614qFpe84R3hJFB5BAToGWN0QoatTxe5SfnwjdgXUTAHnZ3Oeu1gFCt3F3QKDM9QzFlZph7toFt04+mBr8wA==
+  version "1.0.8"
+  resolved "https://registry.yarnpkg.com/@pektin/global-registrar/-/global-registrar-1.0.8.tgz#1924e046810107fcd183da3f154456a8e76a4271"
+  integrity sha512-aGBtm/kIYeMSCK6Bcr/s1bkuaDMRaPCEFefghFPdkTBFl0ObZGwtKIh5B8uoArM5k63bCYJyiIHEDLyW9iBZHg==
   dependencies:
     "@pektin/client" "^1.1.19"
     "@pektin/config" "^1.0.22"
