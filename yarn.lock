@@ -138,6 +138,16 @@
     cross-fetch "^3.1.5"
     lodash "^4.17.21"
 
+"@pektin/toluol-wasm-nodejs@^0.3.0":
+  version "0.3.0"
+  resolved "https://registry.yarnpkg.com/@pektin/toluol-wasm-nodejs/-/toluol-wasm-nodejs-0.3.0.tgz#4e405933f76741b5aadad0ba1e22b455f30517b5"
+  integrity sha512-MesfupK4xZ9LYDFPQFRU6F+8bHJR9fQSi2tof8McVfhrCBD1G+HxUdlDPMQSyoRmuMSIMX6VitvAPUP4fXNhpA==
+
+"@types/async@^3.2.12":
+  version "3.2.12"
+  resolved "https://registry.yarnpkg.com/@types/async/-/async-3.2.12.tgz#0ebbfaf3f249ffa0fdc50179b07705f69c90d70c"
+  integrity sha512-4i4w4tfNDo73BOjk0qHcB2YJ8A2SjITCrU4BTsgdJFTsVr6atPDXa0T9r0QZTrX3axtWwkqpZqF4B3gR0TqBGw==
+
 "@types/json-schema@^7.0.9":
   version "7.0.9"
   resolved "https://registry.yarnpkg.com/@types/json-schema/-/json-schema-7.0.9.tgz#97edc9037ea0c38585320b28964dde3b39e4660d"
@@ -310,6 +320,11 @@ array.prototype.flat@^1.2.5:
     define-properties "^1.1.3"
     es-abstract "^1.19.0"
 
+async@^3.2.3:
+  version "3.2.3"
+  resolved "https://registry.yarnpkg.com/async/-/async-3.2.3.tgz#ac53dafd3f4720ee9e8a160628f18ea91df196c9"
+  integrity sha512-spZRyzKL5l5BZQrr/6m/SqFdBN0q3OCI0f9rjfBzCMBIP4p75P620rR3gTmaksNOhmzgdxcaxdNfMy6anrbM0g==
+
 balanced-match@^1.0.0:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/balanced-match/-/balanced-match-1.0.2.tgz#e83e3a7e3f300b34cb9d87f615fa0cbf357690ee"
@@ -431,7 +446,7 @@ dir-glob@^3.0.1:
 
 "dns-zonefile@git+https://github.com/firstdorsal/dns-zonefile.git":
   version "0.3.0"
-  resolved "git+https://github.com/firstdorsal/dns-zonefile.git#115de879de751024b72561f4dfa21f057efc6898"
+  resolved "git+https://github.com/firstdorsal/dns-zonefile.git#ef08dd8acccbbb0b4ae28bcba0863f4fb6c8750c"
 
 doctrine@^2.1.0:
   version "2.1.0"

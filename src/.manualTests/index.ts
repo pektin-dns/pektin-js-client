@@ -5,6 +5,8 @@ import { PektinRRType } from "../index.js";
 import { config } from "dotenv";
 import { getAllFromPdns } from "../import/get/pdns/index.js";
 import { getZoneFromFile } from "../import/get/zone-file/index.js";
+import { get } from "../import/get/wanderlust/index.js";
+
 config({ path: "/home/paul/Documents/powerdns-api/.env" });
 
 if (!process.env.PDNS_API_ENDPOINT || !process.env.PDNS_API_KEY) throw Error("missing");
@@ -15,6 +17,8 @@ const serverAdminConfig = await fs.readFile(
 );
 
 const pc = new PektinClient(JSON.parse(serverAdminConfig));
+import toluol from "@pektin/toluol-wasm-nodejs";
+console.log(await get([`y.gy.`], pc, toluol, 200));
 
 /*
 pc.restoreFromPektinZoneData(
@@ -40,70 +44,19 @@ await pc.set([
 ]);
 */
 
-const file = `$ORIGIN MYDOMAIN.COM.
-$TTL 3600
-@	IN	SOA	NS1.NAMESERVER.NET.	HOSTMASTER.MYDOMAIN.COM.	(
-			1406291485	 ;serial
-			3600	 ;refresh
-			600	 ;retry
-			604800	 ;expire
-			86400	 ;minimum ttl
-)
-
-@	NS	NS1.NAMESERVER.NET.
-@	NS	NS2.NAMESERVER.NET.
-
-@	MX	0	mail1
-@	MX	10	mail2
-
-    IN  A	2.2.2.2
-	A	1.1.1.1
-@	A	127.0.0.1
-www	A	127.0.0.1
-mail	A	127.0.0.1
-			A 1.2.3.4
-tst 300 IN A 101.228.10.127;this is a comment
-
-@	AAAA	::1
-mail	AAAA	2001:db8::1
-A  200 AAAA  2001:db8::1
-
-@       CAA 0 issue "ca.example.net; account=230123"
-@       CAA 0 iodef "mailto:security@example.com"
-        CAA 0 iodef "http://iodef.example.com/"
-
-mail1	CNAME	mail
-mail2	CNAME	mail
-CNAME	CNAME	CNAME
-      CNAME	CNAME
-
-test IN SPF "v=spf1" "mx:gcloud-node.com." "-all"
-test1 SPF "v=spf2" "mx:gcloud-node.com." "-all"
-    IN  SPF "v=spf3" "mx:gcloud-node.com." "-all    " "aasdfsadfdsafdasf"
-    SPF "v=spf4" "mx:gcloud-node.com." "-all"
-
-treefrog.ca. IN TXT "v=spf1 a mx a:mail.treefrog.ca a:webmail.treefrog.ca ip4:76.75.250.33 ?all" "asdfsdaf" "sdfsadfdasf"
-   IN TXT "v=spf1 a mx a:mail.treefrog.ca a:webmail.treefrog.ca ip4:76.75.250.33 ?all" "asdfsdaf" sdfsadfdasf
-treemonkey.ca. IN TXT "v=DKIM1\; k=rsa\; p=MIGf..."
-    TXT "v=DKIM1\; k=rsa\; p=MIGf..."
-
-secure.example.   IN   DS      tag=12345 alg=3 digest_type=1 <foofoo>
-   DS      tag=12345 alg=3 digest_type=1 "<foofoo>"
-
-
-; foobar - use old-slow-box or new-fast-box if either is
-; available, make three quarters of the logins go to
-; new-fast-box.
-_foobar._tcp  200  SRV 0 1 9 old-slow-box.example.com.
-                SRV 0 3 9 new-fast-box.example.com.
-; if neither old-slow-box or new-fast-box is up, switch to
-; using the sysdmin's box and the server
-                SRV 1 0 9 sysadmins-box.example.com.
-                SRV 1 0 9 server.example.com.
-
-; NO other services are supported
-*._tcp          SRV  0 0 0 .
-*._udp          SRV  0 0 0 .
-
+const file = `$ORIGIN pektin.io
+@ 86400 IN SOA ns1.gandi.net. hostmaster.gandi.net. 1643461544 10800 3600 604800 10800
+@ 10800 IN A 217.70.184.38
+@ 10800 IN MX 50 fb.mail.gandi.net.
+@ 10800 IN TXT "v=spf1 include:_mailcust.gandi.net ?all"
+_imaps._tcp 10800 IN SRV 0 1 993 mail.gandi.net.
+_pop3s._tcp 10800 IN SRV 10 1 995 mail.gandi.net.
+_submission._tcp 10800 IN SRV 0 1 465 mail.gandi.net.
+gm1._domainkey 10800 IN CNAME gm1.gandimail.net.
+gm2._domainkey 10800 IN CNAME gm2.gandimail.net.
+gm3._domainkey 10800 IN CNAME gm3.gandimail.net.
+webmail 10800 IN CNAME webmail.gandi.net.
+www 10800 IN CNAME webredir.vip.gandi.net.
 `;
-console.log(getZoneFromFile(file));
+
+await pc.restoreFromPektinZoneData(getZoneFromFile(file));

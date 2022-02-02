@@ -236,7 +236,7 @@ You can unseal it here: ${auth.vaultEndpoint}/ui/vault/unseal
 or with the clients unsealVault() function
 
 For compose setups the key can be found in the in the pektin-compose/secrets/.env file in the V_KEY constant.
-It looks like this: V_KEY="3ad0e26a9248a2ee6a07bc2c4a4d967589e74f02319d0f7ccb169918cd1e5b89" (copy without quotes)
+It looks similar to this: V_KEY="3ad0e26a9248a2ee6a07bc2c4a4d967589e74f02319d0f7ccb169918cd1e5b89" (copy without quotes)
 ${colors.reset}`
             );
         }

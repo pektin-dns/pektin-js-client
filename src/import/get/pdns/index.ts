@@ -1,8 +1,7 @@
 import { PektinZoneData, PektinRRType } from "../../../types.js";
 /*@ts-ignore*/
 import { PowerdnsClient } from "@firstdorsal/powerdns-api";
-import { isSupportedRecordType } from "../../../index.js";
-import { textToRRValue } from "../../../utils/index.js";
+import { isSupportedRecordType, textToRRValue } from "../../../utils/index.js";
 export const getAllFromPdns = async (baseurl: string, apikey: string): Promise<PektinZoneData> => {
     const pdns = new PowerdnsClient(baseurl, apikey);
 

@@ -1,5 +1,14 @@
 import { PektinRRType } from "../index.js";
-import { MXRecord, SOARecord, SRVRecord, CAARecord, TLSARecord, ResourceRecord } from "../types.js";
+import {
+    MXRecord,
+    SOARecord,
+    SRVRecord,
+    CAARecord,
+    TLSARecord,
+    ResourceRecord,
+    ConfidantPassword,
+    ManagerPassword,
+} from "../types.js";
 
 export const concatDomain = (domain: string, subDomain?: string) => {
     if (subDomain === undefined) return domain;
@@ -90,7 +99,30 @@ export const textToRRValue = (
     }
 };
 
-export const supportedRecordTypes = [
+export const checkConfidantPassword = (
+    input: string | undefined
+): ConfidantPassword | undefined => {
+    if (input === undefined) return undefined;
+    if (typeof input !== `string`) throw Error(`confidantPassword is not a string`);
+
+    if (input.startsWith(`c.`)) return input as ConfidantPassword;
+    throw Error(`Passed confidantPassword is not a confidant password`);
+};
+
+export const checkManagerPassword = (input: string | undefined): ManagerPassword | undefined => {
+    if (input === undefined) return undefined;
+
+    if (typeof input !== `string`) throw Error(`managerPassword is not a string`);
+    if (input.startsWith(`m.`)) return input as ManagerPassword;
+    throw Error(`Passed managerPassword is not a manager password`);
+};
+
+export const isSupportedRecordType = (type: string) => {
+    if (Object.values(supportedRecordTypesArray).includes(type as PektinRRType)) return true;
+    return false;
+};
+
+export const supportedRecordTypesArray = [
     `A`,
     `AAAA`,
     `NS`,

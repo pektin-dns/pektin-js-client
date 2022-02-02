@@ -36,7 +36,7 @@ import {
 } from "./types.js";
 import { vaultLoginUserpass, getVaultValue } from "./vault/vault.js";
 import { colors } from "./utils/colors.js";
-import { absoluteName, supportedRecordTypes } from "./utils/index.js";
+import { absoluteName, checkConfidantPassword, checkManagerPassword } from "./utils/index.js";
 
 export { PektinRRType, ApiResponseType } from "./types.js";
 
@@ -103,6 +103,7 @@ export class PektinClient {
         if (!this.pektinApiEndpoint) {
             this.pektinApiEndpoint = getPektinEndpoint(this.pektinConfig, `api`);
         }
+        return this.pektinConfig;
     };
 
     getRecursorAuth = async () => {
@@ -118,6 +119,7 @@ export class PektinClient {
             }
         }
         this.recursorAuth = await getRecursorAuth(this.vaultEndpoint, this.confidantToken);
+        return this.recursorAuth;
     };
 
     // obtain the vault token by sending username and password to the vault endpoint
@@ -280,6 +282,11 @@ export class PektinClient {
             },
             throwErrors
         );
+    };
+    getPektinEndpoint = async (type: `api` | `vault` | `ui` | `recursor`) => {
+        if (!this.pektinConfig) await this.getPektinConfig();
+        if (!this.pektinConfig) throw Error(`Couldn't obtain pektin-config`);
+        return getPektinEndpoint(this.pektinConfig, type);
     };
 
     getDomains = async (): Promise<string[]> =>
@@ -588,29 +595,6 @@ ${JSON.stringify(body, null, `    `)}${colors.reset}`
     }
     if (throwErrors) return json as ApiResponseBody;
     return json as ApiResponseBody;
-};
-
-export const checkConfidantPassword = (
-    input: string | undefined
-): ConfidantPassword | undefined => {
-    if (input === undefined) return undefined;
-    if (typeof input !== `string`) throw Error(`confidantPassword is not a string`);
-
-    if (input.startsWith(`c.`)) return input as ConfidantPassword;
-    throw Error(`Passed confidantPassword is not a confidant password`);
-};
-
-export const checkManagerPassword = (input: string | undefined): ManagerPassword | undefined => {
-    if (input === undefined) return undefined;
-
-    if (typeof input !== `string`) throw Error(`managerPassword is not a string`);
-    if (input.startsWith(`m.`)) return input as ManagerPassword;
-    throw Error(`Passed managerPassword is not a manager password`);
-};
-
-export const isSupportedRecordType = (type: string) => {
-    if (supportedRecordTypes.indexOf(type) > -1) return true;
-    return false;
 };
 
 // TODO coloring only shows special characters in browser
