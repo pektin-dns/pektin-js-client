@@ -21,7 +21,7 @@ import {
     ApiHealthRequestBody,
     ApiMethod,
     ApiRequestBody,
-    ApiResponseBody as ApiResponseBody,
+    ApiResponseBody,
     ApiSearchRequestBody,
     ApiSetRequestBody,
     PektinClientConnectionConfigOverride,
@@ -32,10 +32,11 @@ import {
     SetResponseSuccess,
     SNSNameserver,
     ApiDeleteRequestRecord,
+    PektinZoneData,
 } from "./types.js";
 import { vaultLoginUserpass, getVaultValue } from "./vault/vault.js";
 import { colors } from "./utils/colors.js";
-import { absoluteName } from "./utils/index.js";
+import { absoluteName, supportedRecordTypes } from "./utils/index.js";
 
 export { PektinRRType, ApiResponseType } from "./types.js";
 
@@ -371,7 +372,53 @@ export class PektinClient {
 
         return await this.set(records);
     };
+
+    getEverything = async () => {
+        const domains = await this.getDomains();
+        if (!domains.length) return {};
+        const records = await this.getZoneRecords(domains);
+        const all: PektinZoneData = {};
+        domains.forEach((domain, i) => {
+            if (records?.data && records?.data[i]?.data) {
+                all[domain] = records.data[i].data as ApiRecord[];
+            }
+        });
+
+        return all;
+    };
+
+    deleteEverything = async () => {
+        const all = await this.search(`*`);
+        if (all.data === null) return false;
+        const del = await this.deleteRecords(
+            all.data.map((key) => {
+                const [name, rr_type] = key.split(`:`) as [string, PektinRRType];
+                return { name, rr_type };
+            })
+        );
+        return del;
+    };
+
+    restoreFromPektinZoneData = async (data: PektinZoneData, deleteEverythingElse = false) => {
+        if (deleteEverythingElse) {
+            await this.deleteEverything();
+        }
+        const domains = Object.keys(data);
+        let records: ApiRecord[] = [];
+        domains.forEach((domain) => (records = records.concat(data[domain])));
+        this.set(records);
+    };
+    // transfers all records from one pektin api/server to another one
+    transferAll = () => {
+        // TODO
+    };
+    // transfer specific zone from one pektin api/server to another one
+    transferZone = () => {
+        // TODO
+    };
 }
+
+// TODO duplicate zone
 
 export const getMainNode = (pektinConfig: PektinConfig) =>
     pektinConfig.nodes.filter((node) => node.main === true)[0];
@@ -567,17 +614,3 @@ export const isSupportedRecordType = (type: string) => {
 };
 
 // TODO coloring only shows special characters in browser
-
-export const supportedRecordTypes = [
-    `A`,
-    `AAAA`,
-    `NS`,
-    `CNAME`,
-    `SOA`,
-    `MX`,
-    `TXT`,
-    `SRV`,
-    `CAA`,
-    `OPENPGPKEY`,
-    `TLSA`,
-];

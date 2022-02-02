@@ -1,15 +1,18 @@
 import { cwd } from "process";
+import { colors } from "../utils/colors.js";
+import { promises as fs } from "fs";
+import path from "path";
 
 export enum LogCategory {
     DebugExcessive,
     Debug,
     Warning,
     Error,
-    Notice,
+    Info,
 }
 export interface Log {
     message: string;
-    category?: LogCategory;
+    category: LogCategory;
     stack: string[] | undefined;
 }
 export interface CallNames {
@@ -27,8 +30,9 @@ export class Logg {
         this.attach();
     }
     // inserts a log
-    l = (message: string, category: LogCategory = 0) => {
+    log = (message: string, category: LogCategory = 0, display = true) => {
         this.logs.push({ message, category, stack: this.getStack(2) });
+        if (display) this.displayLast();
     };
     getStack = (shift: number = 1) => {
         let s = new Error().stack;
@@ -38,18 +42,59 @@ export class Logg {
         sp = sp.slice(shift);
         if (!sp?.length) return;
         sp = sp.map((spp) => {
+            spp = spp.replace(`async `, ``);
             return spp.indexOf(`(`) !== -1
                 ? spp.substring(0, spp.indexOf(`(`) - 1)
-                : spp.replace(`file://`, ``).replace(cwd(), ``).substring(1);
+                : `./` + spp.replace(`file://`, ``).replace(cwd(), ``).substring(1);
         });
+        sp = sp.filter((sp) => !sp.includes(`processTicksAndRejections`));
         sp.reverse();
         return sp;
     };
     displayLogs = () => {
         console.log(this.logs.map(this.beautifyLog));
     };
+    displayLast = () => {
+        console.log(this.beautifyLog(this.logs[this.logs.length - 1]));
+    };
+
+    displayLastMarkdown = async () => {
+        await fs.writeFile(
+            `${path.join(cwd(), `logs.md`)}`,
+            this.beautifyMarkdown(this.logs[this.logs.length - 1])
+        );
+    };
+    beautifyMarkdown = (log: Log) => {
+        return `## ${this.beautifyStack(log.stack)}\n    ${log.message}\n`;
+    };
     beautifyLog = (log: Log) => {
-        return `${this.beautifyStack(log.stack)}: ${log.message}`;
+        if (log.stack) this.collapseStack(log.stack);
+        return `${this.getCategory(log.category)}\n  ${this.beautifyStack(log.stack)}\n    ${
+            log.message
+        }`;
+    };
+    getCategory = (category: LogCategory) => {
+        switch (category) {
+            case LogCategory.Error:
+                return `${colors.boldRed}ERROR${colors.reset}`;
+            case LogCategory.Warning:
+                return `${colors.bold}${colors.fg.yellow}WARN${colors.reset}`;
+
+            default:
+                break;
+        }
+    };
+    collapseStack = (stack: string[]) => {
+        const a: [string, number][] = [];
+        for (let i = 0; i < stack.length; i++) {
+            const s = stack[i];
+            if (i > 0 && a[a.length - 1][0] === s[i]) {
+                a[a.length - 1] = [s, a[a.length - 1][1] + 1];
+            } else {
+                a.push([s, 1]);
+            }
+        }
+        console.log(a);
     };
     beautifyStack = (stack: string[] | undefined) => {
         if (!stack) return ``;

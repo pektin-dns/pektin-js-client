@@ -18,6 +18,12 @@ export interface PektinOfficerMeta {
     [policy: string]: string;
 }
 
+export interface PektinZoneData {
+    [domainName: string]: ApiRecord[];
+}
+
+// TODO support dynDns
+
 export type RibstonPolicy = string; // A valid ribston policy
 
 export type ClientName = string;
@@ -97,13 +103,14 @@ export interface ApiResponseBase {
     time: number;
     type: ApiResponseType;
 }
-
+/* eslint-disable no-unused-vars */
 export enum ApiResponseType {
     Success = `success`,
     PartialSuccess = `partial-success`,
     Error = `error`,
     Ignored = `ignored`,
 }
+/* eslint-enable no-unused-vars */
 
 // response success
 export interface ApiResponseSuccessBase extends ApiResponseBase {
@@ -355,9 +362,11 @@ export interface TXTRecord extends ResourceRecordBase {
     value: string;
 }
 
+/* eslint-disable no-unused-vars */
 export enum PektinRRType {
     A = `A`,
     AAAA = `AAAA`,
+
     CAA = `CAA`,
     CNAME = `CNAME`,
     MX = `MX`,
@@ -368,3 +377,4 @@ export enum PektinRRType {
     TLSA = `TLSA`,
     TXT = `TXT`,
 }
+/* eslint-enable no-unused-vars */

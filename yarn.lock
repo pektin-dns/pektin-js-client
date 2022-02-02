@@ -26,6 +26,13 @@
     minimatch "^3.0.4"
     strip-json-comments "^3.1.1"
 
+"@firstdorsal/powerdns-api@^1.11.0":
+  version "1.11.0"
+  resolved "https://registry.yarnpkg.com/@firstdorsal/powerdns-api/-/powerdns-api-1.11.0.tgz#3714eba004db8f8418e646f969003fdf00e6742b"
+  integrity sha512-tL+qPWvouC+jg6pdC++MyxKIlar659L8QoR1bYtcZmj2wPBA0iSXkz8vUHYChWSL90bT7RttfhnpBaXLLB/GVg==
+  dependencies:
+    node-fetch "^2.6.1"
+
 "@humanwhocodes/config-array@^0.9.2":
   version "0.9.3"
   resolved "https://registry.yarnpkg.com/@humanwhocodes/config-array/-/config-array-0.9.3.tgz#f2564c744b387775b436418491f15fce6601f63e"
@@ -422,6 +429,10 @@ dir-glob@^3.0.1:
   dependencies:
     path-type "^4.0.0"
 
+"dns-zonefile@git+https://github.com/firstdorsal/dns-zonefile.git":
+  version "0.3.0"
+  resolved "git+https://github.com/firstdorsal/dns-zonefile.git#115de879de751024b72561f4dfa21f057efc6898"
+
 doctrine@^2.1.0:
   version "2.1.0"
   resolved "https://registry.yarnpkg.com/doctrine/-/doctrine-2.1.0.tgz#5cd01fc101621b42c4cd7f5d1a66243716d3f39d"
@@ -435,6 +446,11 @@ doctrine@^3.0.0:
   integrity sha512-yS+Q5i3hBf7GBkd4KG8a7eBNNWNGLTaEwwYWUijIYM7zrlYDM0BFXHjjPWlWZ1Rg7UaddZeIDmi9jF3HmqiQ2w==
   dependencies:
     esutils "^2.0.2"
+
+dotenv@^15.0.0:
+  version "15.0.0"
+  resolved "https://registry.yarnpkg.com/dotenv/-/dotenv-15.0.0.tgz#2a585639429bf2c2c62f387f0fffde9c75aafde0"
+  integrity sha512-/l1sXXm79ry34KwwS0y4oVZjB468iw/6u9g1W26dtexKcIJAnVL2pMF+hxQwzZ7LutxOwEgtym9eIxvX33CMKg==
 
 es-abstract@^1.19.0, es-abstract@^1.19.1:
   version "1.19.1"
@@ -1086,7 +1102,7 @@ natural-compare@^1.4.0:
   resolved "https://registry.yarnpkg.com/natural-compare/-/natural-compare-1.4.0.tgz#4abebfeed7541f2c27acfb29bdbbd15c8d5ba4f7"
   integrity sha1-Sr6/7tdUHywnrPspvbvRXI1bpPc=
 
-node-fetch@2.6.7:
+node-fetch@2.6.7, node-fetch@^2.6.1:
   version "2.6.7"
   resolved "https://registry.yarnpkg.com/node-fetch/-/node-fetch-2.6.7.tgz#24de9fba827e3b4ae44dc8b20256a379160052ad"
   integrity sha512-ZjMPFEfVx5j+y2yF35Kzx5sF7kDzxuDj6ziH4FFbOp87zKDZNx8yExJIb05OGF4Nlt9IHFIMBkRl41VdvcNdbQ==
