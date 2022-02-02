@@ -47,60 +47,6 @@ export const pektinComposeFirstStart = async (recursive: any) => {
             );
         }
     }
-
-    await registrarSetup(pektinConfig);
-};
-
-const registrarSetup = async (config: PektinConfig) => {
-    if (!config.registrarApi.enabled) return;
-    if (!config.registrarApi.registrars) {
-        throw Error(
-            `Your config is invalid: registrarApi is enabled but no registrars were provided`
-        );
-    }
-
-    for (let i = 0; i < config.registrarApi.registrars.length; i++) {
-        const registrar = config.registrarApi.registrars[i];
-        const data = JSON.parse(
-            await fs.readFile(path.join(dir, registrar.dataPath), {
-                encoding: `utf8`,
-            })
-        );
-        const gr = new GlobalRegistrar({
-            type: registrar.type as PluginNames,
-            data,
-        });
-
-        const setGlueRecordRequests: Promise<any>[] = [];
-        registrar.domains.forEach((domain) => {
-            const glueRecords: GlueRecord[] = [];
-            config.nameservers
-                .filter((ns) => absoluteName(ns.domain) === absoluteName(domain))
-                .forEach((ns) => {
-                    // get the node for the current nameserver
-                    const nsNode = config.nodes.filter((node) => node.name === ns.node)[0];
-
-                    // create the glue record object for this nameserver
-                    if (!ns.subDomain) return;
-                    const glueRecord: GlueRecord = {
-                        domain: absoluteName(ns.domain),
-                        subDomain: ns.subDomain,
-                    };
-                    if (nsNode.ips) {
-                        glueRecord.ips = nsNode.ips;
-                    }
-                    if (nsNode.legacyIps) {
-                        glueRecord.legacyIps = nsNode.legacyIps;
-                    }
-                    glueRecords.push(glueRecord);
-                });
-            if (glueRecords.length) {
-                setGlueRecordRequests.push(gr.setupGlueAndNS(absoluteName(domain), glueRecords));
-            }
-        });
-
-        await Promise.all(setGlueRecordRequests);
-    }
 };
 
 export class PektinComposeClient extends PektinClient {
