@@ -147,7 +147,7 @@ export class PektinClient {
     // get records from the api/redis based on their key
     get = async (keys: string[], throwErrors = this.throwErrors) => {
         if (!this.pektinApiEndpoint) {
-            this.getPektinConfig();
+            await this.getPektinConfig();
             if (!this.pektinApiEndpoint) {
                 throw Error(`Couldn't obtain pektinApiEndpoint`);
             }
@@ -170,7 +170,7 @@ export class PektinClient {
     // get whether or not the pektin setup is healthy
     health = async (throwErrors = this.throwErrors) => {
         if (!this.pektinApiEndpoint) {
-            this.getPektinConfig();
+            await this.getPektinConfig();
             if (!this.pektinApiEndpoint) {
                 throw Error(`Couldn't obtain pektinApiEndpoint`);
             }
