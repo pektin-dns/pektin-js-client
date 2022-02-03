@@ -15,7 +15,7 @@ import {
     createPektinVaultEngines,
     updatePektinSharedPasswords,
 } from "./../auth.js";
-import { getMainNode, getNodesNameservers, getPektinEndpoint } from "../index.js";
+import { getMainNode, getNodesNameservers, getPektinEndpoint } from "../main.js";
 import { concatDomain } from "../utils/index.js";
 
 export const installPektinCompose = async (

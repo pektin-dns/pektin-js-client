@@ -1,6 +1,6 @@
 import { Toluol } from "../../../toluol-wasm/index.js";
 import { ToluolModule } from "../../../toluol-wasm/types.js";
-import { PektinClient } from "../../../index.js";
+import { PektinClient } from "../../../main.js";
 import { PektinZoneData } from "../../../types.js";
 import async from "async";
 

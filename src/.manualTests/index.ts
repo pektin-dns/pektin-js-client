@@ -1,4 +1,4 @@
-import { PektinClient } from "../index.js";
+import { PektinClient } from "../main.js";
 import { promises as fs } from "fs";
 import { PektinRRType } from "../index.js";
 

@@ -8,7 +8,7 @@ import {
     ResourceRecord,
     ConfidantPassword,
     ManagerPassword,
-} from "../types.js";
+} from "../index.js";
 
 export const concatDomain = (domain: string, subDomain?: string) => {
     if (subDomain === undefined) return domain;
