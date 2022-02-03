@@ -42,7 +42,7 @@
         "@types/async": "^3.2.12",
         "async": "^3.2.3",
         "cross-fetch": "^3.1.4",
-        "dns-zonefile": "^0.3.1"
+        "@pektin/dns-zonefile": "^0.3.1"
     },
     "scripts": {
         "build": "tsc",
