@@ -1,4 +1,4 @@
-import zoneFile from "dns-zonefile";
+import zoneFile from "@pektin/dns-zonefile";
 import { ApiRecord, PektinRRType, PektinZoneData, ResourceRecord } from "../../../types.js";
 import {
     absoluteName,
