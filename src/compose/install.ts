@@ -15,8 +15,8 @@ import {
     createPektinVaultEngines,
     updatePektinSharedPasswords,
 } from "./../auth.js";
-import { getNodesNameservers, getPektinEndpoint, concatDomain } from "../index.js";
-import { serverConf, traefikConf } from "../traefik/index.js";
+import { getPektinEndpoint } from "../index.js";
+import { traefikConf } from "../traefik/index.js";
 import { getMainNode } from "../pureFunctions.js";
 
 export const installPektinCompose = async (
@@ -239,8 +239,9 @@ export const installPektinCompose = async (
 
     await setRedisPasswordHashes(redisPasswords, pektinConfig, dir);
 
+    await fs.mkdir(path.join(dir, `secrets`, `traefik`)).catch(() => {});
     await fs.writeFile(
-        path.join(dir, `arbeiter`, `secrets`, `traefik`, `traefik.yml`),
+        path.join(dir, `secrets`, `traefik`, `traefik.yml`),
         traefikConf(pektinConfig, getMainNode(pektinConfig), recursorBasicAuthHashed)
     );
 
@@ -301,6 +302,10 @@ export const createArbeiterConfig = async (
             await fs.mkdir(path.join(dir, `arbeiter`, node.name)).catch(() => {});
 
             await fs.mkdir(path.join(dir, `arbeiter`, node.name, `secrets`)).catch(() => {});
+
+            await fs
+                .mkdir(path.join(dir, `arbeiter`, node.name, `secrets`, `traefik`))
+                .catch(() => {});
             await fs
                 .mkdir(path.join(dir, `arbeiter`, node.name, `secrets`, `redis`))
                 .catch(() => {});
