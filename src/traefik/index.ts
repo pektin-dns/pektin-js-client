@@ -84,7 +84,7 @@ export const serverConf = ({
             },
             services: {
                 "pektin-server-tcp": {
-                    loadbalancer: { servers: [{ hostname: `pektin-server`, port: 53 }] }, //! maybe this has to be address: ip-adress of the server
+                    loadbalancer: { servers: [{ address: `pektin-server`, port: 53 }] }, //! maybe this has to be address: ip-adress of the server
                 },
             },
         },
@@ -98,7 +98,7 @@ export const serverConf = ({
             },
             services: {
                 "pektin-server-udp": {
-                    loadbalancer: { servers: [{ hostname: `pektin-server`, port: 53 }] }, //! maybe this has to be address: ip-adress of the server
+                    loadbalancer: { servers: [{ address: `pektin-server`, port: 53 }] }, //! maybe this has to be address: ip-adress of the server
                 },
             },
         },
