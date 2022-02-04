@@ -8,6 +8,7 @@ import { getZoneFromFile } from "../import/zone-file/index.js";
 import { importByZoneWalking } from "../import/wanderlust/index.js";
 import { serverConf, traefikConf } from "../traefik/index.js";
 import { getNodesNameservers } from "../pureFunctions.js";
+import { PektinConfig } from "@pektin/config/src/config-types";
 
 config({ path: `/home/paul/Documents/powerdns-api/.env` });
 
@@ -18,16 +19,15 @@ const serverAdminConfig = await fs.readFile(
     { encoding: `utf8` }
 );
 
-const pc = new PektinClient(JSON.parse(serverAdminConfig));
+//const pc = new PektinClient(JSON.parse(serverAdminConfig));
 
-const c = await pc.getPektinConfig();
+const c: PektinConfig = JSON.parse(
+    await fs.readFile(`../pektin-compose/pektin-config.json`, { encoding: `utf8` })
+);
 
-const nodeNameServers = getNodesNameservers(c, c.nodes[0].name);
+/*@ts-ignore*/
+traefikConf(c, c.nodes[0]); //?
 
-if (nodeNameServers) {
-    /*@ts-ignore*/
-    traefikConf(c, `balduin`); //?
-}
 //await pc.duplicateZone(`y.gy`, `k.xx`, true);
 //import toluol from "@pektin/toluol-wasm-nodejs";
 //console.log(await importByZoneWalking([`google.com`], pc, toluol, 200));

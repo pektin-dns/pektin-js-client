@@ -92,6 +92,16 @@
     lodash "^4.17.21"
     yaml "^1.10.2"
 
+"@pektin/config@^1.0.34":
+  version "1.0.34"
+  resolved "https://registry.yarnpkg.com/@pektin/config/-/config-1.0.34.tgz#c97d95e8a019ce806dc1be58126287b471243f55"
+  integrity sha512-SmO/kreh9KACwNHhR5MQcQH/ZOwoGzc4jsK+VSIhVFIlzIIqauofjjLoLCZLM8d8GJTRJ5Un+HglgeY1jLo6AA==
+  dependencies:
+    "@pektin/client" "^1.1.32"
+    ajv "^8.9.0"
+    lodash "^4.17.21"
+    yaml "^1.10.2"
+
 "@pektin/dns-zonefile@^0.3.1":
   version "0.3.3"
   resolved "https://registry.yarnpkg.com/@pektin/dns-zonefile/-/dns-zonefile-0.3.3.tgz#28d7f6be32b837223dc6ebe26420edfe7c33dcd0"

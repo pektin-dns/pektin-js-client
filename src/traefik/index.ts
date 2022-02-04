@@ -8,12 +8,12 @@ const externalProxyServices: { name: `gandi` | `crt`; url: string; allowedMethod
     {
         name: `gandi`,
         url: `https://api.gandi.net/v5`,
-        allowedMethods: `OPTIONS,POST,GET,DELETE`,
+        allowedMethods: `OPTIONS, POST, GET, DELETE`,
     },
     {
         name: `crt`,
         url: `https://crt.sh`,
-        allowedMethods: `OPTIONS,GET`,
+        allowedMethods: `OPTIONS, GET`,
     },
 ];
 
@@ -27,8 +27,8 @@ export const traefikConf = (
     const enabledServices = Object.values(pektinConfig.services).filter((s) => s.enabled);
 
     const p = externalProxyServices
-        .filter((p) => pektinConfig.reverseProxy.external[p.name])
-        .map(proxyConf);
+        .filter((p) => pektinConfig.reverseProxy.external.services[p.name])
+        .map((proxy) => proxyConf({ ...proxy, pektinConfig }));
 
     const s = enabledServices.map((s, i) =>
         pektinServicesConf({
@@ -40,12 +40,12 @@ export const traefikConf = (
     );
     const config = _.merge(
         serverConf({ nodeNameServers, pektinConfig }),
-        ...s,
-        ...p,
+        ...(node.main ? s : []),
+        ...(node.main ? p : []),
         tlsOptions,
         otherOptions,
-        redirectHttps(),
-        recursorAuth
+        pektinConfig.reverseProxy.tls ? redirectHttps() : {},
+        node.main && recursorAuth
             ? recursorConf({
                   pektinConfig,
                   recursorAuth,
@@ -189,22 +189,49 @@ export const pektinServicesConf = ({
 };
 
 export const proxyConf = ({
+    pektinConfig,
     name,
     url,
     allowedMethods,
 }: {
+    pektinConfig: PektinConfig;
     name: string;
     url: string;
     allowedMethods: string;
 }) => {
+    const rp = pektinConfig.reverseProxy;
+    const { domain, subDomain } = rp.external;
+    const tls = rp.tls
+        ? {
+              certResolver: `default`,
+              domains: [{ main: domain, sans: [`*.${domain}`] }],
+          }
+        : false;
     return {
         http: {
             routers: {
                 [`proxy-${name}`]: {
-                    entryPoints: [`web`],
-                    middlewares: [`strip-${name}`, `cors-${name}`],
+                    tls,
+                    entrypoints: rp.tls ? `websecure` : `web`,
+                    middlewares:
+                        rp.routing === `domain`
+                            ? [`strip-proxy`, `cors-${name}`]
+                            : [`strip-proxy`, `cors-${name}`, `stripDomainPath`],
                     service: `proxy-${name}`,
-                    rule: `PathPrefix(\`/proxy-${name}\`)`,
+                    rule: (() => {
+                        if (rp.routing === `domain`) {
+                            return `Host(\`${concatDomain(
+                                domain,
+                                subDomain
+                            )}\`) && PathPrefix(\`/proxy-${name}\`)`;
+                        }
+                        if (rp.routing === `localIpAndPath` || rp.routing === `publicIpAndPath`) {
+                            return `PathPrefix(\`/${concatDomain(
+                                domain,
+                                subDomain
+                            )}/proxy-${name}\`)`;
+                        }
+                    })(),
                 },
             },
             services: {
@@ -220,9 +247,9 @@ export const proxyConf = ({
                 },
             },
             middlewares: {
-                [`strip-${name}`]: {
-                    stripPrefix: {
-                        prefixes: [`/proxy-${name}`],
+                "strip-proxy": {
+                    stripprefixregex: {
+                        refex: `/^\/proxy-[^/]{1,}/`,
                     },
                 },
                 [`cors-${name}`]: {
@@ -230,6 +257,11 @@ export const proxyConf = ({
                         accessControlAllowMethods: allowedMethods,
                         accessControlAllowOriginlist: `*`,
                         accessControlMaxAge: 86400,
+                    },
+                },
+                stripDomainPath: {
+                    stripprefixregex: {
+                        refex: `/^\/[^/]*/`,
                     },
                 },
             },
