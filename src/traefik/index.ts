@@ -216,7 +216,7 @@ export const proxyConf = ({
                     middlewares:
                         rp.routing === `domain`
                             ? [`strip-proxy`, `cors-${name}`]
-                            : [`strip-proxy`, `cors-${name}`, `stripDomainPath`],
+                            : [`stripDomainPath`, `strip-proxy`, `cors-${name}`],
                     service: `proxy-${name}`,
                     rule: (() => {
                         if (rp.routing === `domain`) {
@@ -338,7 +338,7 @@ export const recursorConf = ({
             services: {
                 "pektin-recursor": {
                     loadbalancer: {
-                        server: {
+                        servers: {
                             port: 80,
                             schema: `h2c`,
                             url: `http://pektin-recursor`,
