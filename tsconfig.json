@@ -16,6 +16,6 @@
         "declaration": true,
         "lib": ["dom", "dom.iterable", "esnext"]
     },
-    "include": ["src", "src/.manualTests/*"],
+    "include": ["src"],
     "exclude": ["src/ribston-policies"]
 }

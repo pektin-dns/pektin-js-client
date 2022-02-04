@@ -4,10 +4,10 @@ import { absoluteName, deAbsolute, isSupportedRecordType, textToRRValue } from "
 import { ToluolModule, ToluolResponse } from "./types.js";
 
 export class Toluol {
-    private recursor: string;
-    private recursorAuth: string;
-    private toluol: ToluolModule;
-    private reactState: any;
+    recursor: string;
+    recursorAuth: string;
+    toluol: ToluolModule;
+    reactState: any;
     constructor(recursor: string, recursorAuth: string, toluol: ToluolModule, reactState?: any) {
         this.recursor = recursor;
         this.recursorAuth = recursorAuth;
@@ -16,7 +16,7 @@ export class Toluol {
         this.toluol.init_panic_hook();
     }
 
-    private post = async (q: Uint8Array) => {
+    post = async (q: Uint8Array) => {
         const res = await f(`${this.recursor}/dns-query`, {
             headers: {
                 "content-type": `application/dns-message`,
@@ -29,7 +29,7 @@ export class Toluol {
         return new Uint8Array(await res.arrayBuffer());
     };
 
-    private get = async (q: Uint8Array) => {
+    get = async (q: Uint8Array) => {
         const s = Buffer.from(q).toString(`base64`).replace(/\+/g, `-`).replace(/\//g, `_`);
 
         const res = await f(`${this.recursor}/dns-query?dns=${s.replace(/=/g, ``)}`, {
@@ -70,7 +70,7 @@ export class Toluol {
             rr_set,
         };
     };
-    walk = async (name: string, limit: number = 10) => {
+    walk = async (name: string, limit: number = 50) => {
         const parseData = (n: string[]) => {
             n = n.filter((e: string) => {
                 if (e === `NSEC` || e === `RRSIG`) return false;
@@ -86,12 +86,12 @@ export class Toluol {
         for (let i = 0; i < limit; i++) {
             const newNameRes = await this.query(currentName, `NSEC`);
 
-            if (!newNameRes) break;
+            if (!newNameRes) return false;
             if (newNameRes.answers.length > 1) {
                 //newNameRes.answers = newNameRes.answers.filter((a) => a.NONOPT.atype === "NSEC");
             }
-            if (!newNameRes.answers[0].NONOPT.rdata[1]) {
-                console.error(newNameRes);
+            if (!newNameRes?.answers[0]?.NONOPT?.rdata[1]) {
+                return false;
                 break;
             }
 

@@ -1,11 +1,14 @@
 import zoneFile from "@pektin/dns-zonefile";
-import { ApiRecord, PektinRRType, PektinZoneData, ResourceRecord } from "../../../types.js";
 import {
     absoluteName,
     concatDomain,
     isAbsolute,
     supportedRecordTypesArray,
-} from "../../../utils/index.js";
+    ApiRecord,
+    PektinRRType,
+    PektinZoneData,
+    ResourceRecord,
+} from "../../index.js";
 
 export const getZoneFromFile = (file: string, zoneName?: string): PektinZoneData => {
     const parsedFile = zoneFile.parse(file);

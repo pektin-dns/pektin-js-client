@@ -21,6 +21,10 @@
         "system",
         "install"
     ],
+    "quokka": {
+        "stdEsm": false,
+        "nativeEsm": true
+    },
     "devDependencies": {
         "@types/node": "^16.11.12",
         "@typescript-eslint/eslint-plugin": "^5.10.1",
@@ -40,9 +44,8 @@
         "@pektin/dns-zonefile": "^0.3.1",
         "@pektin/global-registrar": "^1.0.13",
         "@pektin/toluol-wasm-nodejs": "^0.3.0",
-        "@types/async": "^3.2.12",
-        "async": "^3.2.3",
-        "cross-fetch": "^3.1.4"
+        "cross-fetch": "^3.1.4",
+        "yaml": "^1.10.2"
     },
     "scripts": {
         "build": "tsc",

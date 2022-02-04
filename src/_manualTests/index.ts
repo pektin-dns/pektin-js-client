@@ -3,13 +3,13 @@ import { promises as fs } from "fs";
 import { PektinRRType } from "../index.js";
 
 import { config } from "dotenv";
-import { getAllFromPdns } from "../import/get/pdns/index.js";
-import { getZoneFromFile } from "../import/get/zone-file/index.js";
-import { get } from "../import/get/wanderlust/index.js";
+import { getAllFromPdns } from "../import/pdns/index.js";
+import { getZoneFromFile } from "../import/zone-file/index.js";
+import { importByZoneWalking } from "../import/wanderlust/index.js";
 
-config({ path: "/home/paul/Documents/powerdns-api/.env" });
+config({ path: `/home/paul/Documents/powerdns-api/.env` });
 
-if (!process.env.PDNS_API_ENDPOINT || !process.env.PDNS_API_KEY) throw Error("missing");
+if (!process.env.PDNS_API_ENDPOINT || !process.env.PDNS_API_KEY) throw Error(`missing`);
 
 const serverAdminConfig = await fs.readFile(
     `../pektin-compose/secrets/server-admin-connection-config.json`,
@@ -17,8 +17,10 @@ const serverAdminConfig = await fs.readFile(
 );
 
 const pc = new PektinClient(JSON.parse(serverAdminConfig));
+
+//await pc.duplicateZone(`y.gy`, `k.xx`, true);
 import toluol from "@pektin/toluol-wasm-nodejs";
-console.log(await get([`y.gy.`], pc, toluol, 200));
+console.log(await importByZoneWalking([`google.com`], pc, toluol, 200));
 
 /*
 pc.restoreFromPektinZoneData(
@@ -58,5 +60,4 @@ gm3._domainkey 10800 IN CNAME gm3.gandimail.net.
 webmail 10800 IN CNAME webmail.gandi.net.
 www 10800 IN CNAME webredir.vip.gandi.net.
 `;
-
-await pc.restoreFromPektinZoneData(getZoneFromFile(file));
+//await pc.setPektinZoneData(getZoneFromFile(file));

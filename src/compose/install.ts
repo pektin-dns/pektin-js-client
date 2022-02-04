@@ -4,7 +4,7 @@ import { chownRecursive, chown, chmod, randomString, configToCertbotIni } from "
 import crypto from "crypto";
 
 import { unsealVault, initVault, enableVaultCors, updateKvValue } from "./../vault/vault.js";
-import { PektinClientConnectionConfigOverride } from "./../types.js";
+import { PektinClientConnectionConfigOverride } from "./../index.js";
 import { PektinConfig } from "@pektin/config/src/config-types.js";
 
 import {
@@ -15,8 +15,7 @@ import {
     createPektinVaultEngines,
     updatePektinSharedPasswords,
 } from "./../auth.js";
-import { getMainNode, getNodesNameservers, getPektinEndpoint } from "../main.js";
-import { concatDomain } from "../utils/index.js";
+import { getMainNode, getNodesNameservers, getPektinEndpoint, concatDomain } from "../index.js";
 
 export const installPektinCompose = async (
     dir: string = `/pektin-compose/`,
@@ -291,7 +290,7 @@ export const createArbeiterConfig = async (
     for (let i = 0; i < v.pektinConfig.nodes.length; i++) {
         const node = v.pektinConfig.nodes[i];
 
-        if (i !== 0) {
+        if (!node.main) {
             await fs.mkdir(path.join(dir, `arbeiter`, node.name)).catch(() => {});
 
             await fs.mkdir(path.join(dir, `arbeiter`, node.name, `secrets`)).catch(() => {});

@@ -1,13 +1,13 @@
-import { PektinZoneData, PektinRRType } from "../../../types.js";
+import { PektinZoneData, PektinRRType } from "../../types.js";
 /*@ts-ignore*/
 import { PowerdnsClient } from "@firstdorsal/powerdns-api";
-import { isSupportedRecordType, textToRRValue } from "../../../utils/index.js";
+import { isSupportedRecordType, textToRRValue } from "../../utils/index.js";
 export const getAllFromPdns = async (baseurl: string, apikey: string): Promise<PektinZoneData> => {
     const pdns = new PowerdnsClient(baseurl, apikey);
 
     const zoneResponses: PdnsZonesReturn[] = await pdns.getZones();
 
-    if (!zoneResponses) throw Error(`COuld not get zones`);
+    if (!zoneResponses) throw Error(`Couldn't get zones`);
     const zones = zoneResponses
         .map((zone: { name: string }) => zone.name)
         .filter((n: string) => !n.includes(`ip6.arpa.`) && !n.includes(`in-addr.arpa.`));

@@ -1,10 +1,9 @@
-import { Toluol } from "../../../toluol-wasm/index.js";
-import { ToluolModule } from "../../../toluol-wasm/types.js";
-import { PektinClient } from "../../../main.js";
-import { PektinZoneData } from "../../../types.js";
-import async from "async";
+import { Toluol } from "../../toluol-wasm/index.js";
+import { ToluolModule } from "../../toluol-wasm/types.js";
+import { PektinClient } from "../../main.js";
+import { PektinZoneData } from "../../types.js";
 
-export const get = async (
+export const importByZoneWalking = async (
     domains: string[],
     pc: PektinClient,
     toluol: ToluolModule,
@@ -16,11 +15,14 @@ export const get = async (
         toluol
     );
     const out: PektinZoneData = {};
-    await async.forEach(domains, async (domain) => {
+    for (let i = 0; i < domains.length; i++) {
+        const domain = domains[i];
+
         const walked = await t.walk(domain, limit);
+        if (!walked) throw Error(`Could not walk zone. Is the zone using NSEC records/chaining?`);
         const records = walked.map(t.toluolToApiRecord);
         /*@ts-ignore*/
         out[domain] = records;
-    });
+    }
     return out;
 };
