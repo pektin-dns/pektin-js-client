@@ -127,7 +127,7 @@ export const serverConf = ({
             middlewares: {
                 stripDomainPath: {
                     stripprefixregex: {
-                        refex: `/^\/[^/]*/`,
+                        regex: `/^\/[^/]*/`,
                     },
                 },
             },
@@ -180,7 +180,7 @@ export const pektinServicesConf = ({
             middlewares: {
                 stripDomainPath: {
                     stripprefixregex: {
-                        refex: `/^\/[^/]*/`,
+                        regex: `/^\/[^/]*/`,
                     },
                 },
             },
@@ -249,7 +249,7 @@ export const proxyConf = ({
             middlewares: {
                 "strip-proxy": {
                     stripprefixregex: {
-                        refex: `/^\/proxy-[^/]{1,}/`,
+                        regex: `/^\/proxy-[^/]{1,}/`,
                     },
                 },
                 [`cors-${name}`]: {
@@ -261,7 +261,7 @@ export const proxyConf = ({
                 },
                 stripDomainPath: {
                     stripprefixregex: {
-                        refex: `/^\/[^/]*/`,
+                        regex: `/^\/[^/]*/`,
                     },
                 },
             },
@@ -331,7 +331,7 @@ export const recursorConf = ({
                 "pektin-recursor-auth": { basicauth: { users: recursorAuth } },
                 stripDomainPath: {
                     stripprefixregex: {
-                        refex: `/^\/[^/]*/`,
+                        regex: `/^\/[^/]*/`,
                     },
                 },
             },
