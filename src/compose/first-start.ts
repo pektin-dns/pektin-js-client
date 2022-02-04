@@ -120,12 +120,7 @@ export class PektinComposeClient extends PektinClient {
     private createPektinServiceEndpointsDNS = async (pektinConfig: PektinConfig) => {
         const mainNode = pektinConfig.nodes.filter((node) => node.main === true)[0];
 
-        const enabledServices = [
-            pektinConfig.ui,
-            pektinConfig.api,
-            pektinConfig.vault,
-            pektinConfig.recursor,
-        ].filter((s) => s.enabled);
+        const enabledServices = Object.values(pektinConfig.services).filter((s) => s.enabled);
         const records: ApiRecord[] = [];
 
         enabledServices.forEach((s) => {

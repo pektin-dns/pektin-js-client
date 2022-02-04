@@ -15,7 +15,9 @@ import {
     createPektinVaultEngines,
     updatePektinSharedPasswords,
 } from "./../auth.js";
-import { getMainNode, getNodesNameservers, getPektinEndpoint, concatDomain } from "../index.js";
+import { getNodesNameservers, getPektinEndpoint, concatDomain } from "../index.js";
+import { serverConf, traefikConf } from "../traefik/index.js";
+import { getMainNode } from "../pureFunctions.js";
 
 export const installPektinCompose = async (
     dir: string = `/pektin-compose/`,
@@ -237,6 +239,11 @@ export const installPektinCompose = async (
 
     await setRedisPasswordHashes(redisPasswords, pektinConfig, dir);
 
+    await fs.writeFile(
+        path.join(dir, `arbeiter`, `secrets`, `traefik`, `traefik.yml`),
+        traefikConf(pektinConfig, getMainNode(pektinConfig), recursorBasicAuthHashed)
+    );
+
     // set the values in the .env file for provisioning them to the containers
     await envSetValues(
         {
@@ -322,12 +329,13 @@ export const createArbeiterConfig = async (
                 redisConf.replace(`#MASTERAUTH`, v.R_PEKTIN_GEWERKSCHAFT_PASSWORD)
             );
 
-            const repls = [
-                [`R_PEKTIN_SERVER_PASSWORD`, R_PEKTIN_SERVER_PASSWORD],
-                [`SERVER_DOMAINS_SNI`, getSNI(v.pektinConfig, node.name)],
-                [`SERVER_DOMAIN`, ``],
-            ];
-            // TODO SERVER_DOMAIN server certificates seperation for multiple domains
+            const repls = [[`R_PEKTIN_SERVER_PASSWORD`, R_PEKTIN_SERVER_PASSWORD]];
+
+            await fs.writeFile(
+                path.join(dir, `arbeiter`, node.name, `secrets`, `traefik`, `traefik.yml`),
+                traefikConf(v.pektinConfig, node)
+            );
+
             /*
             traefik.tcp.routers.pektin-server-dot.tls.domains[0].main: "${SERVER_DOMAIN}"
             traefik.tcp.routers.pektin-server-dot.tls.domains[0].sans: "*.${SERVER_DOMAIN}"
@@ -412,19 +420,6 @@ const addAllowedConnectSources = (connectSources: string) => {
     return connectSources;
 };
 
-export const getSNI = (pektinConfig: PektinConfig, nodeName: string) => {
-    const nodeNameServers = getNodesNameservers(pektinConfig, nodeName);
-
-    let sni = ``;
-    if (nodeNameServers) {
-        nodeNameServers.forEach((ns, i) => {
-            if (i > 0) sni += `,`;
-            sni += `\`${concatDomain(ns.domain, ns.subDomain)}\``;
-        });
-    }
-    return sni;
-};
-
 export const envSetValues = async (
     v: {
         pektinConfig: PektinConfig;
@@ -440,6 +435,8 @@ export const envSetValues = async (
     dir: string
 ) => {
     let CSP_CONNECT_SRC = ``;
+    // TODO reImplement this
+    /* 
     if (v.pektinConfig.devmode.enabled && v.pektinConfig.devmode.type === `local`) {
         CSP_CONNECT_SRC = `*`;
     } else {
@@ -455,36 +452,18 @@ export const envSetValues = async (
         });
     }
     CSP_CONNECT_SRC = addAllowedConnectSources(CSP_CONNECT_SRC);
-
-    // TODO SERVER_DOMAIN is only singular: see todo notice above
+*/
+    const s = v.pektinConfig.services;
     const repls = [
-        [`SERVER_DOMAIN`, ``],
         [`V_PEKTIN_API_PASSWORD`, v.V_PEKTIN_API_PASSWORD],
         [`R_PEKTIN_API_PASSWORD`, v.R_PEKTIN_API_PASSWORD],
         [`R_PEKTIN_SERVER_PASSWORD`, v.R_PEKTIN_SERVER_PASSWORD],
         [`V_KEY`, v.vaultTokens.key],
         [`V_ROOT_TOKEN`, v.vaultTokens.rootToken],
-        [`UI_CONCAT_DOMAIN`, concatDomain(v.pektinConfig.ui.domain, v.pektinConfig.ui.subDomain)],
-        [`UI_DOMAIN`, v.pektinConfig.ui.domain],
-        [
-            `API_CONCAT_DOMAIN`,
-            concatDomain(v.pektinConfig.api.domain, v.pektinConfig.api.subDomain),
-        ],
-        [`API_DOMAIN`, v.pektinConfig.api.domain],
-        [
-            `VAULT_CONCAT_DOMAIN`,
-            concatDomain(v.pektinConfig.vault.domain, v.pektinConfig.vault.subDomain),
-        ],
-        [`VAULT_DOMAIN`, v.pektinConfig.vault.domain],
-        [
-            `RECURSOR_CONCAT_DOMAIN`,
-            concatDomain(v.pektinConfig.recursor.domain, v.pektinConfig.recursor.subDomain),
-        ],
-        [`RECURSOR_DOMAIN`, v.pektinConfig.recursor.domain],
         [`LETSENCRYPT_EMAIL`, v.pektinConfig.certificates.letsencryptEmail],
         [`CSP_CONNECT_SRC`, CSP_CONNECT_SRC],
         [`RECURSOR_AUTH`, v.recursorBasicAuthHashed],
-        [`SERVER_DOMAINS_SNI`, getSNI(v.pektinConfig, getMainNode(v.pektinConfig).name)],
+
         [`UI_BUILD_PATH`, v.pektinConfig.build.ui.path],
         [`API_BUILD_PATH`, v.pektinConfig.build.api.path],
         [`SERVER_BUILD_PATH`, v.pektinConfig.build.server.path],
@@ -557,21 +536,6 @@ export const activeComposeFiles = (pektinConfig: PektinConfig) => {
         composeCommand += ` -f pektin-compose/gewerkschaft-config.yml`;
     }
 
-    if (pektinConfig.devmode.enabled && pektinConfig.devmode.type === `insecure-online`) {
-        composeCommand += ` -f pektin-compose/insecure-online-dev.yml`;
-    }
-
-    if (pektinConfig.devmode.enabled && pektinConfig.devmode.type === `local`) {
-        composeCommand += ` -f pektin-compose/local-dev.yml`;
-        if (pektinConfig.recursor.enabled) {
-            composeCommand += ` -f pektin-compose/recursor-dev.yml`;
-        }
-    } else {
-        if (pektinConfig.recursor.enabled) {
-            composeCommand += ` -f pektin-compose/recursor.yml`;
-        }
-    }
-
     if (pektinConfig.build.api.enabled) {
         composeCommand += ` -f pektin-compose/from-source/api.yml`;
     }
@@ -584,15 +548,7 @@ export const activeComposeFiles = (pektinConfig: PektinConfig) => {
         composeCommand += ` -f pektin-compose/from-source/server.yml`;
     }
 
-    if (pektinConfig.reverseProxy.applyTraefikConfig) {
-        composeCommand += ` -f pektin-compose/traefik-config.yml`;
-    }
-
-    if (
-        pektinConfig.reverseProxy.createTraefik &&
-        (!pektinConfig.devmode.enabled ||
-            (pektinConfig.devmode.enabled && pektinConfig.devmode.type !== `local`))
-    ) {
+    if (pektinConfig.reverseProxy.createTraefik) {
         composeCommand += ` -f pektin-compose/traefik.yml`;
     }
 

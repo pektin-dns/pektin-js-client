@@ -1,5 +1,5 @@
 import { DomainName, PektinConfig } from "@pektin/config/src/config-types";
-import { absoluteName, colors, ResourceRecord } from "./index.js";
+import { absoluteName, colors, concatDomain, ResourceRecord } from "./index.js";
 
 import f from "cross-fetch";
 import {
@@ -64,40 +64,47 @@ export const getMainNode = (pektinConfig: PektinConfig) => {
     return pektinConfig.nodes.filter((node) => node.main === true)[0];
 };
 
-export const defaultLocalPorts = {
-    api: `3001`,
-    vault: `8200`,
-    ui: `8080`,
-    recursor: `80`,
-};
-
 // get the pektin api endpoint from  the pektin config
 export const getPektinEndpoint = (
-    pektinConfig: PektinConfig,
-    endpointType: `api` | `vault` | `ui` | `recursor`,
-    ports = defaultLocalPorts
+    c: PektinConfig,
+    endpointType: `api` | `vault` | `ui` | `recursor`
 ): string => {
-    const devmode = pektinConfig.devmode.enabled;
-    const protocol = devmode ? `http://` : `https://`;
-    let endpoint = ``;
-    if (devmode) {
-        if (pektinConfig.devmode.type === `local`) {
-            endpoint = `127.0.0.1:${ports[endpointType]}`;
+    const domain = concatDomain(
+        c.services[endpointType].domain,
+        c.services[endpointType].subDomain
+    );
+    const protocol = c.reverseProxy.tls ? `https` : `http`;
+    let host = ``;
+    let path = ``;
+    if (c.reverseProxy.routing === `localIpAndPath`) {
+        if (c.reverseProxy.useLegacyIp) {
+            host = `127.0.0.1`;
         } else {
-            const mainNode = getMainNode(pektinConfig);
-            if (mainNode.ips?.length) {
-                endpoint = `[${mainNode.ips[0]}]`;
-            } else if (mainNode.legacyIps?.length) {
-                endpoint = mainNode.legacyIps[0];
-            } else {
-                throw Error(`Main node has no ips or legacy ips`);
-            }
+            host = `[::]`;
         }
-    } else {
-        `${pektinConfig[endpointType].subDomain}.${pektinConfig[endpointType].domain}`;
+        path = `/${domain}`;
+    } else if (c.reverseProxy.routing === `publicIpAndPath`) {
+        const mainNode = getMainNode(c);
+
+        if (c.reverseProxy.useLegacyIp) {
+            if (!mainNode.legacyIps?.length) {
+                throw Error(`Proxy is configured to use legacyIp but has none`);
+            }
+            host = mainNode.legacyIps[0];
+        } else if (mainNode.ips?.length) {
+            host = `[${mainNode.ips[0]}]`;
+        } else if (mainNode.legacyIps?.length) {
+            host = mainNode.legacyIps[0];
+        } else {
+            throw Error(`Main node has no ips or legacy ips`);
+        }
+
+        path = `/${domain}`;
+    } else if (c.reverseProxy.routing === `domain`) {
+        host = domain;
     }
 
-    return protocol + endpoint;
+    return `${protocol}://${host}${path}`;
 };
 
 export const getRecursorAuth = async (vaultEndpoint: string, vaultToken: string) => {
@@ -106,9 +113,14 @@ export const getRecursorAuth = async (vaultEndpoint: string, vaultToken: string)
     return res.basicAuth as string;
 };
 
-export const getNodesNameservers = (pektinConfig: PektinConfig, nodeName: string) => {
+export const getNodesNameservers = (
+    pektinConfig: PektinConfig,
+    nodeName: string
+): PektinConfig[`nameservers`] | false => {
     if (!pektinConfig.nameservers) return false;
-    return pektinConfig.nameservers.filter((ns) => ns.node === nodeName);
+    return pektinConfig.nameservers.filter(
+        (ns) => ns.node === nodeName
+    ) as PektinConfig[`nameservers`];
 };
 
 // get the pektin config

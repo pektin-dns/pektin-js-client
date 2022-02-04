@@ -58,7 +58,7 @@ export class Toluol {
         if (!firstAnswer) return false;
         if (!isSupportedRecordType(firstAnswer.atype)) return false;
 
-        const rr_set = response?.answers.map((e, i) => {
+        const rr_set = response?.answers.map((e) => {
             const answer = e.NONOPT;
             const rdata = e.NONOPT?.rdata;
             return textToRRValue(rdata.join(` `), answer.atype as PektinRRType, answer.ttl);
@@ -92,7 +92,6 @@ export class Toluol {
             }
             if (!newNameRes?.answers[0]?.NONOPT?.rdata[1]) {
                 return false;
-                break;
             }
 
             const newNameData = newNameRes.answers[0].NONOPT.rdata[1].split(` `);
