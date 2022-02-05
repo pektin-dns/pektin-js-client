@@ -4,6 +4,8 @@ import yaml from "yaml";
 import { concatDomain } from "../index.js";
 import { getNodesNameservers } from "../pureFunctions.js";
 
+// TODO fix everything for IDNs
+
 const externalProxyServices: { name: `gandi` | `crt`; url: string; allowedMethods: string }[] = [
     {
         name: `gandi`,
@@ -17,7 +19,7 @@ const externalProxyServices: { name: `gandi` | `crt`; url: string; allowedMethod
     },
 ];
 
-export const traefikConf = (
+export const genTraefikConfs = (
     pektinConfig: PektinConfig,
     node: PektinConfig[`nodes`][0],
     recursorAuth?: string
@@ -38,12 +40,11 @@ export const traefikConf = (
             pektinConfig,
         })
     );
-    const config = _.merge(
+    const dynamicConf = _.merge(
         serverConf({ nodeNameServers, pektinConfig }),
         ...(node.main ? s : []),
         ...(node.main ? p : []),
-        tlsOptions,
-        otherOptions,
+        tlsConfig(pektinConfig),
         pektinConfig.reverseProxy.tls ? redirectHttps() : {},
         node.main && recursorAuth
             ? recursorConf({
@@ -52,8 +53,12 @@ export const traefikConf = (
               })
             : {}
     );
+    const staticConf = _.merge(genStaticConf(pektinConfig));
 
-    return yaml.stringify(config, { indent: 4 });
+    return {
+        dynamic: yaml.stringify(dynamicConf, { indent: 4 }),
+        static: yaml.stringify(staticConf, { indent: 4 }),
+    };
 };
 export const serverConf = ({
     nodeNameServers,
@@ -76,59 +81,57 @@ export const serverConf = ({
         tcp: {
             routers: {
                 "pektin-server-tcp": {
-                    tls,
-                    rule: `HostSNI(${getNsList(nodeNameServers)})`,
-                    entrypoints: `server-tcp`,
+                    ...(tls && { tls }),
+                    rule: `HostSNI(${getNsList(nodeNameServers, false)})`,
+                    entrypoints: `pektin-server-tcp`,
                     service: `pektin-server-tcp`,
                 },
             },
             services: {
                 "pektin-server-tcp": {
-                    loadbalancer: { servers: [{ address: `pektin-server`, port: 53 }] }, //! maybe this has to be address: ip-adress of the server
+                    loadbalancer: { servers: [{ address: `pektin-server:53` }] },
                 },
             },
         },
         udp: {
             routers: {
                 "pektin-server-udp": {
-                    tls,
-                    entrypoints: `server-udp`,
+                    ...(tls && { tls }),
+                    entrypoints: `pektin-server-udp`,
                     service: `pektin-server-udp`,
                 },
             },
             services: {
                 "pektin-server-udp": {
-                    loadbalancer: { servers: [{ address: `pektin-server`, port: 53 }] }, //! maybe this has to be address: ip-adress of the server
+                    loadbalancer: { servers: [{ address: `pektin-server:53` }] },
                 },
             },
         },
         http: {
             routers: {
                 "pektin-server-http": {
-                    tls,
+                    ...(tls && { tls }),
                     rule: (() => {
                         if (rp.routing === `domain`) {
-                            return `Host(${getNsList(nodeNameServers)}) && Path(\`/dns-query\`)`;
+                            return `Host(${getNsList(
+                                nodeNameServers,
+                                false
+                            )}) && Path(\`/dns-query\`)`;
                         }
-                        if (rp.routing === `localIpAndPath` || rp.routing === `publicIpAndPath`) {
-                            return `PathPrefix(${getNsList(nodeNameServers, `/dns-query`)})`;
+                        if (rp.routing === `localDomain`) {
+                            return `Host(${getNsList(
+                                nodeNameServers,
+                                true
+                            )}) && Path(\`/dns-query\`)`;
                         }
                     })(),
                     entrypoints: rp.tls ? `websecure` : `web`,
                     service: `pektin-server-http`,
-                    middlewares: rp.routing === `domain` ? [] : [`stripDomainPath`],
                 },
             },
             services: {
                 "pektin-server-http": {
                     loadbalancer: { servers: [{ url: `http://pektin-server` }] },
-                },
-            },
-            middlewares: {
-                stripDomainPath: {
-                    stripprefixregex: {
-                        regex: `/^\/[^/]*/`,
-                    },
                 },
             },
         },
@@ -158,30 +161,25 @@ export const pektinServicesConf = ({
         http: {
             routers: {
                 [`pektin-${service}`]: {
-                    tls,
+                    ...(tls && { tls }),
                     rule: (() => {
                         if (rp.routing === `domain`) {
                             return `Host(\`${concatDomain(domain, subDomain)}\`)`;
                         }
-                        if (rp.routing === `localIpAndPath` || rp.routing === `publicIpAndPath`) {
-                            return `PathPrefix(\`/${concatDomain(domain, subDomain)}\`)`;
+                        if (rp.routing === `localDomain`) {
+                            return `Host(\`${concatDomain(
+                                `localhost`,
+                                concatDomain(domain, subDomain)
+                            )}\`)`;
                         }
                     })(),
                     service: `pektin-${service}`,
                     entrypoints: rp.tls ? `websecure` : `web`,
-                    middlewares: rp.routing === `domain` ? [] : [`stripDomainPath`],
                 },
             },
             services: {
                 [`pektin-${service}`]: {
                     loadbalancer: { servers: [{ url: `http://pektin-${service}` }] },
-                },
-            },
-            middlewares: {
-                stripDomainPath: {
-                    stripprefixregex: {
-                        regex: `/^\/[^/]*/`,
-                    },
                 },
             },
         },
@@ -211,12 +209,9 @@ export const proxyConf = ({
         http: {
             routers: {
                 [`proxy-${name}`]: {
-                    tls,
+                    ...(tls && { tls }),
                     entrypoints: rp.tls ? `websecure` : `web`,
-                    middlewares:
-                        rp.routing === `domain`
-                            ? [`strip-proxy`, `cors-${name}`]
-                            : [`stripDomainPath`, `strip-proxy`, `cors-${name}`],
+                    middlewares: [`strip-proxy`, `cors-${name}`],
                     service: `proxy-${name}`,
                     rule: (() => {
                         if (rp.routing === `domain`) {
@@ -225,11 +220,11 @@ export const proxyConf = ({
                                 subDomain
                             )}\`) && PathPrefix(\`/proxy-${name}\`)`;
                         }
-                        if (rp.routing === `localIpAndPath` || rp.routing === `publicIpAndPath`) {
-                            return `PathPrefix(\`/${concatDomain(
-                                domain,
-                                subDomain
-                            )}/proxy-${name}\`)`;
+                        if (rp.routing === `localDomain`) {
+                            return `Host(\`${concatDomain(
+                                `localhost`,
+                                concatDomain(domain, subDomain)
+                            )}\`) && PathPrefix(\`/proxy-${name}\`)`;
                         }
                     })(),
                 },
@@ -248,8 +243,8 @@ export const proxyConf = ({
             },
             middlewares: {
                 "strip-proxy": {
-                    stripprefixregex: {
-                        regex: `/^\/proxy-[^/]{1,}/`,
+                    stripPrefixRegex: {
+                        regex: [`^\/proxy-[^/]{1,}`],
                     },
                 },
                 [`cors-${name}`]: {
@@ -257,11 +252,6 @@ export const proxyConf = ({
                         accessControlAllowMethods: allowedMethods,
                         accessControlAllowOriginlist: `*`,
                         accessControlMaxAge: 86400,
-                    },
-                },
-                stripDomainPath: {
-                    stripprefixregex: {
-                        regex: `/^\/[^/]*/`,
                     },
                 },
             },
@@ -303,13 +293,16 @@ export const recursorConf = ({
         http: {
             routers: {
                 "pektin-recursor": {
-                    tls,
+                    ...(tls && { tls }),
                     rule: (() => {
                         if (rp.routing === `domain`) {
                             return `Host(${fullDomain}) && Path(\`/dns-query\`)`;
                         }
-                        if (rp.routing === `localIpAndPath` || rp.routing === `publicIpAndPath`) {
-                            return `PathPrefix(\`/${fullDomain}/dns-query\`)`;
+                        if (rp.routing === `localDomain`) {
+                            return `Host(${concatDomain(
+                                `localhost`,
+                                fullDomain
+                            )}) && Path(\`/dns-query\`)`;
                         }
                     })(),
                     entrypoints: rp.tls ? `websecure` : `web`,
@@ -330,8 +323,8 @@ export const recursorConf = ({
                 },
                 "pektin-recursor-auth": { basicauth: { users: recursorAuth } },
                 stripDomainPath: {
-                    stripprefixregex: {
-                        regex: `/^\/[^/]*/`,
+                    stripPrefixRegex: {
+                        regex: [`^\/[^/]*`],
                     },
                 },
             },
@@ -372,42 +365,73 @@ export const redirectHttps = () => {
     };
 };
 
-export const otherOptions = {
-    docker: {
-        network: `rp`,
-    },
-};
-
-export const tlsOptions = {
-    tls: {
-        options: {
-            default: {
-                minVersion: `VersionTLS12`,
-                cipherSuites: [
-                    `TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256`,
-                    `TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384`,
-                    `TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256`,
-                ],
-            },
+export const genStaticConf = (pektinConfig: PektinConfig) => {
+    return {
+        docker: {
+            network: `rp`,
         },
-        stores: {
-            default: {
-                defaultCertificate: {
-                    certFile: `/letsencrypt/pem/cert.pem`,
-                    keyFile: `/letsencrypt/pem/key.pem`,
+        providers: {
+            docker: { exposedbydefault: false },
+            file: { filename: `/traefik/dynamic.yml`, watch: true },
+        },
+        ...(pektinConfig.reverseProxy.tls && { experimental: { http3: true } }),
+        entryPoints: {
+            "pektin-server-tcp": { address: `:853/tcp` },
+            "pektin-server-udp": { address: `:853/udp` },
+            web: { address: `:80/tcp` },
+            ...(pektinConfig.reverseProxy.tls && { websecure: { address: `:443`, http3: {} } }),
+        },
+        ...(pektinConfig.reverseProxy.tls && {
+            certificatesresolvers: {
+                default: {
+                    acme: {
+                        dnschallenge: { provider: `pektin` },
+                        email: pektinConfig.certificates.letsencryptEmail,
+                        storage: `/letsencrypt/acme.json`,
+                    },
                 },
             },
-        },
-    },
+        }),
+    };
 };
 
-export const getNsList = (nodeNameServers: PektinConfig[`nameservers`], path?: string) => {
+export const tlsConfig = (pektinConfig: PektinConfig) => {
+    return {
+        ...(pektinConfig.reverseProxy.tls && {
+            tls: {
+                options: {
+                    default: {
+                        minVersion: `VersionTLS12`,
+                        cipherSuites: [
+                            `TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256`,
+                            `TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384`,
+                            `TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256`,
+                        ],
+                    },
+                },
+            },
+        }),
+    };
+    /*
+    config.stores = {
+        default: {
+            defaultCertificate: {
+                certFile: `/letsencrypt/pem/cert.pem`,
+                keyFile: `/letsencrypt/pem/key.pem`,
+            },
+        },
+    };*/
+};
+
+export const getNsList = (nodeNameServers: PektinConfig[`nameservers`], local: boolean) => {
     let sni = ``;
     if (nodeNameServers) {
         nodeNameServers.forEach((ns, i) => {
             if (i > 0) sni += `,`;
-            sni += `\`${path ? `/` : ``}${concatDomain(ns.domain, ns.subDomain)}${
-                path ? path : ``
+            sni += `\`${
+                local
+                    ? concatDomain(`localhost`, concatDomain(ns.domain, ns.subDomain))
+                    : concatDomain(ns.domain, ns.subDomain)
             }\``;
         });
     }

@@ -6,7 +6,7 @@ import { config } from "dotenv";
 import { getAllFromPdns } from "../import/pdns/index.js";
 import { getZoneFromFile } from "../import/zone-file/index.js";
 import { importByZoneWalking } from "../import/wanderlust/index.js";
-import { serverConf, traefikConf } from "../traefik/index.js";
+import { serverConf, genTraefikConfs } from "../traefik/index.js";
 import { getNodesNameservers } from "../pureFunctions.js";
 import { PektinConfig } from "@pektin/config/src/config-types";
 
@@ -26,7 +26,7 @@ const c: PektinConfig = JSON.parse(
 );
 
 /*@ts-ignore*/
-traefikConf(c, c.nodes[0]); //?
+genTraefikConfs(c, c.nodes[0]); //?
 
 //await pc.duplicateZone(`y.gy`, `k.xx`, true);
 //import toluol from "@pektin/toluol-wasm-nodejs";

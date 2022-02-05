@@ -16,7 +16,7 @@ import {
     updatePektinSharedPasswords,
 } from "./../auth.js";
 import { getPektinEndpoint } from "../index.js";
-import { traefikConf } from "../traefik/index.js";
+import { genTraefikConfs } from "../traefik/index.js";
 import { getMainNode } from "../pureFunctions.js";
 
 export const installPektinCompose = async (
@@ -240,10 +240,14 @@ export const installPektinCompose = async (
     await setRedisPasswordHashes(redisPasswords, pektinConfig, dir);
 
     await fs.mkdir(path.join(dir, `secrets`, `traefik`)).catch(() => {});
-    await fs.writeFile(
-        path.join(dir, `secrets`, `traefik`, `traefik.yml`),
-        traefikConf(pektinConfig, getMainNode(pektinConfig), recursorBasicAuthHashed)
+
+    const traefikConfs = genTraefikConfs(
+        pektinConfig,
+        getMainNode(pektinConfig),
+        recursorBasicAuthHashed
     );
+    await fs.writeFile(path.join(dir, `secrets`, `traefik`, `dynamic.yml`), traefikConfs.dynamic);
+    await fs.writeFile(path.join(dir, `secrets`, `traefik`, `static.yml`), traefikConfs.static);
 
     // set the values in the .env file for provisioning them to the containers
     await envSetValues(
@@ -336,9 +340,14 @@ export const createArbeiterConfig = async (
 
             const repls = [[`R_PEKTIN_SERVER_PASSWORD`, R_PEKTIN_SERVER_PASSWORD]];
 
+            const traefikConfs = genTraefikConfs(v.pektinConfig, node);
             await fs.writeFile(
-                path.join(dir, `arbeiter`, node.name, `secrets`, `traefik`, `traefik.yml`),
-                traefikConf(v.pektinConfig, node)
+                path.join(dir, `arbeiter`, node.name, `secrets`, `traefik`, `dynamic.yml`),
+                traefikConfs.dynamic
+            );
+            await fs.writeFile(
+                path.join(dir, `arbeiter`, node.name, `secrets`, `traefik`, `static.yml`),
+                traefikConfs.static
             );
 
             /*

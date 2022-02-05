@@ -75,36 +75,13 @@ export const getPektinEndpoint = (
     );
     const protocol = c.reverseProxy.tls ? `https` : `http`;
     let host = ``;
-    let path = ``;
-    if (c.reverseProxy.routing === `localIpAndPath`) {
-        if (c.reverseProxy.useLegacyIp) {
-            host = `127.0.0.1`;
-        } else {
-            host = `[::]`;
-        }
-        path = `/${domain}`;
-    } else if (c.reverseProxy.routing === `publicIpAndPath`) {
-        const mainNode = getMainNode(c);
-
-        if (c.reverseProxy.useLegacyIp) {
-            if (!mainNode.legacyIps?.length) {
-                throw Error(`Proxy is configured to use legacyIp but has none`);
-            }
-            host = mainNode.legacyIps[0];
-        } else if (mainNode.ips?.length) {
-            host = `[${mainNode.ips[0]}]`;
-        } else if (mainNode.legacyIps?.length) {
-            host = mainNode.legacyIps[0];
-        } else {
-            throw Error(`Main node has no ips or legacy ips`);
-        }
-
-        path = `/${domain}`;
+    if (c.reverseProxy.routing === `localDomain`) {
+        host = concatDomain(`localhost`, domain);
     } else if (c.reverseProxy.routing === `domain`) {
         host = domain;
     }
 
-    return `${protocol}://${host}${path}`;
+    return `${protocol}://${host}`;
 };
 
 export const getRecursorAuth = async (vaultEndpoint: string, vaultToken: string) => {
