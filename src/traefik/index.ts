@@ -186,6 +186,8 @@ export const pektinServicesConf = ({
     };
 };
 
+//TODO check that nothing relies on domain names being absolute or not absolute
+
 export const proxyConf = ({
     pektinConfig,
     name,
