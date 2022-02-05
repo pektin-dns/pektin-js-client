@@ -21,7 +21,7 @@ import { getMainNode } from "../pureFunctions.js";
 
 export const installPektinCompose = async (
     dir: string = `/pektin-compose/`,
-    internalVaultUrl: string = `http://pektin-vault:8200`
+    internalVaultUrl: string = `http://pektin-vault`
 ) => {
     if (process.env.UID === undefined || process.env.GID === undefined)
         throw Error(

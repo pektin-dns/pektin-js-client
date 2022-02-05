@@ -5,13 +5,8 @@ import { PektinClient } from "../index.js";
 import { ApiRecord, PektinClientConnectionConfigOverride, PektinRRType } from "../index.js";
 import { createSingleScript } from "./utils.js";
 import { absoluteName, concatDomain } from "../index.js";
-import { Logg } from "../logg/index.js";
 
 const dir = `/pektin-compose/`;
-
-new Logg({ categories: [0], callNames: { x: { name: `X-Function` } } });
-/*@ts-ignore*/
-const l = global.l as Logg;
 
 export const pektinComposeFirstStart = async (recursive: any) => {
     const pektinConfig = JSON.parse(
@@ -25,10 +20,10 @@ export const pektinComposeFirstStart = async (recursive: any) => {
     if (pektinConfig.nameservers?.length) {
         const pc = new PektinComposeClient({
             confidantPassword: adminCreds.confidantPassword,
-            vaultEndpoint: `http://pektin-vault:8200`,
+            vaultEndpoint: `http://pektin-vault`,
             username: adminCreds.username,
             override: {
-                pektinApiEndpoint: `http://pektin-api:80`,
+                pektinApiEndpoint: `http://pektin-api`,
             },
         });
 
