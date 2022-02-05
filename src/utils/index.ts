@@ -12,7 +12,7 @@ import {
 
 export const concatDomain = (domain: string, subDomain?: string) => {
     if (subDomain === undefined) return domain;
-    return `${subDomain}.${domain}`;
+    return `${deAbsolute(subDomain)}.${domain}`;
 };
 
 export const absoluteName = (name: string) => {

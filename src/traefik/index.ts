@@ -118,7 +118,7 @@ export const serverConf = ({
                                 false
                             )}) && Path(\`/dns-query\`)`;
                         }
-                        if (rp.routing === `localDomain`) {
+                        if (rp.routing === `local`) {
                             return `Host(${getNsList(
                                 nodeNameServers,
                                 true
@@ -166,7 +166,7 @@ export const pektinServicesConf = ({
                         if (rp.routing === `domain`) {
                             return `Host(\`${concatDomain(domain, subDomain)}\`)`;
                         }
-                        if (rp.routing === `localDomain`) {
+                        if (rp.routing === `local`) {
                             return `Host(\`${concatDomain(
                                 `localhost`,
                                 concatDomain(domain, subDomain)
@@ -220,7 +220,7 @@ export const proxyConf = ({
                                 subDomain
                             )}\`) && PathPrefix(\`/proxy-${name}\`)`;
                         }
-                        if (rp.routing === `localDomain`) {
+                        if (rp.routing === `local`) {
                             return `Host(\`${concatDomain(
                                 `localhost`,
                                 concatDomain(domain, subDomain)
@@ -298,7 +298,7 @@ export const recursorConf = ({
                         if (rp.routing === `domain`) {
                             return `Host(${fullDomain}) && Path(\`/dns-query\`)`;
                         }
-                        if (rp.routing === `localDomain`) {
+                        if (rp.routing === `local`) {
                             return `Host(${concatDomain(
                                 `localhost`,
                                 fullDomain
@@ -306,10 +306,7 @@ export const recursorConf = ({
                         }
                     })(),
                     entrypoints: rp.tls ? `websecure` : `web`,
-                    middlewares:
-                        rp.routing === `domain`
-                            ? [`pektin-recursor-cors`, `pektin-recursor-auth`]
-                            : [`pektin-recursor-cors`, `pektin-recursor-auth`, `stripDomainPath`],
+                    middlewares: [`pektin-recursor-cors`, `pektin-recursor-auth`],
                 },
             },
             middlewares: {
@@ -322,17 +319,11 @@ export const recursorConf = ({
                     },
                 },
                 "pektin-recursor-auth": { basicauth: { users: recursorAuth } },
-                stripDomainPath: {
-                    stripPrefixRegex: {
-                        regex: [`^\/[^/]*`],
-                    },
-                },
             },
             services: {
                 "pektin-recursor": {
                     loadbalancer: {
                         servers: {
-                            port: 80,
                             schema: `h2c`,
                             url: `http://pektin-recursor`,
                         },

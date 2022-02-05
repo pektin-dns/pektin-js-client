@@ -75,7 +75,7 @@ export const getPektinEndpoint = (
     );
     const protocol = c.reverseProxy.tls ? `https` : `http`;
     let host = ``;
-    if (c.reverseProxy.routing === `localDomain`) {
+    if (c.reverseProxy.routing === `local`) {
         host = concatDomain(`localhost`, domain);
     } else if (c.reverseProxy.routing === `domain`) {
         host = domain;
