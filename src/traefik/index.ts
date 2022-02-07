@@ -1,7 +1,7 @@
 import { PektinConfig } from "@pektin/config/src/config-types";
 import _ from "lodash";
 import yaml from "yaml";
-import { concatDomain, toASCII } from "../index.js";
+import { concatDomain, emailToASCII, toASCII } from "../index.js";
 import { getNodesNameservers } from "../pureFunctions.js";
 import { TempDomain } from "../types.js";
 import { genTempDomainConfig } from "./tempDomain.js";
@@ -334,13 +334,13 @@ export const recursorConf = ({
                     ...(tls && { tls }),
                     rule: (() => {
                         if (rp.routing === `domain`) {
-                            return `Host(${fullDomain}) && Path(\`/dns-query\`)`;
+                            return `Host(\`${fullDomain}\`) && Path(\`/dns-query\`)`;
                         }
                         if (rp.routing === `local`) {
-                            return `Host(${concatDomain(
+                            return `Host(\`${concatDomain(
                                 `localhost`,
                                 fullDomain
-                            )}) && Path(\`/dns-query\`)`;
+                            )}\`) && Path(\`/dns-query\`)`;
                         }
                     })(),
                     entrypoints: rp.tls ? `websecure` : `web`,
@@ -415,14 +415,14 @@ export const genStaticConf = (pektinConfig: PektinConfig) => {
                 default: {
                     acme: {
                         dnschallenge: { provider: `pektin` },
-                        email: pektinConfig.certificates.letsencryptEmail,
+                        email: emailToASCII(pektinConfig.certificates.letsencryptEmail),
                         storage: `/letsencrypt/default.json`,
                     },
                 },
                 ...(pektinConfig.reverseProxy.tempPektinZone && {
                     tempDomain: {
                         acme: {
-                            email: pektinConfig.certificates.letsencryptEmail,
+                            email: emailToASCII(pektinConfig.certificates.letsencryptEmail),
                             storage: `/letsencrypt/tempDomain.json`,
                             httpChallenge: {
                                 entryPoint: `web`,

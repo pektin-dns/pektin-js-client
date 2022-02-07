@@ -153,12 +153,12 @@ export const genTempRecursorConf = ({
                     ...(tls && { tls }),
                     rule: (() => {
                         if (rp.routing === `domain`) {
-                            return `Host(${toASCII(
+                            return `Host(\`${toASCII(
                                 concatDomain(
                                     concatDomain(tempDomain.zoneDomain, tempDomain.domain),
                                     pektinConfig.services.recursor.subDomain
                                 )
-                            )}) && Path(\`/dns-query\`)`;
+                            )}\`) && Path(\`/dns-query\`)`;
                         }
                     })(),
                     entrypoints: rp.tls ? `websecure` : `web`,
