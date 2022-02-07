@@ -1,6 +1,6 @@
 import { PektinConfig } from "@pektin/config/src/config-types";
 import _ from "lodash";
-import { concatDomain, TempDomain } from "../index.js";
+import { concatDomain, TempDomain, toASCII } from "../index.js";
 import { getNodesNameservers } from "../pureFunctions.js";
 import { externalProxyServices, getNsList } from "./index.js";
 
@@ -70,14 +70,14 @@ export const genTempServerConf = ({
               certResolver: `tempDomain`,
               domains: [
                   {
-                      main: concatDomain(tempDomain.zoneDomain, tempDomain.domain),
+                      main: toASCII(concatDomain(tempDomain.zoneDomain, tempDomain.domain)),
                   },
               ],
           }
         : false;
 
     const nns = nodeNameServers.map((nns) => {
-        return { ...nns, domain: concatDomain(tempDomain.zoneDomain, tempDomain.domain) };
+        return { ...nns, domain: toASCII(concatDomain(tempDomain.zoneDomain, tempDomain.domain)) };
     }) as PektinConfig[`nameservers`];
 
     return {
@@ -140,7 +140,7 @@ export const genTempRecursorConf = ({
               certResolver: `tempDomain`,
               domains: [
                   {
-                      main: concatDomain(tempDomain.zoneDomain, tempDomain.domain),
+                      main: toASCII(concatDomain(tempDomain.zoneDomain, tempDomain.domain)),
                   },
               ],
           }
@@ -153,9 +153,11 @@ export const genTempRecursorConf = ({
                     ...(tls && { tls }),
                     rule: (() => {
                         if (rp.routing === `domain`) {
-                            return `Host(${concatDomain(
-                                concatDomain(tempDomain.zoneDomain, tempDomain.domain),
-                                pektinConfig.services.recursor.subDomain
+                            return `Host(${toASCII(
+                                concatDomain(
+                                    concatDomain(tempDomain.zoneDomain, tempDomain.domain),
+                                    pektinConfig.services.recursor.subDomain
+                                )
                             )}) && Path(\`/dns-query\`)`;
                         }
                     })(),
@@ -212,7 +214,7 @@ export const genTempPektinServicesConfig = ({
               certResolver: `tempDomain`,
               domains: [
                   {
-                      main: concatDomain(tempDomain.zoneDomain, tempDomain.domain),
+                      main: toASCII(concatDomain(tempDomain.zoneDomain, tempDomain.domain)),
                   },
               ],
           }
@@ -227,9 +229,11 @@ export const genTempPektinServicesConfig = ({
                             tls,
                         }),
                         rule: (() => {
-                            return `Host(\`${concatDomain(
-                                concatDomain(tempDomain.zoneDomain, tempDomain.domain),
-                                subDomain
+                            return `Host(\`${toASCII(
+                                concatDomain(
+                                    concatDomain(tempDomain.zoneDomain, tempDomain.domain),
+                                    subDomain
+                                )
                             )}\`)`;
                         })(),
                         service: `pektin-${service}`,
@@ -244,7 +248,6 @@ export const genTempPektinServicesConfig = ({
 export const genTempProxyConf = ({
     pektinConfig,
     name,
-
     tempDomain,
 }: {
     pektinConfig: PektinConfig;
@@ -265,7 +268,7 @@ export const genTempProxyConf = ({
               certResolver: `tempDomain`,
               domains: [
                   {
-                      main: concatDomain(tempDomain.zoneDomain, tempDomain.domain),
+                      main: toASCII(concatDomain(tempDomain.zoneDomain, tempDomain.domain)),
                   },
               ],
           }
@@ -281,9 +284,11 @@ export const genTempProxyConf = ({
                     service: `proxy-${name}`,
                     rule: (() => {
                         if (rp.routing === `domain`) {
-                            return `Host(\`${concatDomain(
-                                concatDomain(tempDomain.zoneDomain, tempDomain.domain),
-                                subDomain
+                            return `Host(\`${toASCII(
+                                concatDomain(
+                                    concatDomain(tempDomain.zoneDomain, tempDomain.domain),
+                                    subDomain
+                                )
                             )}\`) && PathPrefix(\`/proxy-${name}\`)`;
                         }
                     })(),

@@ -1,7 +1,7 @@
 import { PektinConfig } from "@pektin/config/src/config-types";
 import _ from "lodash";
 import yaml from "yaml";
-import { concatDomain } from "../index.js";
+import { concatDomain, toASCII } from "../index.js";
 import { getNodesNameservers } from "../pureFunctions.js";
 import { TempDomain } from "../types.js";
 import { genTempDomainConfig } from "./tempDomain.js";
@@ -101,7 +101,7 @@ export const serverConf = ({
         ? {
               certResolver: `default`,
               domains: nodeNameServers.map((ns) => {
-                  return { main: ns.domain, sans: [`*.${ns.domain}`] };
+                  return { main: toASCII(ns.domain), sans: [`*.${toASCII(ns.domain)}`] };
               }),
           }
         : false;
@@ -181,6 +181,8 @@ export const pektinServicesConf = ({
 }) => {
     const rp = pektinConfig.reverseProxy;
 
+    domain = toASCII(domain);
+    subDomain = toASCII(subDomain);
     const tls = rp.tls
         ? {
               certResolver: `default`,
@@ -230,7 +232,9 @@ export const proxyConf = ({
     allowedMethods: string;
 }) => {
     const rp = pektinConfig.reverseProxy;
-    const { domain, subDomain } = rp.external;
+    const domain = toASCII(rp.external.domain);
+    const subDomain = toASCII(rp.external.subDomain);
+
     const tls = rp.tls
         ? {
               certResolver: `default`,
@@ -305,10 +309,12 @@ export const recursorConf = ({
     recursorAuth: string;
 }) => {
     const rp = pektinConfig.reverseProxy;
-    const domain = pektinConfig.services.recursor.domain;
-    const fullDomain = concatDomain(
-        pektinConfig.services.recursor.domain,
-        pektinConfig.services.recursor.subDomain
+    const domain = toASCII(pektinConfig.services.recursor.domain);
+    const fullDomain = toASCII(
+        concatDomain(
+            pektinConfig.services.recursor.domain,
+            pektinConfig.services.recursor.subDomain
+        )
     );
     const tls = rp.tls
         ? {
@@ -464,8 +470,8 @@ export const getNsList = (nodeNameServers: PektinConfig[`nameservers`], local: b
             if (i > 0) sni += `,`;
             sni += `\`${
                 local
-                    ? concatDomain(`localhost`, concatDomain(ns.domain, ns.subDomain))
-                    : concatDomain(ns.domain, ns.subDomain)
+                    ? toASCII(concatDomain(`localhost`, concatDomain(ns.domain, ns.subDomain)))
+                    : toASCII(concatDomain(ns.domain, ns.subDomain))
             }\``;
         });
     }

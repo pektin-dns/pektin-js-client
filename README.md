@@ -23,7 +23,7 @@ const pc = new PektinClient({
     username: "ui-j-6samfz_r1OTQ",
     password:
         "Bq9Wvf4_FeDtKNoxdFLJweZzYhKVnN4Ll9SiQniyBRQIu2c_1BIHqGihFr6KlQproTrMndkSA50aUQY_HS8VRJNWBdveGAeoWWwcGrECPBwgIygDbKUjeXHaGE2FOvXeWTmbHg",
-    vaultEndpoint: "https://vault-pektin.pektin.xyz"
+    vaultEndpoint: "https://vault-pektin.pektin.xyz",
 });
 
 console.log(await pc.getDomains());
@@ -33,3 +33,5 @@ console.log(await pc.getDomains());
 -   "confidant" holds half of password for "signers" and "officers"
 -   "signer" can sign for domains
 -   "officer" holds policy for "api-client"
+
+# яндекс.рф
