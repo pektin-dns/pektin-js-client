@@ -365,17 +365,39 @@ export const createArbeiterConfig = async (
 
             const traefikConfs = genTraefikConfs({
                 pektinConfig: v.pektinConfig,
-                node,
+                node: getMainNode(v.pektinConfig),
                 tempDomain: v.tempDomain,
             });
             await fs.writeFile(
-                path.join(dir, `arbeiter`, node.name, `secrets`, `traefik`, `dynamic.yml`),
+                path.join(
+                    dir,
+                    `arbeiter`,
+                    node.name,
+                    `secrets`,
+                    `traefik`,
+                    `dynamic`,
+                    `default.yml`
+                ),
                 traefikConfs.dynamic
             );
             await fs.writeFile(
                 path.join(dir, `arbeiter`, node.name, `secrets`, `traefik`, `static.yml`),
                 traefikConfs.static
             );
+            if (v.pektinConfig.reverseProxy.tempPektinZone && traefikConfs.tempDomain) {
+                await fs.writeFile(
+                    path.join(
+                        dir,
+                        `arbeiter`,
+                        node.name,
+                        `secrets`,
+                        `traefik`,
+                        `dynamic`,
+                        `tempDomain.yml`
+                    ),
+                    traefikConfs.tempDomain
+                );
+            }
 
             /*
             traefik.tcp.routers.pektin-server-dot.tls.domains[0].main: "${SERVER_DOMAIN}"
