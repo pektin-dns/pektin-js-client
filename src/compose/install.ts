@@ -494,7 +494,6 @@ export const envSetValues = async (
     }
     CSP_CONNECT_SRC = addAllowedConnectSources(CSP_CONNECT_SRC);
 */
-    const s = v.pektinConfig.services;
     const repls = [
         [`V_PEKTIN_API_PASSWORD`, v.V_PEKTIN_API_PASSWORD],
         [`R_PEKTIN_API_PASSWORD`, v.R_PEKTIN_API_PASSWORD],
@@ -504,7 +503,6 @@ export const envSetValues = async (
         [`LETSENCRYPT_EMAIL`, v.pektinConfig.certificates.letsencryptEmail],
         [`CSP_CONNECT_SRC`, CSP_CONNECT_SRC],
         [`RECURSOR_AUTH`, v.recursorBasicAuthHashed],
-
         [`UI_BUILD_PATH`, v.pektinConfig.build.ui.path],
         [`API_BUILD_PATH`, v.pektinConfig.build.api.path],
         [`SERVER_BUILD_PATH`, v.pektinConfig.build.server.path],

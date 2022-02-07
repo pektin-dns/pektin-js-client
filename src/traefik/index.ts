@@ -69,19 +69,22 @@ export const genTraefikConfs = ({
     const staticConf = _.merge(genStaticConf(pektinConfig));
 
     const yamlOptions: yaml.Options = { indent: 4, version: `1.1` };
+    const notice = `#THIS FILE IS GENERATED! DO NOT CHANGE IT UNLESS YOU KNOW WHAT YOU'RE DOING!\n`;
     return {
-        dynamic: yaml.stringify(dynamicConf, yamlOptions),
-        static: yaml.stringify(staticConf, yamlOptions),
+        dynamic: notice + yaml.stringify(dynamicConf, yamlOptions),
+        static: notice + yaml.stringify(staticConf, yamlOptions),
         ...(tempDomain && {
-            tempDomain: yaml.stringify(
-                genTempDomainConfig({
-                    pektinConfig,
-                    node,
-                    recursorAuth,
-                    tempDomain,
-                }),
-                yamlOptions
-            ),
+            tempDomain:
+                notice +
+                yaml.stringify(
+                    genTempDomainConfig({
+                        pektinConfig,
+                        node,
+                        recursorAuth,
+                        tempDomain,
+                    }),
+                    yamlOptions
+                ),
         }),
     };
 };
