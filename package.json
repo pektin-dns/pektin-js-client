@@ -51,7 +51,7 @@
         "build": "tsc",
         "start": "tsc --watch",
         "before-publish": "yarn build && yarn compile-deno && yarn bundle-policies",
-        "manual-test": "RED='\u001b[1;91m' ; NO_COLOR='\u001b[0m' ; echo \"${RED}Don't forget to compile the TS files first with: yarn start ${NO_COLOR}\" ; node dist/js/.manualTests/index.js",
+        "manual-test": "RED='\u001b[1;91m' ; NO_COLOR='\u001b[0m' ; echo \"${RED}Don't forget to compile the TS files first with: yarn start ${NO_COLOR}\" ; node dist/js/_manualTests/index.js",
         "compile-deno": "sh scripts/compile-deno.sh",
         "upgrade-pektin": "yarn upgrade --latest @pektin/config @pektin/global-registrar",
         "bundle-policies": "sh scripts/bundle-policies.sh"

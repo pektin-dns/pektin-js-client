@@ -9,6 +9,7 @@ import { importByZoneWalking } from "../import/wanderlust/index.js";
 import { serverConf, genTraefikConfs } from "../traefik/index.js";
 import { getNodesNameservers } from "../pureFunctions.js";
 import { PektinConfig } from "@pektin/config/src/config-types";
+import { requestPektinDomain } from "../compose/utils.js";
 
 config({ path: `/home/paul/Documents/powerdns-api/.env` });
 
@@ -26,7 +27,14 @@ const c: PektinConfig = JSON.parse(
 );
 
 /*@ts-ignore*/
-genTraefikConfs(c, c.nodes[0]); //?
+console.log(
+    genTraefikConfs({
+        pektinConfig: c,
+        node: c.nodes[0],
+        tempDomain: requestPektinDomain(),
+        recursorAuth: `shahuhuiwqdr`,
+    })
+); //?
 
 //await pc.duplicateZone(`y.gy`, `k.xx`, true);
 //import toluol from "@pektin/toluol-wasm-nodejs";

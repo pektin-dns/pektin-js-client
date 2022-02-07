@@ -1,6 +1,13 @@
 import { promises as fs } from "fs";
 import path from "path";
-import { chownRecursive, chown, chmod, randomString, configToCertbotIni } from "./utils.js";
+import {
+    chownRecursive,
+    chown,
+    chmod,
+    randomString,
+    configToCertbotIni,
+    requestPektinDomain,
+} from "./utils.js";
 import crypto from "crypto";
 
 import { unsealVault, initVault, enableVaultCors, updateKvValue } from "./../vault/vault.js";
@@ -18,6 +25,7 @@ import {
 import { getPektinEndpoint } from "../index.js";
 import { genTraefikConfs } from "../traefik/index.js";
 import { getMainNode } from "../pureFunctions.js";
+import { TempDomain } from "../types.js";
 
 export const installPektinCompose = async (
     dir: string = `/pektin-compose/`,
@@ -223,10 +231,15 @@ export const installPektinCompose = async (
         [`R_PEKTIN_SERVER_PASSWORD`, R_PEKTIN_SERVER_PASSWORD],
     ];
 
+    const tempDomain = requestPektinDomain();
+
     if (pektinConfig.nodes.length > 1) {
         redisPasswords.push([`R_PEKTIN_GEWERKSCHAFT_PASSWORD`, R_PEKTIN_GEWERKSCHAFT_PASSWORD]);
 
-        await createArbeiterConfig({ R_PEKTIN_GEWERKSCHAFT_PASSWORD, pektinConfig }, dir);
+        await createArbeiterConfig(
+            { R_PEKTIN_GEWERKSCHAFT_PASSWORD, pektinConfig, tempDomain },
+            dir
+        );
         await createSwarmScript(pektinConfig, dir);
 
         await chownRecursive(
@@ -239,16 +252,25 @@ export const installPektinCompose = async (
 
     await setRedisPasswordHashes(redisPasswords, pektinConfig, dir);
 
-    await fs.mkdir(path.join(dir, `secrets`, `traefik`)).catch(() => {});
+    await fs.mkdir(path.join(dir, `secrets`, `traefik`, `dynamic`)).catch(() => {});
 
-    const traefikConfs = genTraefikConfs(
+    const traefikConfs = genTraefikConfs({
         pektinConfig,
-        getMainNode(pektinConfig),
-        recursorBasicAuthHashed
+        node: getMainNode(pektinConfig),
+        recursorAuth: recursorBasicAuthHashed,
+        tempDomain,
+    });
+    await fs.writeFile(
+        path.join(dir, `secrets`, `traefik`, `dynamic`, `default.yml`),
+        traefikConfs.dynamic
     );
-    await fs.writeFile(path.join(dir, `secrets`, `traefik`, `dynamic.yml`), traefikConfs.dynamic);
     await fs.writeFile(path.join(dir, `secrets`, `traefik`, `static.yml`), traefikConfs.static);
-
+    if (pektinConfig.reverseProxy.tempPektinZone && traefikConfs.tempDomain) {
+        await fs.writeFile(
+            path.join(dir, `secrets`, `traefik`, `dynamic`, `tempDomain.yml`),
+            traefikConfs.tempDomain
+        );
+    }
     // set the values in the .env file for provisioning them to the containers
     await envSetValues(
         {
@@ -294,6 +316,7 @@ export const createArbeiterConfig = async (
     v: {
         pektinConfig: PektinConfig;
         R_PEKTIN_GEWERKSCHAFT_PASSWORD: string;
+        tempDomain?: TempDomain;
     },
     dir: string
 ) => {
@@ -340,7 +363,11 @@ export const createArbeiterConfig = async (
 
             const repls = [[`R_PEKTIN_SERVER_PASSWORD`, R_PEKTIN_SERVER_PASSWORD]];
 
-            const traefikConfs = genTraefikConfs(v.pektinConfig, node);
+            const traefikConfs = genTraefikConfs({
+                pektinConfig: v.pektinConfig,
+                node,
+                tempDomain: v.tempDomain,
+            });
             await fs.writeFile(
                 path.join(dir, `arbeiter`, node.name, `secrets`, `traefik`, `dynamic.yml`),
                 traefikConfs.dynamic

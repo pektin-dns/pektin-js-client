@@ -3,10 +3,16 @@ import _ from "lodash";
 import yaml from "yaml";
 import { concatDomain } from "../index.js";
 import { getNodesNameservers } from "../pureFunctions.js";
+import { TempDomain } from "../types.js";
+import { genTempDomainConfig } from "./tempDomain.js";
 
 // TODO fix everything for IDNs
 
-const externalProxyServices: { name: `gandi` | `crt`; url: string; allowedMethods: string }[] = [
+export const externalProxyServices: {
+    name: `gandi` | `crt`;
+    url: string;
+    allowedMethods: string;
+}[] = [
     {
         name: `gandi`,
         url: `https://api.gandi.net/v5`,
@@ -19,31 +25,38 @@ const externalProxyServices: { name: `gandi` | `crt`; url: string; allowedMethod
     },
 ];
 
-export const genTraefikConfs = (
-    pektinConfig: PektinConfig,
-    node: PektinConfig[`nodes`][0],
-    recursorAuth?: string
-) => {
+export const genTraefikConfs = ({
+    pektinConfig,
+    node,
+    recursorAuth,
+    tempDomain,
+}: {
+    readonly pektinConfig: PektinConfig;
+    readonly node: PektinConfig[`nodes`][0];
+    readonly recursorAuth?: string;
+    readonly tempDomain?: TempDomain;
+}) => {
     const nodeNameServers = getNodesNameservers(pektinConfig, node.name);
     if (!nodeNameServers) throw Error(`Could not get NS for node`);
     const enabledServices = Object.values(pektinConfig.services).filter((s) => s.enabled);
 
-    const p = externalProxyServices
-        .filter((p) => pektinConfig.reverseProxy.external.services[p.name])
-        .map((proxy) => proxyConf({ ...proxy, pektinConfig }));
-
-    const s = enabledServices.map((s, i) =>
-        pektinServicesConf({
-            service: Object.keys(pektinConfig.services)[i],
-            domain: s.domain,
-            subDomain: s.subDomain,
-            pektinConfig,
-        })
-    );
     const dynamicConf = _.merge(
         serverConf({ nodeNameServers, pektinConfig }),
-        ...(node.main ? s : []),
-        ...(node.main ? p : []),
+        ...(node.main
+            ? enabledServices.map((s, i) =>
+                  pektinServicesConf({
+                      service: Object.keys(pektinConfig.services)[i],
+                      domain: s.domain,
+                      subDomain: s.subDomain,
+                      pektinConfig,
+                  })
+              )
+            : []),
+        ...(node.main
+            ? externalProxyServices
+                  .filter((p) => pektinConfig.reverseProxy.external.services[p.name])
+                  .map((proxy) => proxyConf({ ...proxy, pektinConfig }))
+            : []),
         tlsConfig(pektinConfig),
         pektinConfig.reverseProxy.tls ? redirectHttps() : {},
         node.main && recursorAuth
@@ -55,9 +68,21 @@ export const genTraefikConfs = (
     );
     const staticConf = _.merge(genStaticConf(pektinConfig));
 
+    const yamlOptions: yaml.Options = { indent: 4, version: `1.1` };
     return {
-        dynamic: yaml.stringify(dynamicConf, { indent: 4 }),
-        static: yaml.stringify(staticConf, { indent: 4 }),
+        dynamic: yaml.stringify(dynamicConf, yamlOptions),
+        static: yaml.stringify(staticConf, yamlOptions),
+        ...(tempDomain && {
+            tempDomain: yaml.stringify(
+                genTempDomainConfig({
+                    pektinConfig,
+                    node,
+                    recursorAuth,
+                    tempDomain,
+                }),
+                yamlOptions
+            ),
+        }),
     };
 };
 export const serverConf = ({
@@ -93,6 +118,8 @@ export const serverConf = ({
                 },
             },
         },
+        /*
+        as soon as traefik add dtls
         udp: {
             routers: {
                 "pektin-server-udp": {
@@ -106,7 +133,7 @@ export const serverConf = ({
                     loadbalancer: { servers: [{ address: `pektin-server:53` }] },
                 },
             },
-        },
+        },*/
         http: {
             routers: {
                 "pektin-server-http": {
@@ -365,12 +392,12 @@ export const genStaticConf = (pektinConfig: PektinConfig) => {
         },
         providers: {
             docker: { exposedbydefault: false },
-            file: { filename: `/traefik/dynamic.yml`, watch: true },
+            file: { directory: `/traefik/dynamic/`, watch: true },
         },
         ...(pektinConfig.reverseProxy.tls && { experimental: { http3: true } }),
         entryPoints: {
             "pektin-server-tcp": { address: `:853/tcp` },
-            "pektin-server-udp": { address: `:853/udp` },
+            // "pektin-server-udp": { address: `:853/udp` },
             web: { address: `:80/tcp` },
             ...(pektinConfig.reverseProxy.tls && { websecure: { address: `:443`, http3: {} } }),
         },
@@ -380,9 +407,20 @@ export const genStaticConf = (pektinConfig: PektinConfig) => {
                     acme: {
                         dnschallenge: { provider: `pektin` },
                         email: pektinConfig.certificates.letsencryptEmail,
-                        storage: `/letsencrypt/acme.json`,
+                        storage: `/letsencrypt/default.json`,
                     },
                 },
+                ...(pektinConfig.reverseProxy.tempPektinZone && {
+                    tempDomain: {
+                        acme: {
+                            email: pektinConfig.certificates.letsencryptEmail,
+                            storage: `/letsencrypt/tempDomain.json`,
+                            httpChallenge: {
+                                entryPoint: `web`,
+                            },
+                        },
+                    },
+                }),
             },
         }),
     };

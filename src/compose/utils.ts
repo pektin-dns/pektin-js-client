@@ -77,3 +77,8 @@ export const configToCertbotIni = (
 dns_pektin_confidant_password = ${cc.confidantPassword}
 dns_pektin_api_endpoint = ${cc.override?.pektinApiEndpoint}
 `;
+
+export const requestPektinDomain = () => {
+    const a = randomString(10).toLowerCase().replaceAll(/[-_]/g, `x`);
+    return { domain: a, zoneDomain: `pektin.zone` };
+};

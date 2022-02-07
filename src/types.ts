@@ -1,5 +1,10 @@
 import { PektinConfig } from "@pektin/config/src/config-types.js";
 
+export interface TempDomain {
+    domain: string;
+    zoneDomain: string;
+}
+
 export interface SNSNameserver {
     name: string;
     ips?: string[];
