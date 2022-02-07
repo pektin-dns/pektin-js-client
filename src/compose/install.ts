@@ -46,7 +46,7 @@ export const installPektinCompose = async (
     );
 
     // creates secrets directory
-    await fs.mkdir(path.join(dir, `secrets`)).catch(() => {});
+    await fs.mkdir(path.join(dir, `secrets`), { recursive: true }).catch(() => {});
 
     // HTTP API CALL RELATED
     // init vault
@@ -252,7 +252,9 @@ export const installPektinCompose = async (
 
     await setRedisPasswordHashes(redisPasswords, pektinConfig, dir);
 
-    await fs.mkdir(path.join(dir, `secrets`, `traefik`, `dynamic`)).catch(() => {});
+    await fs
+        .mkdir(path.join(dir, `secrets`, `traefik`, `dynamic`), { recursive: true })
+        .catch(() => {});
 
     const traefikConfs = genTraefikConfs({
         pektinConfig,
@@ -288,6 +290,8 @@ export const installPektinCompose = async (
     await createStopScript(pektinConfig, dir);
     await createUpdateScript(pektinConfig, dir);
 
+    await fs.mkdir(path.join(dir, `secrets`, `letsencrypt`), { recursive: true }).catch(() => {});
+
     // change ownership of all created files to host user
     // also chmod 700 all secrets except for redis ACL
     await chown(path.join(dir, `start.sh`), process.env.UID, process.env.GID);
@@ -320,21 +324,29 @@ export const createArbeiterConfig = async (
     },
     dir: string
 ) => {
-    await fs.mkdir(path.join(dir, `arbeiter`)).catch(() => {});
+    await fs.mkdir(path.join(dir, `arbeiter`), { recursive: true }).catch(() => {});
 
     for (let i = 0; i < v.pektinConfig.nodes.length; i++) {
         const node = v.pektinConfig.nodes[i];
 
         if (!node.main) {
-            await fs.mkdir(path.join(dir, `arbeiter`, node.name)).catch(() => {});
-
-            await fs.mkdir(path.join(dir, `arbeiter`, node.name, `secrets`)).catch(() => {});
+            await fs
+                .mkdir(path.join(dir, `arbeiter`, node.name), { recursive: true })
+                .catch(() => {});
 
             await fs
-                .mkdir(path.join(dir, `arbeiter`, node.name, `secrets`, `traefik`))
+                .mkdir(path.join(dir, `arbeiter`, node.name, `secrets`), { recursive: true })
+                .catch(() => {});
+
+            await fs
+                .mkdir(path.join(dir, `arbeiter`, node.name, `secrets`, `traefik`), {
+                    recursive: true,
+                })
                 .catch(() => {});
             await fs
-                .mkdir(path.join(dir, `arbeiter`, node.name, `secrets`, `redis`))
+                .mkdir(path.join(dir, `arbeiter`, node.name, `secrets`, `redis`), {
+                    recursive: true,
+                })
                 .catch(() => {});
             const R_PEKTIN_SERVER_PASSWORD = randomString();
             const redisAclFile = await setRedisPasswordHashes(
@@ -472,7 +484,7 @@ export const setRedisPasswordHashes = async (
     if (arbeiter) {
         return file;
     }
-    await fs.mkdir(path.join(dir, `secrets`, `redis`)).catch(() => {});
+    await fs.mkdir(path.join(dir, `secrets`, `redis`), { recursive: true }).catch(() => {});
     await fs.writeFile(path.join(dir, `secrets`, `redis`, `users.acl`), file);
     //crypto.create;
 };
