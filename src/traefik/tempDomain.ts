@@ -9,13 +9,11 @@ export const genTempDomainConfig = ({
     node,
     recursorAuth,
     tempDomain,
-    proxyAuth,
 }: {
     readonly pektinConfig: PektinConfig;
     readonly node: PektinConfig[`nodes`][0];
     readonly recursorAuth?: string;
     readonly tempDomain: TempDomain;
-    readonly proxyAuth?: string;
 }) => {
     const nodeNameServers = getNodesNameservers(pektinConfig, node.name);
     if (!nodeNameServers) throw Error(`Could not get NS for node`);
@@ -36,7 +34,7 @@ export const genTempDomainConfig = ({
         ...(node.main
             ? externalProxyServices
                   .filter((p) => pektinConfig.reverseProxy.external.services[p.name])
-                  .map((proxy) => genTempProxyConf({ ...proxy, pektinConfig, proxyAuth }))
+                  .map((proxy) => genTempProxyConf({ ...proxy, pektinConfig }))
             : []),
         node.main && recursorAuth
             ? genTempRecursorConf({
@@ -251,14 +249,11 @@ export const genTempProxyConf = ({
     pektinConfig,
     name,
     tempDomain,
-    proxyAuth,
 }: {
     pektinConfig: PektinConfig;
     name: string;
     tempDomain?: TempDomain;
-    proxyAuth?: string;
 }) => {
-    if (!proxyAuth) return {};
     const rp = pektinConfig.reverseProxy;
 
     // whether or not to apply the temp domain
@@ -284,7 +279,7 @@ export const genTempProxyConf = ({
                 [`proxy-${name}`]: {
                     ...(tls && { tls }),
                     entrypoints: rp.tls ? `websecure` : `web`,
-                    middlewares: [`strip-proxy`, `cors-${name}`],
+                    middlewares: [`strip-proxy`, `cors-${name}`, `pektin-proxy-auth`],
                     service: `proxy-${name}`,
                     rule: (() => {
                         if (rp.routing === `domain`) {

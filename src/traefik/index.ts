@@ -84,7 +84,6 @@ export const genTraefikConfs = ({
                         node,
                         recursorAuth,
                         tempDomain,
-                        proxyAuth,
                     }),
                     yamlOptions
                 ),
@@ -253,7 +252,7 @@ export const proxyConf = ({
                 [`proxy-${name}`]: {
                     ...(tls && { tls }),
                     entrypoints: rp.tls ? `websecure` : `web`,
-                    middlewares: [`strip-proxy`, `cors-${name}`],
+                    middlewares: [`strip-proxy`, `cors-${name}`, `pektin-proxy-auth`],
                     service: `proxy-${name}`,
                     rule: (() => {
                         if (rp.routing === `domain`) {
@@ -296,6 +295,7 @@ export const proxyConf = ({
                         accessControlMaxAge: 86400,
                     },
                 },
+                "pektin-proxy-auth": { basicauth: { users: proxyAuth } },
             },
         },
     };
