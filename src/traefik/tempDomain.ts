@@ -260,7 +260,7 @@ export const genTempProxyConf = ({
                         `pektin-proxy-cors-${name}`,
                         `pektin-proxy-auth`,
                     ],
-                    service: `pektin-proxy-proxy-${name}`,
+                    service: `pektin-proxy-${name}`,
                     rule: (() => {
                         if (rp.routing === `domain`) {
                             return `Host(\`${toASCII(

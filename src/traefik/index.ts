@@ -257,7 +257,7 @@ export const proxyConf = ({
                         `pektin-proxy-cors-${name}`,
                         `pektin-proxy-auth`,
                     ],
-                    service: `proxy-${name}`,
+                    service: `pektin-proxy-${name}`,
                     rule: (() => {
                         if (rp.routing === `domain`) {
                             return `Host(\`${concatDomain(
@@ -275,7 +275,7 @@ export const proxyConf = ({
                 },
             },
             services: {
-                [`pektin-proxy-proxy-${name}`]: {
+                [`pektin-proxy-${name}`]: {
                     loadBalancer: {
                         passHostHeader: false,
                         servers: [
