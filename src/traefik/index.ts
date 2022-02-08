@@ -30,11 +30,13 @@ export const genTraefikConfs = ({
     node,
     recursorAuth,
     tempDomain,
+    proxyAuth,
 }: {
     readonly pektinConfig: PektinConfig;
     readonly node: PektinConfig[`nodes`][0];
     readonly recursorAuth?: string;
     readonly tempDomain?: TempDomain;
+    readonly proxyAuth?: string;
 }) => {
     const nodeNameServers = getNodesNameservers(pektinConfig, node.name);
     if (!nodeNameServers) throw Error(`Could not get NS for node`);
@@ -55,7 +57,7 @@ export const genTraefikConfs = ({
         ...(node.main
             ? externalProxyServices
                   .filter((p) => pektinConfig.reverseProxy.external.services[p.name])
-                  .map((proxy) => proxyConf({ ...proxy, pektinConfig }))
+                  .map((proxy) => proxyConf({ ...proxy, pektinConfig, proxyAuth }))
             : []),
         tlsConfig(pektinConfig),
         pektinConfig.reverseProxy.tls ? redirectHttps() : {},
@@ -82,6 +84,7 @@ export const genTraefikConfs = ({
                         node,
                         recursorAuth,
                         tempDomain,
+                        proxyAuth,
                     }),
                     yamlOptions
                 ),
@@ -225,12 +228,15 @@ export const proxyConf = ({
     name,
     url,
     allowedMethods,
+    proxyAuth,
 }: {
     pektinConfig: PektinConfig;
     name: string;
     url: string;
     allowedMethods: string;
+    proxyAuth?: string;
 }) => {
+    if (!proxyAuth) return {};
     const rp = pektinConfig.reverseProxy;
     const domain = toASCII(rp.external.domain);
     const subDomain = toASCII(rp.external.subDomain);

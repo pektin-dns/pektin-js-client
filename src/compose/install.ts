@@ -199,6 +199,11 @@ export const installPektinCompose = async (
     const RECURSOR_PASSWORD = randomString();
     const recursorBasicAuthHashed = genBasicAuthHashed(RECURSOR_USER, RECURSOR_PASSWORD);
 
+    // create basic auth for recursor
+    const PROXY_USER = randomString(20);
+    const PROXY_PASSWORD = randomString();
+    const proxyBasicAuthHashed = genBasicAuthHashed(PROXY_USER, PROXY_PASSWORD);
+
     // set recursor basic auth string on vault
     await updateKvValue(
         internalVaultUrl,
@@ -206,6 +211,15 @@ export const installPektinCompose = async (
         `recursor-auth`,
         {
             basicAuth: genBasicAuthString(RECURSOR_USER, RECURSOR_PASSWORD),
+        },
+        `pektin-kv`
+    );
+    await updateKvValue(
+        internalVaultUrl,
+        vaultTokens.rootToken,
+        `proxy-auth`,
+        {
+            basicAuth: genBasicAuthString(PROXY_USER, PROXY_PASSWORD),
         },
         `pektin-kv`
     );
@@ -261,6 +275,7 @@ export const installPektinCompose = async (
         node: getMainNode(pektinConfig),
         recursorAuth: recursorBasicAuthHashed,
         tempDomain,
+        proxyAuth: proxyBasicAuthHashed,
     });
     await fs.writeFile(
         path.join(dir, `secrets`, `traefik`, `dynamic`, `default.yml`),
