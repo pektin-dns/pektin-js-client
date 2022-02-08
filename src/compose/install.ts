@@ -267,7 +267,11 @@ export const installPektinCompose = async (
         traefikConfs.dynamic
     );
     await fs.writeFile(path.join(dir, `secrets`, `traefik`, `static.yml`), traefikConfs.static);
-    if (pektinConfig.reverseProxy.tempPektinZone && traefikConfs.tempDomain) {
+    if (
+        pektinConfig.reverseProxy.tempPektinZone &&
+        traefikConfs.tempDomain &&
+        pektinConfig.reverseProxy.routing === `domain`
+    ) {
         await fs.writeFile(
             path.join(dir, `secrets`, `traefik`, `dynamic`, `tempDomain.yml`),
             traefikConfs.tempDomain
@@ -396,7 +400,11 @@ export const createArbeiterConfig = async (
                 path.join(dir, `arbeiter`, node.name, `secrets`, `traefik`, `static.yml`),
                 traefikConfs.static
             );
-            if (v.pektinConfig.reverseProxy.tempPektinZone && traefikConfs.tempDomain) {
+            if (
+                v.pektinConfig.reverseProxy.tempPektinZone &&
+                traefikConfs.tempDomain &&
+                v.pektinConfig.reverseProxy.routing === `domain`
+            ) {
                 await fs.writeFile(
                     path.join(
                         dir,
