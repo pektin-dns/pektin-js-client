@@ -249,10 +249,14 @@ export const proxyConf = ({
     return {
         http: {
             routers: {
-                [`proxy-${name}`]: {
+                [`pektin-proxy-${name}`]: {
                     ...(tls && { tls }),
                     entrypoints: rp.tls ? `websecure` : `web`,
-                    middlewares: [`strip-proxy`, `cors-${name}`, `pektin-proxy-auth`],
+                    middlewares: [
+                        `pektin-proxy-strip-proxy`,
+                        `pektin-proxy-cors-${name}`,
+                        `pektin-proxy-auth`,
+                    ],
                     service: `proxy-${name}`,
                     rule: (() => {
                         if (rp.routing === `domain`) {
@@ -271,7 +275,7 @@ export const proxyConf = ({
                 },
             },
             services: {
-                [`proxy-${name}`]: {
+                [`pektin-proxy-proxy-${name}`]: {
                     loadBalancer: {
                         passHostHeader: false,
                         servers: [
@@ -283,12 +287,12 @@ export const proxyConf = ({
                 },
             },
             middlewares: {
-                "strip-proxy": {
+                "pektin-proxy-strip-proxy": {
                     stripPrefixRegex: {
                         regex: [`^\/proxy-[^/]{1,}`],
                     },
                 },
-                [`cors-${name}`]: {
+                [`pektin-proxy-cors-${name}`]: {
                     headers: {
                         accessControlAllowMethods: allowedMethods,
                         accessControlAllowOriginlist: `*`,

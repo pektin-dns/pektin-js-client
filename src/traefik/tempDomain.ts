@@ -39,7 +39,6 @@ export const genTempDomainConfig = ({
         node.main && recursorAuth
             ? genTempRecursorConf({
                   pektinConfig,
-                  recursorAuth,
                   tempDomain,
               })
             : {}
@@ -83,7 +82,7 @@ export const genTempServerConf = ({
     return {
         tcp: {
             routers: {
-                "pektin-server-tcp": {
+                "pektin-temp-server-tcp": {
                     ...(tls && { tls }),
                     rule: `HostSNI(${getNsList(nns, false)})`,
                     entrypoints: `pektin-server-tcp`,
@@ -103,7 +102,7 @@ export const genTempServerConf = ({
         },*/,
         http: {
             routers: {
-                "pektin-server-http": {
+                "pektin-temp-server-http": {
                     ...(tls && { tls }),
                     rule: (() => {
                         if (rp.routing === `domain`) {
@@ -120,11 +119,9 @@ export const genTempServerConf = ({
 
 export const genTempRecursorConf = ({
     pektinConfig,
-    recursorAuth,
     tempDomain,
 }: {
     pektinConfig: PektinConfig;
-    recursorAuth: string;
     tempDomain?: TempDomain;
 }) => {
     const rp = pektinConfig.reverseProxy;
@@ -149,7 +146,7 @@ export const genTempRecursorConf = ({
     return {
         http: {
             routers: {
-                "pektin-recursor": {
+                "pektin-temp-recursor": {
                     ...(tls && { tls }),
                     rule: (() => {
                         if (rp.routing === `domain`) {
@@ -163,27 +160,6 @@ export const genTempRecursorConf = ({
                     })(),
                     entrypoints: rp.tls ? `websecure` : `web`,
                     middlewares: [`pektin-recursor-cors`, `pektin-recursor-auth`],
-                },
-            },
-            middlewares: {
-                "pektin-recursor-cors": {
-                    headers: {
-                        accessControlAllowMethods: `GET,OPTIONS,POST`,
-                        accessControlAllowOriginlist: `*`,
-                        accessControlAllowHeaders: `authorization,content-type`,
-                        accessControlMaxAge: 86400,
-                    },
-                },
-                "pektin-recursor-auth": { basicauth: { users: recursorAuth } },
-            },
-            services: {
-                "pektin-recursor": {
-                    loadbalancer: {
-                        servers: {
-                            schema: `h2c`,
-                            url: `http://pektin-recursor`,
-                        },
-                    },
                 },
             },
         },
@@ -276,11 +252,15 @@ export const genTempProxyConf = ({
     return {
         http: {
             routers: {
-                [`proxy-${name}`]: {
+                [`pektin-temp-proxy-${name}`]: {
                     ...(tls && { tls }),
                     entrypoints: rp.tls ? `websecure` : `web`,
-                    middlewares: [`strip-proxy`, `cors-${name}`, `pektin-proxy-auth`],
-                    service: `proxy-${name}`,
+                    middlewares: [
+                        `pektin-proxy-strip-proxy`,
+                        `pektin-proxy-cors-${name}`,
+                        `pektin-proxy-auth`,
+                    ],
+                    service: `pektin-proxy-proxy-${name}`,
                     rule: (() => {
                         if (rp.routing === `domain`) {
                             return `Host(\`${toASCII(
