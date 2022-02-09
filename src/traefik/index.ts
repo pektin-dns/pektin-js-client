@@ -26,6 +26,8 @@ export const externalProxyServices: {
     },
 ];
 
+// TODO add traefik UI with auth
+
 export const genTraefikConfs = ({
     pektinConfig,
     node,

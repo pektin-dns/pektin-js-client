@@ -343,22 +343,12 @@ export const createArbeiterConfig = async (
     },
     dir: string
 ) => {
-    await fs.mkdir(path.join(dir, `arbeiter`), { recursive: true }).catch(() => {});
-
     for (let i = 0; i < v.pektinConfig.nodes.length; i++) {
         const node = v.pektinConfig.nodes[i];
 
         if (!node.main) {
             await fs
-                .mkdir(path.join(dir, `arbeiter`, node.name), { recursive: true })
-                .catch(() => {});
-
-            await fs
-                .mkdir(path.join(dir, `arbeiter`, node.name, `secrets`), { recursive: true })
-                .catch(() => {});
-
-            await fs
-                .mkdir(path.join(dir, `arbeiter`, node.name, `secrets`, `traefik`), {
+                .mkdir(path.join(dir, `arbeiter`, node.name, `secrets`, `traefik`, `dynamic`), {
                     recursive: true,
                 })
                 .catch(() => {});
@@ -446,7 +436,7 @@ export const createArbeiterConfig = async (
             file += `# Some commands for debugging\n`;
             file += `# Logs into redis (then try 'KEYS *' for example to get all record keys):\n`;
             file += `# bash -c 'docker exec -it $(docker ps --filter name=pektin-redis --format {{.ID}}) redis-cli --pass ${R_PEKTIN_SERVER_PASSWORD} --user r-pektin-server'`;
-            const composeCommand = `docker-compose --env-file secrets/.env -f pektin-compose/arbeiter/base.yml -f pektin-compose/arbeiter/traefik-config.yml -f pektin-compose/traefik.yml`;
+            const composeCommand = `docker-compose --env-file secrets/.env -f pektin-compose/arbeiter/base.yml -f pektin-compose/traefik.yml`;
 
             await fs.writeFile(path.join(dir, `arbeiter`, node.name, `secrets`, `.env`), file);
             const startScript = `${composeCommand} up -d`;
