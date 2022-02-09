@@ -27,6 +27,7 @@ import { genTraefikConfs } from "../traefik/index.js";
 import { getMainNode } from "../pureFunctions.js";
 import { TempDomain } from "../types.js";
 import { concatDomain } from "../utils/index.js";
+import { toASCII } from "../utils/puny.js";
 
 export const installPektinCompose = async (
     dir: string = `/pektin-compose/`,
@@ -531,7 +532,7 @@ const createCspConnectSources = (c: PektinConfig, tempDomain: TempDomain) => {
         }
     });
 
-    if (sources.length) sources.forEach((e) => (connectSources += ` ` + e));
+    if (sources.length) sources.forEach((e) => (connectSources += ` ` + toASCII(e)));
     return connectSources;
 };
 
