@@ -283,7 +283,7 @@ export const installPektinCompose = async (
     );
     await fs.writeFile(path.join(dir, `secrets`, `traefik`, `static.yml`), traefikConfs.static);
     if (
-        pektinConfig.reverseProxy.tempPektinZone &&
+        pektinConfig.reverseProxy.tempZone.enabled &&
         traefikConfs.tempDomain &&
         pektinConfig.reverseProxy.routing === `domain`
     ) {
@@ -416,7 +416,7 @@ export const createArbeiterConfig = async (
                 traefikConfs.static
             );
             if (
-                v.pektinConfig.reverseProxy.tempPektinZone &&
+                v.pektinConfig.reverseProxy.tempZone.enabled &&
                 traefikConfs.tempDomain &&
                 v.pektinConfig.reverseProxy.routing === `domain`
             ) {
@@ -563,6 +563,8 @@ export const envSetValues = async (
         [`UI_BUILD_PATH`, v.pektinConfig.build.ui.path],
         [`API_BUILD_PATH`, v.pektinConfig.build.api.path],
         [`SERVER_BUILD_PATH`, v.pektinConfig.build.server.path],
+        [`RECURSOR_BUILD_PATH`, v.pektinConfig.build.recursor.path],
+        [`RIBSTON_BUILD_PATH`, v.pektinConfig.build.ribston.path],
     ];
     let file = `# DO NOT EDIT THESE VARIABLES MANUALLY  \n`;
     repls.forEach((repl) => {
@@ -632,13 +634,30 @@ export const activeComposeFiles = (pektinConfig: PektinConfig) => {
     if (pektinConfig.nodes.length > 1) {
         composeCommand += ` -f pektin-compose/gewerkschaft-config.yml`;
     }
-
     if (pektinConfig.build.api.enabled) {
         composeCommand += ` -f pektin-compose/from-source/api.yml`;
     }
+    if (pektinConfig.services.ui.enabled) {
+        composeCommand += ` -f pektin-compose/ui/ribston.yml`;
+        if (pektinConfig.build.ui.enabled) {
+            composeCommand += ` -f pektin-compose/from-source/ui.yml`;
+        }
+    }
+    if (pektinConfig.services.ribston.enabled) {
+        composeCommand += ` -f pektin-compose/services/ribston.yml`;
+        if (pektinConfig.build.ribston.enabled) {
+            composeCommand += ` -f pektin-compose/from-source/ribston.yml`;
+        }
+    }
+    if (pektinConfig.services.opa.enabled) {
+        composeCommand += ` -f pektin-compose/services/opa.yml`;
+    }
 
-    if (pektinConfig.build.ui.enabled) {
-        composeCommand += ` -f pektin-compose/from-source/ui.yml`;
+    if (pektinConfig.services.recursor.enabled) {
+        composeCommand += ` -f pektin-compose/services/recursor.yml`;
+        if (pektinConfig.build.recursor.enabled) {
+            composeCommand += ` -f pektin-compose/from-source/recursor.yml`;
+        }
     }
 
     if (pektinConfig.build.server.enabled) {

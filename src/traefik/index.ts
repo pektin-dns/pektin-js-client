@@ -7,6 +7,7 @@ import { TempDomain } from "../types.js";
 import { genTempDomainConfig } from "./tempDomain.js";
 
 // TODO fix everything for IDNs
+// TODO add traefik ui
 
 export const externalProxyServices: {
     name: `gandi` | `crt`;
@@ -40,7 +41,10 @@ export const genTraefikConfs = ({
 }) => {
     const nodeNameServers = getNodesNameservers(pektinConfig, node.name);
     if (!nodeNameServers) throw Error(`Could not get NS for node`);
-    const enabledServices = Object.values(pektinConfig.services).filter((s) => s.enabled);
+    const enabledServices = Object.values(pektinConfig.services).filter(
+        /*@ts-ignore*/
+        (s) => s.enabled !== false && s.hasOwnProperty(`domain`)
+    );
 
     const dynamicConf = _.merge(
         serverConf({ nodeNameServers, pektinConfig }),
@@ -48,7 +52,9 @@ export const genTraefikConfs = ({
             ? enabledServices.map((s, i) =>
                   pektinServicesConf({
                       service: Object.keys(pektinConfig.services)[i],
+                      /*@ts-ignore*/
                       domain: s.domain,
+                      /*@ts-ignore*/
                       subDomain: s.subDomain,
                       pektinConfig,
                   })
@@ -429,7 +435,7 @@ export const genStaticConf = (pektinConfig: PektinConfig) => {
                         storage: `/letsencrypt/default.json`,
                     },
                 },
-                ...(pektinConfig.reverseProxy.tempPektinZone && {
+                ...(pektinConfig.reverseProxy.tempZone.enabled && {
                     tempDomain: {
                         acme: {
                             email: emailToASCII(pektinConfig.certificates.letsencryptEmail),

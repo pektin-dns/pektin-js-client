@@ -115,12 +115,16 @@ export class PektinComposeClient extends PektinClient {
     private createPektinServiceEndpointsDNS = async (pektinConfig: PektinConfig) => {
         const mainNode = pektinConfig.nodes.filter((node) => node.main === true)[0];
 
-        const enabledServices = Object.values(pektinConfig.services).filter((s) => s.enabled);
+        const enabledServices = Object.values(pektinConfig.services).filter(
+            /*@ts-ignore*/
+            (s) => s.enabled !== false && s.hasOwnProperty(`domain`)
+        );
         const records: ApiRecord[] = [];
 
         enabledServices.forEach((s) => {
             if (mainNode.ips) {
                 records.push({
+                    /*@ts-ignore*/
                     name: absoluteName(concatDomain(s.domain, s.subDomain)),
                     rr_type: PektinRRType.AAAA,
                     rr_set: mainNode.ips.map((ip) => ({ ttl: 60, value: ip })),
@@ -128,6 +132,7 @@ export class PektinComposeClient extends PektinClient {
             }
             if (mainNode.legacyIps) {
                 records.push({
+                    /*@ts-ignore*/
                     name: absoluteName(concatDomain(s.domain, s.subDomain)),
                     rr_type: PektinRRType.A,
                     rr_set: mainNode.legacyIps.map((legacyIp) => ({

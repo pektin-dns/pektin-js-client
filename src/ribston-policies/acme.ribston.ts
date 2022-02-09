@@ -8,13 +8,7 @@ import {
     SetInput,
 } from "./ribston-types.js";
 
-type Input =
-    | GetInput
-    | GetZoneInput
-    | DeleteInput
-    | SetInput
-    | SearchInput
-    | HealthInput;
+type Input = GetInput | GetZoneInput | DeleteInput | SetInput | SearchInput | HealthInput;
 
 interface Output {
     error: boolean;
@@ -46,8 +40,7 @@ if (input.api_method === `get`) {
     if (
         !records.every(
             (record) =>
-                record.name.startsWith(`_acme-challenge`) &&
-                record.rr_type === PektinRRType.TXT
+                record.name.startsWith(`_acme-challenge`) && record.rr_type === PektinRRType.TXT
         )
     ) {
         err(`Invalid key`);
@@ -60,3 +53,5 @@ if (output.error === undefined) {
     output.error = false;
     output.message = `Success`;
 }
+
+output;
