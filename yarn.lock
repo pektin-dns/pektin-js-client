@@ -91,10 +91,10 @@
     lodash "^4.17.21"
     yaml "^1.10.2"
 
-"@pektin/config@^1.0.43":
-  version "1.0.43"
-  resolved "https://registry.yarnpkg.com/@pektin/config/-/config-1.0.43.tgz#ab729d7a0ea4ed07537ebed90591a4f988a49634"
-  integrity sha512-PpxannkDBO3o+DDsB7SpbsVObsZhA4DePv5nlOl3IpVLXYETt3qA9t+62WF55aOaVAH/yP+qEXIfvoN44epmLw==
+"@pektin/config@^1.0.46":
+  version "1.0.46"
+  resolved "https://registry.yarnpkg.com/@pektin/config/-/config-1.0.46.tgz#83019761883d2d724b94678d13995fff3a0f2c9b"
+  integrity sha512-HkoMQ1mbjSyP9MCrVoJqQ2eWew4uPxwzuGIoTxJELsaqRgITWi8CVwVQDTPw+GH+p6QFE1fGnBLWnN+QQfPO3Q==
   dependencies:
     "@pektin/client" "^1.1.32"
     ajv "^8.9.0"
