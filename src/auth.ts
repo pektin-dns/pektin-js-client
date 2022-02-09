@@ -4,8 +4,9 @@ import {
     DomainName,
     ManagerName,
     OfficerName,
+    OpaPolicy,
     RibstonPolicy,
-} from "./types.js";
+} from "./index.js";
 import { randomString } from "./compose/utils.js";
 import {
     pektinApiPolicy,
@@ -49,7 +50,8 @@ export const createPektinOfficer = async (
     token: string,
     clientName: string,
     password: string,
-    ribstonPolicy: RibstonPolicy
+    ribstonPolicy: RibstonPolicy,
+    opaPolicy: OpaPolicy
 ) => {
     const officerName: OfficerName = `pektin-officer-${clientName}`;
 
@@ -57,8 +59,8 @@ export const createPektinOfficer = async (
         endpoint,
         token,
         clientName,
-        { policy: ribstonPolicy },
-        `pektin-ribston-policies`
+        { ribstonPolicy, opaPolicy },
+        `pektin-policies`
     );
 
     await createVaultPolicy(endpoint, token, `pektin-officer`, pektinOfficerPolicy);
@@ -92,7 +94,8 @@ export const createPektinClient = async ({
         token,
         clientName,
         officerPassword,
-        capabilities.ribstonPolicy
+        capabilities.ribstonPolicy,
+        capabilities.opaPolicy
     );
     if (managerPassword) await createPektinManager(endpoint, token, clientName, managerPassword);
 

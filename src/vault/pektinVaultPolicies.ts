@@ -3,7 +3,7 @@ import { deAbsolute } from "../utils/index.js";
 import { VaultPolicy } from "./types.js";
 
 export const pektinOfficerPolicy = `
-path "pektin-ribston-policies/data/{{identity.entity.metadata.clientName}}" {
+path "pektin-policies/data/{{identity.entity.metadata.clientName}}" {
     capabilities = ["read"]
 }`;
 

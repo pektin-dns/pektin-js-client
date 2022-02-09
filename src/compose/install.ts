@@ -26,6 +26,7 @@ import { getPektinEndpoint } from "../index.js";
 import { genTraefikConfs } from "../traefik/index.js";
 import { getMainNode } from "../pureFunctions.js";
 import { TempDomain } from "../types.js";
+import { concatDomain } from "../utils/index.js";
 
 export const installPektinCompose = async (
     dir: string = `/pektin-compose/`,
@@ -88,7 +89,7 @@ export const installPektinCompose = async (
                 options: { type: `kv`, options: { version: 2 } },
             },
             {
-                path: `pektin-ribston-policies`,
+                path: `pektin-policies`,
                 options: { type: `kv`, options: { version: 2 } },
             },
         ],
@@ -153,6 +154,7 @@ export const installPektinCompose = async (
             recursorAccess: true,
             configAccess: true,
             ribstonPolicy: pektinAdminRibstonPolicy,
+            opaPolicy: ``, // TODO add OPA policies
         },
     });
 
@@ -182,6 +184,7 @@ export const installPektinCompose = async (
             capabilities: {
                 ribstonPolicy: acmeClientRibstonPolicy,
                 allowAllSigningDomains: true,
+                opaPolicy: ``, // TODO add OPA policies
             },
         });
         await fs.writeFile(
@@ -301,6 +304,7 @@ export const installPektinCompose = async (
             V_PEKTIN_API_PASSWORD,
             pektinConfig,
             recursorBasicAuthHashed,
+            tempDomain,
         },
         dir
     );
@@ -502,8 +506,31 @@ export const setRedisPasswordHashes = async (
     //crypto.create;
 };
 
-const addAllowedConnectSources = (connectSources: string) => {
+const createCspConnectSources = (c: PektinConfig, tempDomain: TempDomain) => {
     const sources: string[] = [];
+    let connectSources = ``;
+    Object.values(c.services).forEach((service) => {
+        /*@ts-ignore*/
+        if (service.enabled !== false && service.domain) {
+            /*@ts-ignore*/
+            const fd = concatDomain(service.domain, service.subDomain);
+            if (c.reverseProxy.routing === `local`) {
+                sources.push(concatDomain(`localhost`, fd));
+            } else if (c.reverseProxy.routing === `domain`) {
+                sources.push(fd);
+                if (c.reverseProxy.tempZone) {
+                    sources.push(
+                        concatDomain(
+                            concatDomain(tempDomain.zoneDomain, tempDomain.domain),
+                            /*@ts-ignore*/
+                            service.subDomain
+                        )
+                    );
+                }
+            }
+        }
+    });
+
     if (sources.length) sources.forEach((e) => (connectSources += ` ` + e));
     return connectSources;
 };
@@ -519,28 +546,10 @@ export const envSetValues = async (
             rootToken: string;
         };
         recursorBasicAuthHashed: string;
+        tempDomain: TempDomain;
     },
     dir: string
 ) => {
-    let CSP_CONNECT_SRC = ``;
-    // TODO reImplement this
-    /* 
-    if (v.pektinConfig.devmode.enabled && v.pektinConfig.devmode.type === `local`) {
-        CSP_CONNECT_SRC = `*`;
-    } else {
-        const enabledServices = [
-            v.pektinConfig.ui,
-            v.pektinConfig.api,
-            v.pektinConfig.vault,
-            v.pektinConfig.recursor,
-        ].filter((s) => s.enabled);
-        enabledServices.forEach((s, i) => {
-            if (i > 0) CSP_CONNECT_SRC += ` `;
-            CSP_CONNECT_SRC += concatDomain(s.domain, s.subDomain);
-        });
-    }
-    CSP_CONNECT_SRC = addAllowedConnectSources(CSP_CONNECT_SRC);
-*/
     const repls = [
         [`V_PEKTIN_API_PASSWORD`, v.V_PEKTIN_API_PASSWORD],
         [`R_PEKTIN_API_PASSWORD`, v.R_PEKTIN_API_PASSWORD],
@@ -548,13 +557,15 @@ export const envSetValues = async (
         [`V_KEY`, v.vaultTokens.key],
         [`V_ROOT_TOKEN`, v.vaultTokens.rootToken],
         [`LETSENCRYPT_EMAIL`, v.pektinConfig.certificates.letsencryptEmail],
-        [`CSP_CONNECT_SRC`, CSP_CONNECT_SRC],
+        [`CSP_CONNECT_SRC`, createCspConnectSources(v.pektinConfig, v.tempDomain)],
         [`RECURSOR_AUTH`, v.recursorBasicAuthHashed],
         [`UI_BUILD_PATH`, v.pektinConfig.build.ui.path],
         [`API_BUILD_PATH`, v.pektinConfig.build.api.path],
         [`SERVER_BUILD_PATH`, v.pektinConfig.build.server.path],
         [`RECURSOR_BUILD_PATH`, v.pektinConfig.build.recursor.path],
         [`RIBSTON_BUILD_PATH`, v.pektinConfig.build.ribston.path],
+        [`VAULT_BUILD_PATH`, v.pektinConfig.build.vault.path],
+        [`USE_POLICIES`, v.pektinConfig.usePolicies],
     ];
     let file = `# DO NOT EDIT THESE VARIABLES MANUALLY  \n`;
     repls.forEach((repl) => {
@@ -626,6 +637,9 @@ export const activeComposeFiles = (pektinConfig: PektinConfig) => {
     }
     if (pektinConfig.build.api.enabled) {
         composeCommand += ` -f pektin-compose/from-source/api.yml`;
+    }
+    if (pektinConfig.build.vault.enabled) {
+        composeCommand += ` -f pektin-compose/from-source/vault.yml`;
     }
     if (pektinConfig.services.ui.enabled) {
         composeCommand += ` -f pektin-compose/services/ui.yml`;

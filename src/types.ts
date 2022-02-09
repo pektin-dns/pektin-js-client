@@ -13,6 +13,7 @@ export interface SNSNameserver {
 
 export interface ClientCapabilities {
     ribstonPolicy: string;
+    opaPolicy: string;
     allowedSigningDomains?: string[];
     allowAllSigningDomains?: boolean;
     recursorAccess?: boolean;
@@ -30,7 +31,7 @@ export interface PektinZoneData {
 // TODO support dynDns
 
 export type RibstonPolicy = string; // A valid ribston policy
-
+export type OpaPolicy = string; // A valid opa policy
 export type ClientName = string;
 export type DomainName = string;
 export type ManagerName = `pektin-client-manager-${ClientName}`;
