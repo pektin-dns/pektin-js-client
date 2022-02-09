@@ -638,7 +638,7 @@ export const activeComposeFiles = (pektinConfig: PektinConfig) => {
         composeCommand += ` -f pektin-compose/from-source/api.yml`;
     }
     if (pektinConfig.services.ui.enabled) {
-        composeCommand += ` -f pektin-compose/ui/ribston.yml`;
+        composeCommand += ` -f pektin-compose/services/ui.yml`;
         if (pektinConfig.build.ui.enabled) {
             composeCommand += ` -f pektin-compose/from-source/ui.yml`;
         }
