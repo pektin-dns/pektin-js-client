@@ -56,6 +56,7 @@ export class PektinClient {
     internal: boolean;
 
     constructor(connectionConfig: PektinClientConnectionConfigOverride, throwErrors?: boolean) {
+        if (connectionConfig === undefined) throw Error(`Missing connectionConfig`);
         this.vaultEndpoint = connectionConfig.internal
             ? `http://pektin-vault`
             : connectionConfig.vaultEndpoint;
