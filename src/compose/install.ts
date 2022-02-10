@@ -33,13 +33,14 @@ export const installPektinCompose = async (
     dir: string = `/pektin-compose/`,
     internalVaultUrl: string = `http://pektin-vault`
 ) => {
-    if (process.env.UID === undefined || process.env.GID === undefined)
+    if (process.env.UID === undefined || process.env.GID === undefined) {
         throw Error(
             `No UID and/or GID defined. Current is: UID: ` +
                 process.env.UID +
                 `, GID: ` +
                 process.env.GID
         );
+    }
 
     const pektinConfig: PektinConfig = JSON.parse(
         await fs.readFile(path.join(dir, `pektin-config.json`), {
@@ -215,6 +216,7 @@ export const installPektinCompose = async (
         `recursor-auth`,
         {
             basicAuth: genBasicAuthString(RECURSOR_USER, RECURSOR_PASSWORD),
+            hashedAuth: recursorBasicAuthHashed,
         },
         `pektin-kv`
     );
@@ -224,6 +226,7 @@ export const installPektinCompose = async (
         `proxy-auth`,
         {
             basicAuth: genBasicAuthString(PROXY_USER, PROXY_PASSWORD),
+            hashedAuth: proxyBasicAuthHashed,
         },
         `pektin-kv`
     );
@@ -247,13 +250,20 @@ export const installPektinCompose = async (
     const redisPasswords = [
         [`R_PEKTIN_API_PASSWORD`, R_PEKTIN_API_PASSWORD],
         [`R_PEKTIN_SERVER_PASSWORD`, R_PEKTIN_SERVER_PASSWORD],
+        [`R_PEKTIN_GEWERKSCHAFT_PASSWORD`, R_PEKTIN_GEWERKSCHAFT_PASSWORD],
     ];
 
     const tempDomain = requestPektinDomain();
 
-    if (pektinConfig.nodes.length > 1) {
-        redisPasswords.push([`R_PEKTIN_GEWERKSCHAFT_PASSWORD`, R_PEKTIN_GEWERKSCHAFT_PASSWORD]);
+    await updateKvValue(
+        internalVaultUrl,
+        vaultTokens.rootToken,
+        `tempDomain`,
+        tempDomain,
+        `pektin-kv`
+    );
 
+    if (pektinConfig.nodes.length > 1) {
         await createArbeiterConfig(
             { R_PEKTIN_GEWERKSCHAFT_PASSWORD, pektinConfig, tempDomain },
             dir
@@ -313,6 +323,7 @@ export const installPektinCompose = async (
     await createStartScript(pektinConfig, dir);
     await createStopScript(pektinConfig, dir);
     await createUpdateScript(pektinConfig, dir);
+    await createUpdateConfigScript(pektinConfig, dir);
 
     await fs.mkdir(path.join(dir, `secrets`, `letsencrypt`), { recursive: true }).catch(() => {});
 
@@ -624,6 +635,19 @@ export const createUpdateScript = async (pektinConfig: PektinConfig, dir: string
     composeCommand += activeComposeFiles(pektinConfig);
 
     composeCommand += ` pull`;
+
+    file += composeCommand + `\n`;
+    file += `sh start.sh`;
+    await fs.writeFile(p, file);
+};
+
+export const createUpdateConfigScript = async (pektinConfig: PektinConfig, dir: string) => {
+    const p = path.join(dir, `updateConfig.sh`);
+    let file = `#!/bin/sh\n`;
+    let composeCommand = `
+docker build --no-cache -q ./scripts/update-config/ -t "pektin-compose-update-config"  > /dev/null
+docker run --env UID=$(id -u) --env GID=$(id -g) --name pektin-compose-update-config --network pektin-compose_vault --mount "type=bind,source=$PWD,dst=/pektin-compose/" -it pektin-compose-update-config
+`;
 
     file += composeCommand + `\n`;
     file += `sh start.sh`;

@@ -5,7 +5,7 @@ import {
     duplicateZoneConversion,
     getPektinConfig,
     getPektinEndpoint,
-    getRecursorAuth,
+    getAuth,
     getZoneRecords,
     health,
     search,
@@ -29,7 +29,7 @@ import {
     DomainName,
     get,
 } from "./index.js";
-import { vaultLoginUserpass } from "./vault/vault.js";
+import { getVaultValue, vaultLoginUserpass } from "./vault/vault.js";
 
 export class PektinClient {
     vaultEndpoint?: string;
@@ -41,6 +41,7 @@ export class PektinClient {
     managerPassword?: ManagerPassword;
 
     recursorAuth?: string;
+    proxyAuth?: string;
 
     throwErrors?: boolean;
 
@@ -98,7 +99,7 @@ export class PektinClient {
     };
 
     // gets the auth info for the recursor
-    getRecursorAuth = async () => {
+    getAuth = async (service: `recursor` | `proxy`, hashed = false) => {
         if (!this.vaultEndpoint) {
             throw Error(
                 `Tried to execute an action that requires the vault endpoint without it being supplied`
@@ -110,8 +111,26 @@ export class PektinClient {
                 throw Error(`Couldn't obtain vault token while getting config`);
             }
         }
-        this.recursorAuth = await getRecursorAuth(this.vaultEndpoint, this.confidantToken);
-        return this.recursorAuth;
+        const auth = await getAuth(this.vaultEndpoint, this.confidantToken, service, hashed);
+        this[`${service}Auth`] = auth;
+        return auth;
+    };
+
+    getPektinKv = async (key: string) => {
+        if (!this.vaultEndpoint) {
+            throw Error(
+                `Tried to execute an action that requires the vault endpoint without it being supplied`
+            );
+        }
+        if (!this.confidantToken) {
+            await this.getVaultToken(`confidant`);
+            if (!this.confidantToken) {
+                throw Error(`Couldn't obtain vault token while getting config`);
+            }
+        }
+        const res = await getVaultValue(this.vaultEndpoint, this.confidantToken, key, `pektin-kv`);
+        if (!res) throw Error(`Couldnt obtain ${key}`);
+        return res as Record<string, unknown>;
     };
 
     // obtain the vault token by sending username and password to the vault endpoint

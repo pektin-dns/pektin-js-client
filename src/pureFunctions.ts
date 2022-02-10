@@ -1,4 +1,4 @@
-import { DomainName, PektinConfig } from "@pektin/config/src/config-types";
+import { PektinConfig } from "@pektin/config/src/config-types";
 import { absoluteName, colors, concatDomain, ResourceRecord } from "./index.js";
 
 import f from "cross-fetch";
@@ -16,6 +16,7 @@ import {
     ConfidantPassword,
     DeleteResponse,
     DeleteResponseSuccess,
+    DomainName,
     GetResponse,
     GetResponseSuccess,
     GetZoneRecordsResponse,
@@ -84,9 +85,15 @@ export const getPektinEndpoint = (
     return `${protocol}://${host}`;
 };
 
-export const getRecursorAuth = async (vaultEndpoint: string, vaultToken: string) => {
-    const res = await getVaultValue(vaultEndpoint, vaultToken, `recursor-auth`, `pektin-kv`);
-    if (!res || !res.basicAuth) throw Error(`Couldnt obtain recursor auth`);
+export const getAuth = async (
+    vaultEndpoint: string,
+    vaultToken: string,
+    service: `recursor` | `proxy`,
+    hashed = false
+) => {
+    const res = await getVaultValue(vaultEndpoint, vaultToken, `${service}-auth`, `pektin-kv`);
+    if (!res || !res.basicAuth) throw Error(`Couldnt obtain ${service} auth`);
+    if (hashed) return res.hashedAuth as string;
     return res.basicAuth as string;
 };
 
