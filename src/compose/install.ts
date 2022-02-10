@@ -607,10 +607,11 @@ export const createStartScript = async (pektinConfig: PektinConfig, dir: string)
     // start vault
     file += `${composeCommand} vault\n`;
     // run pektin-start
-    file += `docker build --no-cache -q ./scripts/start/ -t "pektin-compose-start"  > /dev/null\n`;
-    file += `docker run --name pektin-compose-start --network container:pektin-vault --mount "type=bind,source=$PWD,dst=/pektin-compose/" -it pektin-compose-start\n`;
+    file += `
+docker rm pektin-scripts -v &> /dev/null 
+docker run --name pektin-scripts --network container:pektin-vault --mount "type=bind,source=$PWD,dst=/pektin-compose/" -it pektin-scripts node ./dist/js/compose/scripts.js start\n`;
     // remove pektin-start artifacts
-    file += `docker rm pektin-compose-start -v\n`;
+    file += `docker rm pektin-scripts -v &> /dev/null \n`;
     // compose up everything
     file += composeCommand;
 
@@ -645,10 +646,9 @@ export const createUpdateConfigScript = async (pektinConfig: PektinConfig, dir: 
     const p = path.join(dir, `updateConfig.sh`);
     let file = `#!/bin/sh\n`;
     let composeCommand = `
-docker rm pektin-compose-update-config -v &> /dev/null
+docker rm pektin-scripts -v &> /dev/null 
 
-docker build --no-cache -q ./scripts/update-config/ -t "pektin-compose-update-config"  > /dev/null
-docker run --env UID=$(id -u) --env GID=$(id -g) --name pektin-compose-update-config --network pektin-compose_vault --mount "type=bind,source=$PWD,dst=/pektin-compose/" -it pektin-compose-update-config
+docker run --env UID=$(id -u) --env GID=$(id -g) --name pektin-scripts --network pektin-compose_vault --mount "type=bind,source=$PWD,dst=/pektin-compose/" -it pektin-scripts node ./dist/js/compose/scripts.js update-config
 `;
 
     file += composeCommand + `\n`;
