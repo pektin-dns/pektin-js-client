@@ -68,8 +68,15 @@ export const getMainNode = (pektinConfig: PektinConfig) => {
 // get the pektin api endpoint from  the pektin config
 export const getPektinEndpoint = (
     c: PektinConfig,
-    endpointType: `api` | `vault` | `ui` | `recursor`
+    endpointType: `api` | `vault` | `ui` | `recursor`,
+    useInternal = false
 ): string => {
+    if (useInternal) {
+        if (endpointType === `api`) return `http://pektin-api`;
+        if (endpointType === `vault`) return `http://pektin-vault`;
+        if (endpointType === `ui`) return `http://pektin-ui`;
+        if (endpointType === `recursor`) return `http://pektin-recursor`;
+    }
     const domain = concatDomain(
         c.services[endpointType].domain,
         c.services[endpointType].subDomain

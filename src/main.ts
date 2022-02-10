@@ -53,20 +53,23 @@ export class PektinClient {
 
     pektinConfig: PektinConfig | null;
 
-    constructor(credentials: PektinClientConnectionConfigOverride, throwErrors?: boolean) {
-        this.vaultEndpoint = credentials.vaultEndpoint;
-        this.username = credentials.username;
+    internal: boolean;
 
-        this.confidantPassword = checkConfidantPassword(credentials.confidantPassword);
+    constructor(connectionConfig: PektinClientConnectionConfigOverride, throwErrors?: boolean) {
+        this.vaultEndpoint = connectionConfig.vaultEndpoint;
+        this.username = connectionConfig.username;
 
-        this.managerPassword = checkManagerPassword(credentials.managerPassword);
+        this.confidantPassword = checkConfidantPassword(connectionConfig.confidantPassword);
+
+        this.managerPassword = checkManagerPassword(connectionConfig.managerPassword);
 
         this.confidantToken = null;
         this.managerToken = null;
 
-        this.pektinApiEndpoint = credentials.override?.pektinApiEndpoint || null;
-        this.pektinConfig = credentials.override?.pektinConfig || null;
+        this.pektinApiEndpoint = connectionConfig.override?.pektinApiEndpoint || null;
+        this.pektinConfig = connectionConfig.override?.pektinConfig || null;
         this.throwErrors = throwErrors;
+        this.internal = connectionConfig.internal || false;
     }
 
     init = async () => {
@@ -297,7 +300,7 @@ export class PektinClient {
     getPektinEndpoint = async (type: `api` | `vault` | `ui` | `recursor`) => {
         if (!this.pektinConfig) await this.getPektinConfig();
         if (!this.pektinConfig) throw Error(`Couldn't obtain pektin-config`);
-        return getPektinEndpoint(this.pektinConfig, type);
+        return getPektinEndpoint(this.pektinConfig, type, this.internal);
     };
 
     getDomains = async (): Promise<string[]> =>

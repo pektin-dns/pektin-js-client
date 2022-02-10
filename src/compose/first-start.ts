@@ -19,12 +19,8 @@ export const pektinComposeFirstStart = async (recursive: any) => {
 
     if (pektinConfig.nameservers?.length) {
         const pc = new PektinComposeClient({
-            confidantPassword: adminCreds.confidantPassword,
-            vaultEndpoint: `http://pektin-vault`,
-            username: adminCreds.username,
-            override: {
-                pektinApiEndpoint: `http://pektin-api`,
-            },
+            ...adminCreds,
+            internal: true,
         });
 
         await pc.setup(pektinConfig);

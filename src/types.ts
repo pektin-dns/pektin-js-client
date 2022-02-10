@@ -49,6 +49,7 @@ export interface PektinClientConnectionConfig {
     username: string;
     confidantPassword?: ConfidantPassword;
     managerPassword?: ManagerPassword;
+    internal?: boolean;
 }
 
 export interface PektinClientConnectionConfigOverride extends PektinClientConnectionConfig {

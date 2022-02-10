@@ -1,19 +1,19 @@
 import { promises as fs } from "fs";
 import path from "path";
 import { chownRecursive, chown, chmod, randomString, configToCertbotIni } from "./utils.js";
-
 import { unsealVault } from "./../vault/vault.js";
 import { PektinClientConnectionConfigOverride } from "./../index.js";
 import { PektinConfig } from "@pektin/config/src/config-types.js";
 import { config } from "dotenv";
-config({ path: `/pektin-compose/secrets/.env` });
 import { createPektinClient, createPektinSigner, updatePektinSharedPasswords } from "./../auth.js";
 import { getPektinEndpoint } from "../index.js";
 import { genTraefikConfs } from "../traefik/index.js";
 import { getMainNode } from "../pureFunctions.js";
 import { createStartScript, createStopScript, createUpdateScript } from "./install.js";
-import { PektinClient } from "../main.js";
 import { TempDomain } from "../types.js";
+import { PektinComposeClient } from "./first-start.js";
+
+config({ path: `/pektin-compose/secrets/.env` });
 
 export const updateConfig = async (
     dir: string = `/pektin-compose/`,
@@ -39,7 +39,10 @@ export const updateConfig = async (
         })
     );
 
-    const pc = new PektinClient(adminPC3);
+    const pc = new PektinComposeClient({
+        ...adminPC3,
+        internal: true,
+    });
 
     if (process.env.V_KEY === undefined || process.env.V_ROOT_TOKEN === undefined) {
         throw Error(`Undefined vault key and/or root token`);
