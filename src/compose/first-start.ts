@@ -8,7 +8,7 @@ import { absoluteName, concatDomain } from "../index.js";
 
 const dir = `/pektin-compose/`;
 
-export const pektinComposeFirstStart = async (recursive: any) => {
+export const pektinComposeFirstStart = async () => {
     const pektinConfig = JSON.parse(
         await fs.readFile(path.join(dir, `pektin-config.json`), `utf-8`)
     ) as PektinConfig;
@@ -31,8 +31,7 @@ export const pektinComposeFirstStart = async (recursive: any) => {
             await createSingleScript(
                 path.join(dir, `arbeiter`, node.name),
                 path.join(dir, `arbeiter`, `${node.name}.sh`),
-                node,
-                recursive
+                node
             );
         }
     }

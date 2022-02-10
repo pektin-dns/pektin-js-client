@@ -23,14 +23,24 @@ export const chownRecursive = async (path: string, uid: string, gid: string) => 
     await exec(`chown -R ${uid}:${gid} ${path}`);
 };
 
+export const getFiles = async (dir: string) => {
+    const dirents = await fs.readdir(dir, { withFileTypes: true });
+    const files: any = await Promise.all(
+        dirents.map((dirent) => {
+            const res = path.resolve(dir, dirent.name);
+            return dirent.isDirectory() ? getFiles(res) : res;
+        })
+    );
+    return Array.prototype.concat(...files);
+};
+
 export const createSingleScript = async (
     sourceFolder: string,
     scriptDestination: string,
-    node: PektinConfig[`nodes`][0],
-    recursive: any
+    node: PektinConfig[`nodes`][0]
 ) => {
     if (!node.setup) return;
-    const dirs = await recursive(sourceFolder);
+    const dirs = await getFiles(sourceFolder);
     const out = [];
     let content = ``;
 
