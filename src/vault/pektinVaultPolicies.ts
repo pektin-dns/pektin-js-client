@@ -20,20 +20,32 @@ export const pektinConfidantPolicy = (
 path "pektin-officer-passwords-1/data/${clientName}" {
     capabilities = ["read"]
 }`;
-    if (capabilities.configAccess) {
+    if (capabilities.allAccess) {
         policy += `
+path "pektin-kv/data/*" {
+    capabilities = ["read"]
+}`;
+    } else {
+        if (capabilities.configAccess) {
+            policy += `
 path "pektin-kv/data/pektin-config" {
     capabilities = ["read"]
 }`;
-    }
+        }
 
-    if (capabilities.recursorAccess) {
-        policy += `
+        if (capabilities.recursorAccess) {
+            policy += `
 path "pektin-kv/data/recursor-auth" {
     capabilities = ["read"]
 }`;
+        }
+        if (capabilities.proxyAccess) {
+            policy += `
+path "pektin-kv/data/proxy-auth" {
+    capabilities = ["read"]
+}`;
+        }
     }
-
     if (capabilities.allowAllSigningDomains) {
         policy += `
 path "pektin-signer-passwords-1/data/*" {

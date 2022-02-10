@@ -153,8 +153,7 @@ export const installPektinCompose = async (
         confidantPassword: pektinAdminConnectionConfig.confidantPassword,
         capabilities: {
             allowAllSigningDomains: true,
-            recursorAccess: true,
-            configAccess: true,
+            allAccess: true,
             ribstonPolicy: pektinAdminRibstonPolicy,
             opaPolicy: ``, // TODO add OPA policies
         },
@@ -648,7 +647,7 @@ export const createUpdateConfigScript = async (pektinConfig: PektinConfig, dir: 
     let composeCommand = `
 docker rm pektin-scripts -v &> /dev/null 
 
-docker run --env UID=$(id -u) --env GID=$(id -g) --name pektin-scripts --network pektin-compose_vault --mount "type=bind,source=$PWD,dst=/pektin-compose/" -it pektin-scripts node ./dist/js/compose/scripts.js update-config
+docker run --env UID=$(id -u) --env GID=$(id -g) --name pektin-scripts --network pektin-compose_vault --mount "type=bind,source=$PWD,dst=/pektin-compose/" -it pektin-scripts node ./dist/js/compose/scripts.js update-config || exit 1
 `;
 
     file += composeCommand + `\n`;

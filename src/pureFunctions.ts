@@ -99,7 +99,7 @@ export const getAuth = async (
     hashed = false
 ) => {
     const res = await getVaultValue(vaultEndpoint, vaultToken, `${service}-auth`, `pektin-kv`);
-    if (!res) throw Error(`Couldnt obtain ${service} auth`);
+    if (!res) throw Error(`Couldn't obtain ${service} auth`);
     if (hashed) return res.hashedAuth as string;
     return res.basicAuth as string;
 };

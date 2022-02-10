@@ -17,7 +17,9 @@ export interface ClientCapabilities {
     allowedSigningDomains?: string[];
     allowAllSigningDomains?: boolean;
     recursorAccess?: boolean;
+    proxyAccess?: boolean;
     configAccess?: boolean;
+    allAccess?: boolean;
 }
 
 export interface PektinOfficerMeta {

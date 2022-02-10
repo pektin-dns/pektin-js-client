@@ -1,12 +1,10 @@
 import { promises as fs } from "fs";
 import path from "path";
-import { chownRecursive, chown, chmod, randomString, configToCertbotIni } from "./utils.js";
+import { chownRecursive, chown, chmod } from "./utils.js";
 import { unsealVault } from "./../vault/vault.js";
 import { PektinClientConnectionConfigOverride } from "./../index.js";
 import { PektinConfig } from "@pektin/config/src/config-types.js";
 import { config } from "dotenv";
-import { createPektinClient, createPektinSigner, updatePektinSharedPasswords } from "./../auth.js";
-import { getPektinEndpoint } from "../index.js";
 import { genTraefikConfs } from "../traefik/index.js";
 import { getMainNode } from "../pureFunctions.js";
 import { createStartScript, createStopScript, createUpdateScript } from "./install.js";
@@ -51,65 +49,6 @@ export const updateConfig = async (dir: string = `/pektin-compose/`) => {
     // init vault
     await unsealVault(internalVaultUrl, vaultTokens.key);
 
-    // TODO delete old signer
-    if (pektinConfig.nameservers !== undefined) {
-        // create the signer vault infra for the nameserver domains
-        pektinConfig.nameservers.forEach(async (ns) => {
-            if (ns.main) {
-                const domainSignerPassword = randomString();
-                await createPektinSigner(
-                    internalVaultUrl,
-                    vaultTokens.rootToken,
-                    ns.domain,
-                    domainSignerPassword
-                );
-
-                await updatePektinSharedPasswords(
-                    internalVaultUrl,
-                    vaultTokens.rootToken,
-                    `signer`,
-                    domainSignerPassword,
-                    ns.domain
-                );
-            }
-        });
-    }
-
-    // TODO delete old acme client if disabled
-    // create acme client if enabled
-    if (pektinConfig.certificates) {
-        const acmeClientConnectionConfig = {
-            username: `acme-${randomString(10)}`,
-            confidantPassword: `c.${randomString()}`,
-            override: {
-                pektinApiEndpoint: getPektinEndpoint(pektinConfig, `api`),
-            },
-        };
-        const acmeClientRibstonPolicy = await fs.readFile(
-            `/app/node_modules/@pektin/client/dist/policies/acme.ribston.js`,
-            `utf-8`
-        );
-        await createPektinClient({
-            endpoint: internalVaultUrl,
-            token: vaultTokens.rootToken,
-            clientName: acmeClientConnectionConfig.username,
-            confidantPassword: acmeClientConnectionConfig.confidantPassword,
-            capabilities: {
-                ribstonPolicy: acmeClientRibstonPolicy,
-                allowAllSigningDomains: true,
-                opaPolicy: ``, // TODO add OPA policies
-            },
-        });
-        await fs.writeFile(
-            path.join(dir, `secrets`, `acme-client-connection-config.json`),
-            JSON.stringify(acmeClientConnectionConfig)
-        );
-        await fs.writeFile(
-            path.join(dir, `secrets`, `certbot-acme-client-connection-config.ini`),
-            configToCertbotIni(acmeClientConnectionConfig as PektinClientConnectionConfigOverride)
-        );
-    }
-
     // HARD DRIVE RELATED
 
     await fs
@@ -121,6 +60,9 @@ export const updateConfig = async (dir: string = `/pektin-compose/`) => {
     const proxyBasicAuthHashed = await pc.getAuth(`proxy`, true);
 
     const tempDomain = (await pc.getPektinKv(`tempDomain`)) as unknown as TempDomain;
+
+    // impl compose.secrets.traefik.dynamic-config
+    // through complete regeneration
 
     const traefikConfs = genTraefikConfs({
         pektinConfig,
@@ -144,6 +86,9 @@ export const updateConfig = async (dir: string = `/pektin-compose/`) => {
             traefikConfs.tempDomain
         );
     }
+    // impl compose.compose-scripts
+    // impl build
+    // impl traefik.static-config.certificate-resolvers
 
     await createStartScript(pektinConfig, dir);
     await createStopScript(pektinConfig, dir);
