@@ -32,8 +32,7 @@ console.log(await pc.getDomains());
 ```
 
 -   "manager" that can create vault roles holds pw for "confidant"
--   "confidant" holds half of password for "signers" and "officers"
+-   "confidant" holds half of password for "signers"
 -   "signer" can sign for domains
--   "officer" holds policy for "api-client"
 
 # яндекс.рф

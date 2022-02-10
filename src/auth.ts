@@ -1,17 +1,7 @@
-import {
-    ClientCapabilities,
-    ClientName,
-    DomainName,
-    ManagerName,
-    OfficerName,
-    OpaPolicy,
-    RibstonPolicy,
-} from "./index.js";
-import { randomString } from "./compose/utils.js";
+import { ClientCapabilities, ClientName, DomainName, ManagerName } from "./index.js";
 import {
     pektinApiPolicy,
     pektinConfidantPolicy,
-    pektinOfficerPolicy,
     pektinSignerPolicy,
 } from "./vault/pektinVaultPolicies.js";
 import { VaultAuthEngine, VaultSecretEngine } from "./vault/types.js";
@@ -45,31 +35,6 @@ export const createPektinSigner = async (
     createSigningKey(endpoint, token, domainName);
 };
 
-export const createPektinOfficer = async (
-    endpoint: string,
-    token: string,
-    clientName: string,
-    password: string,
-    ribstonPolicy: RibstonPolicy,
-    opaPolicy: OpaPolicy
-) => {
-    const officerName: OfficerName = `pektin-officer-${clientName}`;
-
-    await updateKvValue(
-        endpoint,
-        token,
-        clientName,
-        { ribstonPolicy, opaPolicy },
-        `pektin-policies`
-    );
-
-    await createVaultPolicy(endpoint, token, `pektin-officer`, pektinOfficerPolicy);
-
-    await createFullUserPass(endpoint, token, officerName, password, { clientName }, [
-        `pektin-officer`,
-    ]);
-};
-
 export const createPektinClient = async ({
     endpoint,
     token,
@@ -85,17 +50,12 @@ export const createPektinClient = async ({
     confidantPassword: string;
     capabilities: ClientCapabilities;
 }) => {
-    const officerPassword = randomString();
-
-    await updatePektinSharedPasswords(endpoint, token, `officer`, officerPassword, clientName);
-
-    await createPektinOfficer(
+    await updateKvValue(
         endpoint,
         token,
         clientName,
-        officerPassword,
-        capabilities.ribstonPolicy,
-        capabilities.opaPolicy
+        { ribstonPolicy: capabilities.ribstonPolicy, opaPolicy: capabilities.opaPolicy },
+        `pektin-policies`
     );
     if (managerPassword) await createPektinManager(endpoint, token, clientName, managerPassword);
 
@@ -126,12 +86,7 @@ export const createPektinConfidant = async (
     const confidantName = `pektin-client-confidant-${clientName}`;
     await createFullUserPass(endpoint, token, confidantName, password, metadata, [confidantName]);
 
-    await createVaultPolicy(
-        endpoint,
-        token,
-        confidantName,
-        pektinConfidantPolicy(clientName, capabilities)
-    );
+    await createVaultPolicy(endpoint, token, confidantName, pektinConfidantPolicy(capabilities));
 };
 
 export const createPektinApiAccount = async (endpoint: string, token: string, password: string) => {
@@ -169,11 +124,9 @@ export const createPektinVaultEngines = async (
 export const updatePektinSharedPasswords = async (
     endpoint: string,
     token: string,
-    type: `signer` | `officer`,
+    type: `signer`,
     password: string,
-    authName:
-        | ClientName
-        | DomainName /* authName is either the client name for the officer or the domain name for the signer */
+    authName: DomainName
 ) => {
     await updateKvValue(
         endpoint,

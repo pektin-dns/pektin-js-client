@@ -1,25 +1,14 @@
-import { ClientCapabilities, ClientName } from "../types.js";
+import { ClientCapabilities } from "../types.js";
 import { deAbsolute } from "../utils/index.js";
 import { VaultPolicy } from "./types.js";
-
-export const pektinOfficerPolicy = `
-path "pektin-policies/data/{{identity.entity.metadata.clientName}}" {
-    capabilities = ["read"]
-}`;
 
 export const pektinSignerPolicy: VaultPolicy = `
 path "pektin-transit/sign/{{identity.entity.metadata.domain}}/sha2-256" {
     capabilities = ["update"]
 }`;
 
-export const pektinConfidantPolicy = (
-    clientName: ClientName,
-    capabilities: ClientCapabilities
-): VaultPolicy => {
-    let policy = `
-path "pektin-officer-passwords-1/data/${clientName}" {
-    capabilities = ["read"]
-}`;
+export const pektinConfidantPolicy = (capabilities: ClientCapabilities): VaultPolicy => {
+    let policy = ``;
     if (capabilities.allAccess) {
         policy += `
 path "pektin-kv/data/*" {
@@ -67,6 +56,6 @@ path "pektin-signer-passwords-2/data/*" {
     capabilities = ["read"]
 }
 
-path "pektin-officer-passwords-2/data/*" {
+path "pektin-policies/data/*" {
     capabilities = ["read"]
 }`;

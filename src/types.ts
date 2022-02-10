@@ -22,10 +22,6 @@ export interface ClientCapabilities {
     allAccess?: boolean;
 }
 
-export interface PektinOfficerMeta {
-    [policy: string]: string;
-}
-
 export interface PektinZoneData {
     [domainName: string]: ApiRecord[];
 }
@@ -39,7 +35,6 @@ export type DomainName = string;
 export type ManagerName = `pektin-client-manager-${ClientName}`;
 export type ConfidantName = `pektin-client-confidant-${ClientName}`;
 export type SignerName = `pektin-signer-${DomainName}`;
-export type OfficerName = `pektin-officer-${ClientName}`;
 
 export type ManagerPassword = `m.${string}`;
 export type ConfidantPassword = `c.${string}`;
