@@ -1,6 +1,6 @@
 {
     "name": "@pektin/client",
-    "version": "1.1.70",
+    "version": "1.1.71",
     "description": "A client to facilitate the control of pektin dns servers",
     "main": "dist/js/index.js",
     "types": "src/index.ts",
@@ -27,6 +27,7 @@
     },
     "devDependencies": {
         "@types/node": "^16.11.12",
+        "@types/punycode": "^2.1.0",
         "@typescript-eslint/eslint-plugin": "^5.10.1",
         "@typescript-eslint/parser": "^5.10.1",
         "dotenv": "^16.0.0",
@@ -45,6 +46,7 @@
         "@pektin/global-registrar": "^1.0.13",
         "@pektin/toluol-wasm-nodejs": "^0.3.0",
         "cross-fetch": "^3.1.4",
+        "punycode": "1.4.1",
         "yaml": "^1.10.2"
     },
     "scripts": {

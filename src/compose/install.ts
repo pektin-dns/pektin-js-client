@@ -153,7 +153,7 @@ export const installPektinCompose = async (
     );
 
     // create acme client if enabled
-    if (pektinConfig.certificates) {
+    if (pektinConfig.letsencrypt) {
         const acmeClientConnectionConfig = {
             username: `acme-${randomString(10)}`,
             confidantPassword: `c.${randomString()}`,
@@ -555,7 +555,7 @@ export const envSetValues = async (
         [`R_PEKTIN_SERVER_PASSWORD`, v.R_PEKTIN_SERVER_PASSWORD],
         [`V_KEY`, v.vaultTokens.key],
         [`V_ROOT_TOKEN`, v.vaultTokens.rootToken],
-        [`LETSENCRYPT_EMAIL`, v.pektinConfig.certificates.letsencryptEmail],
+        [`LETSENCRYPT_EMAIL`, v.pektinConfig.letsencrypt.letsencryptEmail],
         [`CSP_CONNECT_SRC`, createCspConnectSources(v.pektinConfig, v.tempDomain)],
         [`RECURSOR_AUTH`, v.recursorBasicAuthHashed],
         [`UI_BUILD_PATH`, v.pektinConfig.build.ui.path],

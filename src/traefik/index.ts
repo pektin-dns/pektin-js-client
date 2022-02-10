@@ -433,14 +433,14 @@ export const genStaticConf = (pektinConfig: PektinConfig) => {
                 default: {
                     acme: {
                         dnschallenge: { provider: `pektin` },
-                        email: emailToASCII(pektinConfig.certificates.letsencryptEmail),
+                        email: emailToASCII(pektinConfig.letsencrypt.letsencryptEmail),
                         storage: `/letsencrypt/default.json`,
                     },
                 },
                 ...(pektinConfig.reverseProxy.tempZone.enabled && {
                     tempDomain: {
                         acme: {
-                            email: emailToASCII(pektinConfig.certificates.letsencryptEmail),
+                            email: emailToASCII(pektinConfig.letsencrypt.letsencryptEmail),
                             storage: `/letsencrypt/tempDomain.json`,
                             httpChallenge: {
                                 entryPoint: `web`,
