@@ -15,10 +15,7 @@ import { PektinComposeClient } from "./first-start.js";
 
 config({ path: `/pektin-compose/secrets/.env` });
 
-export const updateConfig = async (
-    dir: string = `/pektin-compose/`,
-    internalVaultUrl: string = `http://pektin-vault`
-) => {
+export const updateConfig = async (dir: string = `/pektin-compose/`) => {
     if (process.env.UID === undefined || process.env.GID === undefined) {
         throw Error(
             `No UID and/or GID defined. Current is: UID: ` +
@@ -43,6 +40,7 @@ export const updateConfig = async (
         ...adminPC3,
         internal: true,
     });
+    const internalVaultUrl = await pc.getPektinEndpoint(`vault`);
 
     if (process.env.V_KEY === undefined || process.env.V_ROOT_TOKEN === undefined) {
         throw Error(`Undefined vault key and/or root token`);

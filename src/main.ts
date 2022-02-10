@@ -56,7 +56,9 @@ export class PektinClient {
     internal: boolean;
 
     constructor(connectionConfig: PektinClientConnectionConfigOverride, throwErrors?: boolean) {
-        this.vaultEndpoint = connectionConfig.vaultEndpoint;
+        this.vaultEndpoint = connectionConfig.internal
+            ? `http://pektin-vault`
+            : connectionConfig.vaultEndpoint;
         this.username = connectionConfig.username;
 
         this.confidantPassword = checkConfidantPassword(connectionConfig.confidantPassword);
