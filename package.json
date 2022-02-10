@@ -1,6 +1,6 @@
 {
     "name": "@pektin/client",
-    "version": "1.1.68",
+    "version": "1.1.69",
     "description": "A client to facilitate the control of pektin dns servers",
     "main": "dist/js/index.js",
     "types": "src/index.ts",
@@ -29,7 +29,7 @@
         "@types/node": "^16.11.12",
         "@typescript-eslint/eslint-plugin": "^5.10.1",
         "@typescript-eslint/parser": "^5.10.1",
-        "dotenv": "^15.0.0",
+        "dotenv": "^16.0.0",
         "eslint": "^8.8.0",
         "eslint-config-prettier": "^8.3.0",
         "eslint-plugin-import": "^2.25.4",

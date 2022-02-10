@@ -326,12 +326,12 @@ export const installPektinCompose = async (
     await createUpdateConfigScript(pektinConfig, dir);
 
     await fs.mkdir(path.join(dir, `secrets`, `letsencrypt`), { recursive: true }).catch(() => {});
-
     // change ownership of all created files to host user
     // also chmod 700 all secrets except for redis ACL
     await chown(path.join(dir, `start.sh`), process.env.UID, process.env.GID);
     await chown(path.join(dir, `stop.sh`), process.env.UID, process.env.GID);
     await chown(path.join(dir, `update.sh`), process.env.UID, process.env.GID);
+    await chown(path.join(dir, `updateConfig.sh`), process.env.UID, process.env.GID);
     await chownRecursive(path.join(dir, `secrets`), process.env.UID, process.env.GID);
     await chmod(path.join(dir, `secrets`), `700`);
     await chmod(path.join(dir, `secrets`, `.env`), `600`);
@@ -645,6 +645,8 @@ export const createUpdateConfigScript = async (pektinConfig: PektinConfig, dir: 
     const p = path.join(dir, `updateConfig.sh`);
     let file = `#!/bin/sh\n`;
     let composeCommand = `
+docker rm pektin-compose-update-config -v &> /dev/null
+
 docker build --no-cache -q ./scripts/update-config/ -t "pektin-compose-update-config"  > /dev/null
 docker run --env UID=$(id -u) --env GID=$(id -g) --name pektin-compose-update-config --network pektin-compose_vault --mount "type=bind,source=$PWD,dst=/pektin-compose/" -it pektin-compose-update-config
 `;
