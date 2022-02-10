@@ -135,3 +135,74 @@ export const supportedRecordTypesArray = [
     `OPENPGPKEY`,
     `TLSA`,
 ];
+
+export const getObjDiff = (
+    a: Record<string, any>,
+    b: Record<string, any>,
+    depth = 10,
+    iteration = 0
+) => {
+    if (iteration === depth - 1) throw new Error(`Max depth reached`);
+    iteration++;
+    const diff: Record<string, any> = {};
+    const aKeys = Object.keys(a);
+    const bKeys = Object.keys(b);
+    if (aKeys.length === 0 && bKeys.length === 0) return false;
+    // check for all keys that dont exist on the other object
+    let commonKeys: any[] = [];
+    aKeys.forEach((key) => {
+        if (!b.hasOwnProperty(key)) {
+            diff[key] = true;
+        } else {
+            commonKeys.push(key);
+        }
+    });
+    bKeys.forEach((key) => {
+        if (!a.hasOwnProperty(key)) {
+            diff[key] = true;
+        }
+    });
+    commonKeys.forEach((key) => {
+        diff[key] = compare(a[key], b[key], iteration, depth);
+    });
+
+    return diff;
+};
+
+export const compare = (a: any, b: any, iteration = 0, depth = 10): any => {
+    if (iteration === depth - 1) throw new Error(`Max depth reached`);
+    if (typeof a !== typeof b) {
+        // if they dont have the same type they are not equal
+        return true;
+    } else if (
+        typeof a !== `object` &&
+        typeof b !== `object` &&
+        typeof a !== `function` &&
+        typeof b !== `function`
+    ) {
+        //if they are simple values
+        return !(a === b);
+    } else if (Array.isArray(a) !== Array.isArray(b) || a instanceof Set !== b instanceof Set) {
+        // if one is of type array but the other is not OR if one is a set but the other is not
+        // note that typeof tells us only that they are both of type object
+        return true;
+    } else if ((Array.isArray(a) && Array.isArray(b)) || (a instanceof Set && b instanceof Set)) {
+        // if both are arrays or sets compare each element;
+        if (a instanceof Set) {
+            a = Array.from(a);
+            b = Array.from(b);
+        }
+        if (a.length === 0 && b.length === 0) {
+            return false;
+        }
+        iteration++;
+        const diff = [];
+        for (let i = 0; i < Math.max(a.length, b.length); i++) {
+            diff[i] = compare(a[i], b[i], depth, iteration);
+        }
+        return diff;
+    } else {
+        // has to be a object
+        return getObjDiff(a, b, depth, iteration);
+    }
+};
