@@ -96,7 +96,7 @@ export class PektinClient {
         }
 
         if (!this.pektinApiEndpoint) {
-            this.pektinApiEndpoint = getPektinEndpoint(this.pektinConfig, `api`);
+            this.pektinApiEndpoint = getPektinEndpoint(this.pektinConfig, `api`, this.internal);
         }
         return this.pektinConfig;
     };
