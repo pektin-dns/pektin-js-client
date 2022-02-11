@@ -247,7 +247,8 @@ export class PektinClient {
         return await search(
             this.pektinApiEndpoint,
             {
-                confidant_password: this.confidantPassword,
+                /* @ts-ignore */
+                confidantpassword: this.confidantPassword,
                 client_username: this.username,
                 glob,
             },

@@ -1,8 +1,9 @@
-import { decode, encode } from "punycode/";
+/*@ts-ignore*/
+import punycode from "punycode/punycode.js";
 
-export const toASCII = encode;
+export const toASCII = punycode.encode;
 
-export const toUnicode = decode;
+export const toUnicode = punycode.decode;
 
 export const emailToASCII = (email: string) => {
     // TODO this is not fully compliant

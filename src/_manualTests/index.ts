@@ -20,19 +20,22 @@ const serverAdminConfig = await fs.readFile(
     { encoding: `utf8` }
 );
 
-//const pc = new PektinClient(JSON.parse(serverAdminConfig));
+const pc = new PektinClient(JSON.parse(serverAdminConfig));
 
 const c: PektinConfig = {
     ...JSON.parse(await fs.readFile(`../pektin-compose/pektin-config.json`, { encoding: `utf8` })),
 } as const;
 
+await pc.getDomains();
+
+/*
 genTraefikConfs({
     pektinConfig: c,
     node: c.nodes[0],
     tempDomain: requestPektinDomain(),
     recursorAuth: `shahuhuiwqdr`,
 }); //?
-
+*/
 //await pc.duplicateZone(`y.gy`, `k.xx`, true);
 //import toluol from "@pektin/toluol-wasm-nodejs";
 //console.log(await importByZoneWalking([`google.com`], pc, toluol, 200));
