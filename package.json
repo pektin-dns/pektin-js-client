@@ -1,9 +1,9 @@
 {
     "name": "@pektin/client",
-    "version": "1.1.73",
+    "version": "1.1.74",
     "description": "A client to facilitate the control of pektin dns servers",
     "main": "dist/js/index.js",
-    "types": "src/js/index.d.ts",
+    "types": "dist/js/index.d.ts",
     "license": "MIT",
     "type": "module",
     "author": {
@@ -15,7 +15,7 @@
         "import": "./dist/js/index.js",
         "default": "./dist/js/index.js",
         "node": "./dist/js/index.js",
-        "deno": "./dist/deno/index.js"
+        "deno": "./dist/js/index.js"
     },
     "repository": {
         "type": "git",

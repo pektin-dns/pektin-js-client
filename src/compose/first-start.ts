@@ -5,6 +5,7 @@ import { PektinClient } from "../index.js";
 import { ApiRecord, PektinClientConnectionConfigOverride, PektinRRType } from "../index.js";
 import { createSingleScript } from "./utils.js";
 import { absoluteName, concatDomain } from "../index.js";
+import { getMainNode } from "../pureFunctions.js";
 
 const dir = `/pektin-compose/`;
 
@@ -108,7 +109,7 @@ export class PektinComposeClient extends PektinClient {
 
     // create AAAA and A records for endabled service endpoints
     private createPektinServiceEndpointsDNS = async (pektinConfig: PektinConfig) => {
-        const mainNode = pektinConfig.nodes.filter((node) => node.main === true)[0];
+        const mainNode = getMainNode(pektinConfig);
 
         const enabledServices = Object.values(pektinConfig.services).filter(
             /*@ts-ignore*/
