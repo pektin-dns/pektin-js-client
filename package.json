@@ -1,6 +1,6 @@
 {
     "name": "@pektin/client",
-    "version": "1.1.75",
+    "version": "1.1.76",
     "description": "A client to facilitate the control of pektin dns servers",
     "main": "dist/js/index.js",
     "types": "dist/js/index.d.ts",
@@ -15,7 +15,7 @@
         "import": "./dist/js/index.js",
         "default": "./dist/js/index.js",
         "node": "./dist/js/index.js",
-        "deno": "./dist/js/index.js"
+        "deno": "./dist/deno/index.js"
     },
     "repository": {
         "type": "git",
@@ -62,9 +62,10 @@
     "scripts": {
         "build": "tsc",
         "start": "tsc --watch",
-        "before-publish": "yarn build && yarn bundle-policies",
+        "before-publish": "yarn build && yarn convert-deno && yarn bundle-policies",
         "manual-test": "RED='\u001b[1;91m' ; NO_COLOR='\u001b[0m' ; echo \"${RED}Don't forget to compile the TS files first with: yarn start ${NO_COLOR}\" ; node dist/js/_manualTests/index.js",
         "upgrade-pektin": "yarn upgrade --latest @pektin/config @pektin/global-registrar",
+        "convert-deno": "sh scripts/convert-deno.sh",
         "bundle-policies": "sh scripts/bundle-policies.sh"
     }
 }
