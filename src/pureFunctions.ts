@@ -11,6 +11,7 @@ import {
     ApiRecord,
     ApiRequestBody,
     ApiResponseBody,
+    ApiResponseType,
     ApiSearchRequestBody,
     ApiSetRequestBody,
     ConfidantPassword,
@@ -209,6 +210,14 @@ export const pektinApiRequest = async (
         json = JSON.parse(text);
         json.time = tEnd - tStart;
     } catch (e) {
+        if (!throwErrors) {
+            return {
+                type: ApiResponseType.Error,
+                message: `Pektin client couldn't parse response from API as JSON. The response was: ${text}`,
+                time: tEnd - tStart,
+                data: [],
+            };
+        }
         body.client_username = `<REDACTED>`;
         if (body.confidant_password) body.confidant_password = `<REDACTED>` as ConfidantPassword;
         throw Error(
