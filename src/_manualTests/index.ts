@@ -1,6 +1,6 @@
 import { PektinClient } from "../main.js";
 import { promises as fs } from "fs";
-import { PektinRRType } from "../index.js";
+import { beautifyJSON, PektinRRType } from "../index.js";
 
 import { config } from "dotenv";
 import { getAllFromPdns } from "../import/pdns/index.js";
@@ -25,20 +25,24 @@ const pc = new PektinClient(JSON.parse(serverAdminConfig));
 const c: PektinConfig = {
     ...JSON.parse(await fs.readFile(`../pektin-compose/pektin-config.json`, { encoding: `utf8` })),
 } as const;
-
+/*
 pc.setupDomain(`example.com.`, [{ name: `ns1.example.com.`, ips: [`1::1`] }]);
 pc.setupDomain(`a.example.com.`, [{ name: `ns1.a.example.com.`, ips: [`1::1`] }]);
 
-console.log(
-    await pc.search([
-        {
-            name_glob: `*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.`,
-            rr_type_glob: `*`,
-        },
-    ])
-);
+*/
+//console.log(await pc.get([{ name: `яндекс.рф.`, rr_type: PektinRRType.SOA }]));
 
-console.log(await pc.get([{ name: `яндекс.рф.`, rr_type: PektinRRType.SOA }]));
+console.log(
+    beautifyJSON(
+        await pc.search([
+            {
+                name_glob: `*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.`,
+                rr_type_glob: `*`,
+            },
+        ])
+    )
+);
+console.log(beautifyJSON(await pc.getDomains()));
 
 /*
 genTraefikConfs({

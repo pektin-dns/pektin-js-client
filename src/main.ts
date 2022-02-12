@@ -309,13 +309,12 @@ export class PektinClient {
 
     // TODO colour while client was trying to * something
 
-    getDomains = async (): Promise<string[]> =>
-        (
-            (await this.search(
-                [{ name_glob: `*`, rr_type_glob: `SOA` }],
-                true
-            )) as SearchResponseSuccess
-        ).data[0].data.map((record: RecordIdentifier) => record.name);
+    getDomains = async () => {
+        const searchResponse = await this.search([{ name_glob: `*`, rr_type_glob: `SOA` }], true);
+        if (searchResponse.type !== `success` || !searchResponse.data?.length) return [];
+
+        return searchResponse.data[0].data.map((sr) => sr.name);
+    };
 
     // returns number of removed keys
     deleteZone = async (name: string): Promise<number> => {

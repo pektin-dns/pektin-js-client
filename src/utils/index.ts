@@ -9,6 +9,33 @@ import {
     ConfidantPassword,
     ManagerPassword,
 } from "../index.js";
+import colorize from "json-colorizer";
+
+const defaultColorizeOptions = {
+    colors: {
+        BRACE: `#bbbbbb`,
+        BRACKET: `#bbbbbb`,
+        COLON: `#bbbbbb`,
+        COMMA: `#bbbbbb`,
+        STRING_KEY: `#ef596f`,
+        STRING_LITERAL: `#89ca78`,
+        NUMBER_LITERAL: `#d8985f`,
+        BOOLEAN_LITERAL: `#d8985f`,
+        NULL_LITERAL: `#d8985f`,
+    },
+};
+
+export const beautifyJSON = (obj: any, indent = 2, colorizeOptions = defaultColorizeOptions) => {
+    return colorize(JSON.stringify(obj, null, indentSpaces(indent)), colorizeOptions);
+};
+
+export const indentSpaces = (indent: number) => {
+    let a = ``;
+    for (let i = 0; i < indent; i++) {
+        a += ` `;
+    }
+    return a;
+};
 
 export const concatDomain = (domain: string, subDomain?: string) => {
     if (subDomain === undefined) return domain;

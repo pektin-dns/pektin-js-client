@@ -55,6 +55,7 @@
         "@pektin/global-registrar": "^1.0.13",
         "@pektin/toluol-wasm-nodejs": "^0.3.0",
         "cross-fetch": "^3.1.4",
+        "json-colorizer": "^2.2.2",
         "punycode": "1.4.1",
         "yaml": "^1.10.2"
     },
