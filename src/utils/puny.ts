@@ -1,9 +1,11 @@
 /*@ts-ignore*/
 import punycode from "punycode/punycode.js";
 
-export const toASCII = punycode.encode;
+// TODO fix for deno
 
-export const toUnicode = punycode.decode;
+export const toASCII = punycode.toAscii;
+
+export const toUnicode = punycode.toUnicode;
 
 export const emailToASCII = (email: string) => {
     // TODO this is not fully compliant

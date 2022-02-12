@@ -1,4 +1,4 @@
-import { ApiRecord, ApiDeleteRequestRecord } from "../types.js";
+import { ApiRecord, RecordIdentifier } from "../types.js";
 
 export enum RequestType {
     Get = `get`,
@@ -19,7 +19,7 @@ export interface GetInput extends BaseInput {
     readonly api_method: RequestType.Get;
     readonly request_body: {
         Get: {
-            keys: string[];
+            records: RecordIdentifier[];
         };
     };
 }
@@ -46,7 +46,7 @@ export interface DeleteInput extends BaseInput {
     readonly api_method: RequestType.Delete;
     readonly request_body: {
         Delete: {
-            records: ApiDeleteRequestRecord[];
+            records: RecordIdentifier[];
         };
     };
 }
@@ -55,7 +55,7 @@ export interface SearchInput extends BaseInput {
     readonly api_method: RequestType.Search;
     readonly request_body: {
         Search: {
-            glob: string;
+            records: RecordIdentifier;
         };
     };
 }

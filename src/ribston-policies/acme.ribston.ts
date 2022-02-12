@@ -26,8 +26,9 @@ const err = (msg: string) => {
 
 if (input.api_method === `get`) {
     if (
-        !input.request_body.Get.keys.every(
-            (key) => key.startsWith(`_acme-challenge`) && key.endsWith(`.:TXT`)
+        !input.request_body.Get.records.every(
+            (record) =>
+                record.name.startsWith(`_acme-challenge`) && record.rr_type === PektinRRType.TXT
         )
     ) {
         err(`Invalid key`);
@@ -53,5 +54,7 @@ if (output.error === undefined) {
     output.error = false;
     output.message = `Success`;
 }
+
+//TODO simplify this
 
 output;

@@ -9,7 +9,7 @@ import { importByZoneWalking } from "../import/wanderlust/index.js";
 import { serverConf, genTraefikConfs } from "../traefik/index.js";
 import { getNodesNameservers } from "../pureFunctions.js";
 import { PektinConfig } from "@pektin/config/src/config-types";
-import { requestPektinDomain } from "../compose/utils.js";
+import { randomString, requestPektinDomain } from "../compose/utils.js";
 
 config({ path: `/home/paul/Documents/powerdns-api/.env` });
 
@@ -26,7 +26,19 @@ const c: PektinConfig = {
     ...JSON.parse(await fs.readFile(`../pektin-compose/pektin-config.json`, { encoding: `utf8` })),
 } as const;
 
-await pc.getDomains();
+pc.setupDomain(`example.com.`, [{ name: `ns1.example.com.`, ips: [`1::1`] }]);
+pc.setupDomain(`a.example.com.`, [{ name: `ns1.a.example.com.`, ips: [`1::1`] }]);
+
+console.log(
+    await pc.search([
+        {
+            name_glob: `*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.*.`,
+            rr_type_glob: `*`,
+        },
+    ])
+);
+
+console.log(await pc.get([{ name: `яндекс.рф.`, rr_type: PektinRRType.SOA }]));
 
 /*
 genTraefikConfs({

@@ -20,7 +20,6 @@ import {
     PektinClientConnectionConfigOverride,
     SearchResponseSuccess,
     SNSNameserver,
-    ApiDeleteRequestRecord,
     PektinZoneData,
     absoluteName,
     checkConfidantPassword,
@@ -28,6 +27,8 @@ import {
     PektinRRType,
     DomainName,
     get,
+    RecordIdentifier,
+    Glob,
 } from "./index.js";
 import { getVaultValue, vaultLoginUserpass } from "./vault/vault.js";
 
@@ -162,7 +163,7 @@ export class PektinClient {
     };
 
     // get records from the api/redis based on their key
-    get = async (keys: string[], throwErrors = this.throwErrors) => {
+    get = async (records: RecordIdentifier[], throwErrors = this.throwErrors) => {
         if (!this.pektinApiEndpoint) {
             await this.getPektinConfig();
             if (!this.pektinApiEndpoint) {
@@ -178,7 +179,7 @@ export class PektinClient {
             {
                 confidant_password: this.confidantPassword,
                 client_username: this.username,
-                keys,
+                records,
             },
             throwErrors
         );
@@ -230,7 +231,7 @@ export class PektinClient {
     };
 
     // search for records in redis by providing a glob search string
-    search = async (glob: string, throwErrors = this.throwErrors) => {
+    search = async (globs: Glob[], throwErrors = this.throwErrors) => {
         if (!this.pektinApiEndpoint) {
             await this.getPektinConfig();
             if (!this.pektinApiEndpoint) {
@@ -249,14 +250,14 @@ export class PektinClient {
             {
                 confidant_password: this.confidantPassword,
                 client_username: this.username,
-                glob,
+                globs,
             },
             throwErrors
         );
     };
 
     // delete records based on their keys
-    deleteRecords = async (records: ApiDeleteRequestRecord[], throwErrors = this.throwErrors) => {
+    deleteRecords = async (records: RecordIdentifier[], throwErrors = this.throwErrors) => {
         if (!this.pektinApiEndpoint) {
             await this.getPektinConfig();
             if (!this.pektinApiEndpoint) {
@@ -306,10 +307,15 @@ export class PektinClient {
         return getPektinEndpoint(this.pektinConfig, type, this.internal);
     };
 
+    // TODO colour while client was trying to * something
+
     getDomains = async (): Promise<string[]> =>
-        ((await this.search(`*.:SOA`, true)) as SearchResponseSuccess).data.map((name: string) =>
-            name.replace(`:SOA`, ``)
-        );
+        (
+            (await this.search(
+                [{ name_glob: `*`, rr_type_glob: `SOA` }],
+                true
+            )) as SearchResponseSuccess
+        ).data[0].data.map((record: RecordIdentifier) => record.name);
 
     // returns number of removed keys
     deleteZone = async (name: string): Promise<number> => {
@@ -405,14 +411,9 @@ export class PektinClient {
 
     // deletes everything on a pektin server
     deleteEverything = async () => {
-        const all = await this.search(`*`);
-        if (all.data === null) return false;
-        const del = await this.deleteRecords(
-            all.data.map((key) => {
-                const [name, rr_type] = key.split(`:`) as [string, PektinRRType];
-                return { name, rr_type };
-            })
-        );
+        const all = await this.search([{ name_glob: `*`, rr_type_glob: `*` }]);
+        if (!all.data || !all.data[0].data) return false;
+        const del = await this.deleteRecords(all.data[0].data);
         return del;
     };
 

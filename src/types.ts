@@ -144,8 +144,12 @@ export interface DeleteResponseSuccess extends ApiResponseSuccessBase {
     data: number;
 }
 
+export interface SearchResponseSuccessItem extends ApiResponseBase {
+    data: RecordIdentifier[];
+}
+
 export interface SearchResponseSuccess extends ApiResponseSuccessBase {
-    data: string[];
+    data: SearchResponseSuccessItem[];
 }
 
 export interface HealthResponseSuccessData {
@@ -212,21 +216,25 @@ export interface ApiRequestBodyBase {
     client_username: ClientName;
 }
 
+export interface RecordIdentifier {
+    name: string;
+    rr_type: PektinRRType;
+}
 export interface ApiGetRequestBody extends ApiRequestBodyBase {
-    keys: string[];
+    records: RecordIdentifier[];
 }
 export interface ApiSetRequestBody extends ApiRequestBodyBase {
     records: ApiRecord[];
 }
-export interface ApiSearchRequestBody extends ApiRequestBodyBase {
-    glob: string;
+export interface Glob {
+    name_glob: string;
+    rr_type_glob: string;
 }
-export interface ApiDeleteRequestRecord {
-    name: string;
-    rr_type: PektinRRType;
+export interface ApiSearchRequestBody extends ApiRequestBodyBase {
+    globs: Glob[];
 }
 export interface ApiDeleteRequestBody extends ApiRequestBodyBase {
-    records: ApiDeleteRequestRecord[];
+    records: RecordIdentifier[];
 }
 export interface ApiGetZoneRecordsRequestBody extends ApiRequestBodyBase {
     names: string[];

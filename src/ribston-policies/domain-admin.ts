@@ -7,13 +7,7 @@ import {
     SetInput,
 } from "./ribston-types.js";
 
-type Input =
-    | GetInput
-    | GetZoneRecordsInput
-    | DeleteInput
-    | SetInput
-    | SearchInput
-    | HealthInput;
+type Input = GetInput | GetZoneRecordsInput | DeleteInput | SetInput | SearchInput | HealthInput;
 
 interface Output {
     error: boolean;
@@ -28,7 +22,7 @@ const err = (msg: string) => {
     output.error = true;
     output.message = msg;
 };
-
+/*
 const domains = [`pektin.xyz.`];
 
 if (input.api_method === `get`) {
@@ -83,5 +77,6 @@ if (output.error === undefined) {
     output.error = false;
     output.message = `Success`;
 }
-
+*/
+// TODO rewrite this
 // TODO make this easier
