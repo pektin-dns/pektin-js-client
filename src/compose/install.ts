@@ -310,7 +310,6 @@ export const installPektinCompose = async (
     await createStartScript(pektinConfig, dir);
     await createStopScript(pektinConfig, dir);
     await createUpdateScript(pektinConfig, dir);
-    await createUpdateConfigScript(pektinConfig, dir);
 
     await fs.mkdir(path.join(dir, `secrets`, `letsencrypt`), { recursive: true }).catch(() => {});
     // change ownership of all created files to host user
@@ -318,7 +317,6 @@ export const installPektinCompose = async (
     await chown(path.join(dir, `start.sh`), process.env.UID, process.env.GID);
     await chown(path.join(dir, `stop.sh`), process.env.UID, process.env.GID);
     await chown(path.join(dir, `update.sh`), process.env.UID, process.env.GID);
-    await chown(path.join(dir, `updateConfig.sh`), process.env.UID, process.env.GID);
     await chownRecursive(path.join(dir, `secrets`), process.env.UID, process.env.GID);
     await chmod(path.join(dir, `secrets`), `700`);
     await chmod(path.join(dir, `secrets`, `.env`), `600`);
@@ -623,20 +621,6 @@ export const createUpdateScript = async (pektinConfig: PektinConfig, dir: string
     composeCommand += activeComposeFiles(pektinConfig);
 
     composeCommand += ` pull`;
-
-    file += composeCommand + `\n`;
-    file += `sh start.sh`;
-    await fs.writeFile(p, file);
-};
-
-export const createUpdateConfigScript = async (pektinConfig: PektinConfig, dir: string) => {
-    const p = path.join(dir, `updateConfig.sh`);
-    let file = `#!/bin/sh\n`;
-    let composeCommand = `
-docker rm pektin-scripts -v &> /dev/null 
-
-docker run --env UID=$(id -u) --env GID=$(id -g) --name pektin-scripts --network pektin-compose_vault --mount "type=bind,source=$PWD,dst=/pektin-compose/" -it pektin-scripts node ./dist/js/compose/scripts.js update-config || exit 1
-`;
 
     file += composeCommand + `\n`;
     file += `sh start.sh`;

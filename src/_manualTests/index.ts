@@ -10,6 +10,7 @@ import { serverConf, genTraefikConfs } from "../traefik/index.js";
 import { getNodesNameservers } from "../pureFunctions.js";
 import { PektinConfig } from "@pektin/config/src/config-types";
 import { randomString, requestPektinDomain } from "../compose/utils.js";
+import { toASCII } from "punycode";
 
 config({ path: `/home/paul/Documents/powerdns-api/.env` });
 
@@ -31,6 +32,8 @@ pc.setupDomain(`a.example.com.`, [{ name: `ns1.a.example.com.`, ips: [`1::1`] }]
 
 */
 //console.log(await pc.get([{ name: `яндекс.рф.`, rr_type: PektinRRType.SOA }]));
+
+console.log(toASCII(`яндекс.рф`));
 
 console.log(
     beautifyJSON(

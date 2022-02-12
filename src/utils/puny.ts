@@ -3,7 +3,7 @@ import punycode from "punycode/punycode.js";
 
 // TODO fix for deno
 
-export const toASCII = punycode.toAscii;
+export const toASCII = punycode.toASCII;
 
 export const toUnicode = punycode.toUnicode;
 

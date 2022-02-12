@@ -17,12 +17,10 @@ switch (script) {
     case `start`:
         if (!process.env.V_KEY) throw Error(`Could not get key from .env file to unlock vault`);
         await unsealVault(`http://pektin-vault`, process.env.V_KEY);
+        await updateConfig();
         break;
     case `first-start`:
         await pektinComposeFirstStart();
-        break;
-    case `update-config`:
-        await updateConfig();
         break;
     case `check-config`:
         await checkConfig(
