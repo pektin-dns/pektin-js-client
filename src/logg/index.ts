@@ -1,7 +1,7 @@
 import { cwd } from "process";
-import { colors } from "../utils/colors.js";
 import { promises as fs } from "fs";
 import path from "path";
+import c from "chalk";
 
 export enum LogCategory {
     DebugExcessive,
@@ -76,9 +76,9 @@ export class Logg {
     getCategory = (category: LogCategory) => {
         switch (category) {
             case LogCategory.Error:
-                return `${colors.boldRed}ERROR${colors.reset}`;
+                return c.bold.red(`ERROR`);
             case LogCategory.Warning:
-                return `${colors.bold}${colors.fg.yellow}WARN${colors.reset}`;
+                return c.bold.yellow(`WARN`);
 
             default:
                 break;

@@ -1,5 +1,6 @@
 import { PektinConfig } from "@pektin/config/src/config-types";
-import { absoluteName, colors, concatDomain, ResourceRecord } from "./index.js";
+import { absoluteName, beautifyJSON, concatDomain, ResourceRecord } from "./index.js";
+import c from "chalk";
 
 import f from "cross-fetch";
 import {
@@ -30,6 +31,7 @@ import {
     SetResponseSuccess,
 } from "./types.js";
 import { getVaultValue } from "./vault/vault.js";
+import chalk from "chalk";
 
 export const replaceNameInRrSet = (
     rr_set: ResourceRecord[],
@@ -221,11 +223,11 @@ export const pektinApiRequest = async (
         body.client_username = `<REDACTED>`;
         if (body.confidant_password) body.confidant_password = `<REDACTED>` as ConfidantPassword;
         throw Error(
-            `${colors.boldRed}Pektin client couldn't parse JSON response from API${colors.reset}\n
-Pektin-API returned this body:\n
-${text}\n
-while client was trying to ${method} the following body:\n 
-${JSON.stringify(body, null, `    `)}${colors.reset}`
+            c.bold.red(`Pektin client couldn't parse JSON response from API\n`) +
+                `Pektin-API returned this body:\n` +
+                `${text}\n` +
+                `while client was trying to ${method} the following body:\n` +
+                beautifyJSON(body)
         );
     }
     if (json.type === `error` && throwErrors) {
@@ -233,10 +235,12 @@ ${JSON.stringify(body, null, `    `)}${colors.reset}`
         if (body.confidant_password) body.confidant_password = `<REDACTED>` as ConfidantPassword;
 
         throw Error(
-            `${colors.boldRed}API Error:${colors.reset}\n 
-${JSON.stringify(json, null, `    `)}\n 
-${colors.bold}while client was trying to ${method} the following body: ${colors.reset}\n
-${JSON.stringify(body, null, `    `)}${colors.reset}`
+            c.bold.red(`API Error:\n`) +
+                `${beautifyJSON(json)}\n` +
+                c.bold.red(
+                    `while client was trying to ${c.yellow.bold(method)} the following body: \n`
+                ) +
+                `${beautifyJSON(body)}\n`
         );
     }
     if (throwErrors) return json as ApiResponseBody;

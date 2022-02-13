@@ -594,7 +594,7 @@ export const createStartScript = async (pektinConfig: PektinConfig, dir: string)
     // run pektin-start
     file += `
 docker rm pektin-scripts -v &> /dev/null 
-docker run --name pektin-scripts --network container:pektin-vault --mount "type=bind,source=$PWD,dst=/pektin-compose/" -it pektin-scripts node ./dist/js/compose/scripts.js start\n`;
+docker run --env UID=$(id -u) --env GID=$(id -g) --name pektin-scripts --network container:pektin-vault --mount "type=bind,source=$PWD,dst=/pektin-compose/" -it pektin-scripts node ./dist/js/compose/scripts.js start\n`;
     // remove pektin-start artifacts
     file += `docker rm pektin-scripts -v &> /dev/null \n`;
     // compose up everything

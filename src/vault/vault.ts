@@ -1,5 +1,6 @@
 import f from "cross-fetch";
-import { colors } from "../utils/colors.js";
+import c from "chalk";
+
 import {
     VaultSecretEngineOptions,
     VaultAuthEngineType,
@@ -16,10 +17,10 @@ export const getAuthMethods = async (endpoint: string, token: string) => {
             "X-Vault-Token": token,
         },
     }).catch((e) => {
-        throw Error(`${colors.boldRed}Couldn't fetch: ${colors.reset}` + e);
+        throw Error(c.bold.red(`Couldn't fetch: `) + e);
     });
     const json = await res.json().catch((e) => {
-        throw Error(`${colors.boldRed}Couldn't parse JSON response: ${colors.reset}` + e);
+        throw Error(c.bold.red(`Couldn't parse JSON response: `) + e);
     });
     return json;
 };
@@ -82,10 +83,10 @@ export const getEntityByName = async (endpoint: string, token: string, entityNam
             "X-Vault-Token": token,
         },
     }).catch((e) => {
-        throw Error(`${colors.boldRed}Couldn't fetch: ${colors.reset}` + e);
+        throw Error(c.bold.red(`Couldn't fetch: `) + e);
     });
     const json = await res.json().catch((e) => {
-        throw Error(`${colors.boldRed}Couldn't parse JSON response: ${colors.reset}` + e);
+        throw Error(c.red.bold(`Couldn't parse JSON response:`) + e);
     });
     return json?.data;
 };
@@ -206,9 +207,7 @@ export const initVault = async (vaultEndpoint: string) => {
     });
     const vaultTokens = await vaultRes.json();
     if (!vaultTokens || !vaultTokens.keys) {
-        throw new Error(
-            `${colors.boldRed}Error: Vault has already been initialized${colors.reset}`
-        );
+        throw new Error(c.bold.red(`Error: Vault has already been initialized`));
     }
     return { key: vaultTokens.keys[0], rootToken: vaultTokens.root_token };
 };
@@ -221,26 +220,32 @@ export const vaultLoginUserpass = async (auth: VaultAuthJSON): Promise<string> =
             password: auth.password,
         }),
     }).catch((e) => {
-        throw Error(`${colors.boldRed}Couldn't fetch: ${colors.reset}` + e);
+        throw Error(c.bold.red(`Couldn't fetch: `) + e);
     });
 
     const json = await res.json().catch((e) => {
-        throw Error(`${colors.boldRed}Couldn't parse JSON response: ${colors.reset}` + e);
+        throw Error(c.bold.red(`Couldn't parse JSON response: `) + e);
     });
 
     if (json.errors) {
         if (json.errors[0] === `Vault is sealed`) {
             throw Error(
-                `${colors.boldRed}Vault is sealed. ${colors.reset}${colors.bold}\n
-You can unseal it here: ${auth.vaultEndpoint}/ui/vault/unseal
-or with the clients unsealVault() function
+                c.bold.red(`Vault is sealed. \n`) +
+                    `
+You can unseal it here: ${c.bold.blueBright(`${auth.vaultEndpoint}/ui/vault/unseal`)}
+                                        
+or with the clients ${c.bold.blueBright(`unsealVault()`)} function
 
-For compose setups the key can be found in the in the pektin-compose/secrets/.env file in the V_KEY constant.
-It looks similar to this: V_KEY="3ad0e26a9248a2ee6a07bc2c4a4d967589e74f02319d0f7ccb169918cd1e5b89" (copy without quotes)
-${colors.reset}`
+For compose setups the key can be found in the in the pektin-compose/secrets/.env file in the ${c.bold.red(
+                        `V_KEY`
+                    )} constant.
+It looks ${c.bold(`similar`)} to this: ${c.bold.red(`V_KEY`)}=${c.bold.greenBright(
+                        `"3ad0e26a9248a2ee6a07bc2c4a4d967589e74f02319d0f7ccb169918cd1e5b89"`
+                    )} (copy without quotes)
+`
             );
         }
-        throw Error(`${colors.boldRed}Couldn't obtain vault token: ${colors.reset}` + json.errors);
+        throw Error(c.bold.red(`Couldn't obtain vault token: `) + json.errors);
     }
     return json.auth.client_token;
 };
