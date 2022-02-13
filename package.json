@@ -1,8 +1,9 @@
 {
     "name": "@pektin/client",
-    "version": "1.1.82",
+    "version": "1.1.83",
     "description": "A client to facilitate the control of pektin dns servers",
     "main": "dist/js/index.js",
+    "module": "dist/js/index.js",
     "types": "dist/js/index.d.ts",
     "license": "MIT",
     "type": "module",
@@ -15,7 +16,8 @@
         "import": "./dist/js/index.js",
         "default": "./dist/js/index.js",
         "node": "./dist/js/index.js",
-        "deno": "./dist/deno/index.js"
+        "deno": "./dist/deno/index.js",
+        "require": "./dist/cjs/index.js"
     },
     "repository": {
         "type": "git",
@@ -50,10 +52,11 @@
     },
     "dependencies": {
         "@firstdorsal/powerdns-api": "^1.11.0",
-        "@pektin/config": "^1.0.51",
+        "@pektin/config": "^1.0.53",
         "@pektin/dns-zonefile": "^0.3.1",
         "@pektin/global-registrar": "^1.0.13",
         "@pektin/toluol-wasm-nodejs": "^0.3.0",
+        "cfonts": "^2.10.0",
         "chalk": "^5.0.0",
         "cross-fetch": "^3.1.4",
         "json-colorizer": "^2.2.2",
@@ -61,12 +64,13 @@
         "yaml": "^1.10.2"
     },
     "scripts": {
-        "build": "tsc",
+        "build": "tsc && yarn compile-cjs && yarn convert-deno && yarn bundle-policies",
         "start": "tsc --watch",
-        "before-publish": "yarn build && yarn convert-deno && yarn bundle-policies",
+        "before-publish": "yarn build ",
         "manual-test": "RED='\u001b[1;91m' ; NO_COLOR='\u001b[0m' ; echo \"${RED}Don't forget to compile the TS files first with: yarn start ${NO_COLOR}\" ; node dist/js/_manualTests/index.js",
         "upgrade-pektin": "yarn upgrade --latest @pektin/config @pektin/global-registrar",
         "convert-deno": "sh scripts/convert-deno.sh",
-        "bundle-policies": "sh scripts/bundle-policies.sh"
+        "bundle-policies": "sh scripts/bundle-policies.sh",
+        "compile-cjs": "tsc -p tsconfig-common.json"
     }
 }

@@ -9,25 +9,36 @@ config({ path: `/pektin-compose/secrets/.env` });
 
 const argv = process.argv;
 const script = argv[2];
-
-switch (script) {
-    case `install`:
-        await installPektinCompose();
-        break;
-    case `start`:
-        if (!process.env.V_KEY) throw Error(`Could not get key from .env file to unlock vault`);
-        await unsealVault(`http://pektin-vault`, process.env.V_KEY);
-        await updateConfig();
-        break;
-    case `first-start`:
-        await pektinComposeFirstStart();
-        break;
-    case `check-config`:
-        await checkConfig(
-            `/pektin-compose/pektin-config.json`,
-            `node_modules/@pektin/config/pektin-config.schema.yml`
-        );
-        break;
-    default:
-        throw Error(`Invalid script: ${script}`);
-}
+(async () => {
+    switch (script) {
+        case `install`:
+            await checkConfig(
+                `/pektin-compose/pektin-config.json`,
+                `node_modules/@pektin/config/pektin-config.schema.yml`,
+                `json`,
+                false
+            );
+            await installPektinCompose();
+            break;
+        case `start`:
+            if (!process.env.V_KEY) throw Error(`Could not get key from .env file to unlock vault`);
+            await unsealVault(`http://pektin-vault`, process.env.V_KEY);
+            await checkConfig(
+                `/pektin-compose/pektin-config.json`,
+                `node_modules/@pektin/config/pektin-config.schema.yml`
+            );
+            await updateConfig();
+            break;
+        case `first-start`:
+            await pektinComposeFirstStart();
+            break;
+        case `check-config`:
+            await checkConfig(
+                `/pektin-compose/pektin-config.json`,
+                `node_modules/@pektin/config/pektin-config.schema.yml`
+            );
+            break;
+        default:
+            throw Error(`Invalid script: ${script}`);
+    }
+})();

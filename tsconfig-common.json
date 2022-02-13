@@ -1,0 +1,10 @@
+{
+    "compilerOptions": {
+        "outDir": "./dist/cjs",
+        "target": "es5",
+        "module": "CommonJS"
+    },
+    "extends": "./tsconfig.json",
+    "include": ["src"],
+    "exclude": ["src/_manualTests"]
+}

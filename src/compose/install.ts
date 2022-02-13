@@ -9,6 +9,8 @@ import {
     requestPektinDomain,
 } from "./utils.js";
 import crypto from "crypto";
+/*@ts-ignore*/
+import cfonts from "cfonts";
 
 import { unsealVault, initVault, enableVaultCors, updateKvValue } from "./../vault/vault.js";
 import { PektinClientConnectionConfigOverride } from "./../index.js";
@@ -33,6 +35,12 @@ export const installPektinCompose = async (
     dir: string = `/pektin-compose/`,
     internalVaultUrl: string = `http://pektin-vault`
 ) => {
+    cfonts.say(`install`, {
+        font: `block`,
+        align: `left`,
+        colors: [`yellow`, `cyan`],
+    });
+
     if (process.env.UID === undefined || process.env.GID === undefined) {
         throw Error(
             `No UID and/or GID defined. Current is: UID: ` +
