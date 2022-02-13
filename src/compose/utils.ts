@@ -5,7 +5,10 @@ import { exec as execDefault } from "child_process";
 import fs from "fs/promises";
 import path from "path";
 import { PektinConfig } from "@pektin/config/src/config-types.js";
-import { PektinClientConnectionConfigOverride } from "../types.js";
+import { PektinClientConnectionConfigOverride, TempDomain } from "../types.js";
+import f from "cross-fetch";
+import c from "chalk";
+
 const exec = promisify(execDefault);
 
 export const randomString = (length = 100) =>
@@ -88,7 +91,34 @@ dns_pektin_confidant_password = ${cc.confidantPassword}
 dns_pektin_api_endpoint = ${cc.override?.pektinApiEndpoint}
 `;
 
-export const requestPektinDomain = () => {
-    const a = randomString(10).toLowerCase().replaceAll(/[-_]/g, `x`);
-    return { domain: a, zoneDomain: `pektin.zone` };
+export const requestPektinDomain = async (config: PektinConfig): Promise<TempDomain | false> => {
+    const tempDomainProvider = config.reverseProxy.tempZone.provider;
+    const routing = config.reverseProxy.tempZone.routing;
+    const protcol = routing === `local` ? `http` : `https`;
+
+    const address =
+        routing === `local` ? `${tempDomainProvider}host.docker.internal` : tempDomainProvider;
+
+    const err = () => {
+        console.error(
+            c.red.bold(
+                `Couldn't get temp domain at address: ${address} for provider: ${tempDomainProvider}`
+            )
+        );
+    };
+
+    try {
+        const res = await f(`${protcol}://${address}/v1/temp-domain`);
+        const j = await res.json();
+        if (!j.data.newZoneName) {
+            err();
+            return false;
+        }
+        const domain = j.data.newZoneName;
+
+        return { domain, zoneDomain: tempDomainProvider };
+    } catch (error) {
+        err();
+        return false;
+    }
 };

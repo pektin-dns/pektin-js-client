@@ -1,4 +1,5 @@
 FROM node:alpine
+RUN apk add nmap
 WORKDIR /app/
 COPY ./package.json ./
 COPY ./yarn.lock ./

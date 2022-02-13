@@ -248,19 +248,19 @@ export const installPektinCompose = async (
         [`R_PEKTIN_GEWERKSCHAFT_PASSWORD`, R_PEKTIN_GEWERKSCHAFT_PASSWORD],
     ];
 
-    const tempDomain = requestPektinDomain();
+    const tempDomain = await requestPektinDomain(pektinConfig);
 
     await updateKvValue(
         internalVaultUrl,
         vaultTokens.rootToken,
         `tempDomain`,
-        tempDomain,
+        { tempDomain: tempDomain },
         `pektin-kv`
     );
 
     if (pektinConfig.nodes.length > 1) {
         await createArbeiterConfig(
-            { R_PEKTIN_GEWERKSCHAFT_PASSWORD, pektinConfig, tempDomain },
+            { R_PEKTIN_GEWERKSCHAFT_PASSWORD, pektinConfig, ...(tempDomain && { tempDomain }) },
             dir
         );
         await createSwarmScript(pektinConfig, dir);
@@ -283,7 +283,7 @@ export const installPektinCompose = async (
         pektinConfig,
         node: getMainNode(pektinConfig),
         recursorAuth: recursorBasicAuthHashed,
-        tempDomain,
+        ...(tempDomain && { tempDomain }),
         proxyAuth: proxyBasicAuthHashed,
     });
     await fs.writeFile(
@@ -310,7 +310,7 @@ export const installPektinCompose = async (
             V_PEKTIN_API_PASSWORD,
             pektinConfig,
             recursorBasicAuthHashed,
-            tempDomain,
+            ...(tempDomain && { tempDomain }),
         },
         dir
     );
@@ -511,7 +511,7 @@ export const setRedisPasswordHashes = async (
     //crypto.create;
 };
 
-const createCspConnectSources = (c: PektinConfig, tempDomain: TempDomain) => {
+const createCspConnectSources = (c: PektinConfig, tempDomain?: TempDomain) => {
     const sources: string[] = [];
     let connectSources = ``;
     Object.values(c.services).forEach((service) => {
@@ -523,7 +523,7 @@ const createCspConnectSources = (c: PektinConfig, tempDomain: TempDomain) => {
                 sources.push(concatDomain(`localhost`, fd));
             } else if (c.reverseProxy.routing === `domain`) {
                 sources.push(fd);
-                if (c.reverseProxy.tempZone) {
+                if (c.reverseProxy.tempZone && tempDomain) {
                     sources.push(
                         concatDomain(
                             concatDomain(tempDomain.zoneDomain, tempDomain.domain),
@@ -551,7 +551,7 @@ export const envSetValues = async (
             rootToken: string;
         };
         recursorBasicAuthHashed: string;
-        tempDomain: TempDomain;
+        tempDomain?: TempDomain;
     },
     dir: string
 ) => {
