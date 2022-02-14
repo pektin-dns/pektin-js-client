@@ -1,8 +1,8 @@
 import { PektinConfig } from "@pektin/config/src/config-types.js";
 import fs from "fs/promises";
 import path from "path";
-import { PektinClient } from "../index.js";
-import { ApiRecord, PektinClientConnectionConfigOverride, PektinRRType } from "../index.js";
+import { PektinClient, PC3 } from "../index.js";
+import { ApiRecord, PektinRRType } from "../index.js";
 import { createSingleScript } from "./utils.js";
 import { absoluteName, concatDomain } from "../index.js";
 import { getMainNode } from "../pureFunctions.js";
@@ -14,8 +14,8 @@ export const pektinComposeFirstStart = async () => {
         await fs.readFile(path.join(dir, `pektin-config.json`), `utf-8`)
     ) as PektinConfig;
 
-    const adminCreds: PektinClientConnectionConfigOverride = JSON.parse(
-        await fs.readFile(path.join(dir, `secrets`, `server-admin-connection-config.json`), `utf-8`)
+    const adminCreds: PC3 = JSON.parse(
+        await fs.readFile(path.join(dir, `secrets`, `server-admin.pc3.json`), `utf-8`)
     );
 
     if (pektinConfig.nameservers?.length) {

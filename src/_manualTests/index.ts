@@ -16,10 +16,9 @@ config({ path: `/home/paul/Documents/powerdns-api/.env` });
 
 if (!process.env.PDNS_API_ENDPOINT || !process.env.PDNS_API_KEY) throw Error(`missing`);
 
-const serverAdminConfig = await fs.readFile(
-    `../pektin-compose/secrets/server-admin-connection-config.json`,
-    { encoding: `utf8` }
-);
+const serverAdminConfig = await fs.readFile(`../pektin-compose/secrets/server-admin.pc3.json`, {
+    encoding: `utf8`,
+});
 
 const pc = new PektinClient(JSON.parse(serverAdminConfig));
 
@@ -33,8 +32,8 @@ pc.setupDomain(`a.example.com.`, [{ name: `ns1.a.example.com.`, ips: [`1::1`] }]
 */
 //console.log(await pc.get([{ name: `яндекс.рф.`, rr_type: PektinRRType.SOA }]));
 
-console.log(toASCII(`яндекс.рф`));
-
+console.log(await pc.setupDomain(`a.de.`, [{ fullNsDomain: `.a.`, ips: [`1::1`] }]));
+/*
 console.log(
     beautifyJSON(
         await pc.search([
@@ -46,7 +45,7 @@ console.log(
     )
 );
 console.log(beautifyJSON(await pc.getDomains()));
-
+*/
 /*
 genTraefikConfs({
     pektinConfig: c,

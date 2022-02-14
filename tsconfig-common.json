@@ -6,5 +6,5 @@
     },
     "extends": "./tsconfig.json",
     "include": ["src"],
-    "exclude": ["src/_manualTests"]
+    "exclude": ["src/_manualTests", "src/tests"]
 }

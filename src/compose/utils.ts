@@ -5,7 +5,7 @@ import { exec as execDefault } from "child_process";
 import fs from "fs/promises";
 import path from "path";
 import { PektinConfig } from "@pektin/config/src/config-types.js";
-import { PektinClientConnectionConfigOverride, TempDomain } from "../types.js";
+import { PC3, TempDomain } from "../types.js";
 import f from "cross-fetch";
 import c from "chalk";
 
@@ -84,9 +84,7 @@ export const createSingleScript = async (
 
 // TODO fix ribston policies, check acme client in vault
 
-export const configToCertbotIni = (
-    cc: PektinClientConnectionConfigOverride
-) => `dns_pektin_username = ${cc.username}
+export const configToCertbotIni = (cc: PC3) => `dns_pektin_username = ${cc.username}
 dns_pektin_confidant_password = ${cc.confidantPassword}
 dns_pektin_api_endpoint = ${cc.override?.pektinApiEndpoint}
 `;

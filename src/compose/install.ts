@@ -13,7 +13,7 @@ import crypto from "crypto";
 import cfonts from "cfonts";
 
 import { unsealVault, initVault, enableVaultCors, updateKvValue } from "./../vault/vault.js";
-import { PektinClientConnectionConfigOverride } from "./../index.js";
+import { PC3 } from "./../index.js";
 import { PektinConfig } from "@pektin/config/src/config-types.js";
 
 import {
@@ -156,7 +156,7 @@ export const installPektinCompose = async (
     });
 
     await fs.writeFile(
-        path.join(dir, `secrets`, `server-admin-connection-config.json`),
+        path.join(dir, `secrets`, `server-admin.pc3.json`),
         JSON.stringify(pektinAdminConnectionConfig)
     );
 
@@ -185,12 +185,12 @@ export const installPektinCompose = async (
             },
         });
         await fs.writeFile(
-            path.join(dir, `secrets`, `acme-client-connection-config.json`),
+            path.join(dir, `secrets`, `acme-client.pc3.json`),
             JSON.stringify(acmeClientConnectionConfig)
         );
         await fs.writeFile(
-            path.join(dir, `secrets`, `certbot-acme-client-connection-config.ini`),
-            configToCertbotIni(acmeClientConnectionConfig as PektinClientConnectionConfigOverride)
+            path.join(dir, `secrets`, `certbot-acme-client.pc3.ini`),
+            configToCertbotIni(acmeClientConnectionConfig as PC3)
         );
     }
 
@@ -328,9 +328,9 @@ export const installPektinCompose = async (
     await chownRecursive(path.join(dir, `secrets`), process.env.UID, process.env.GID);
     await chmod(path.join(dir, `secrets`), `700`);
     await chmod(path.join(dir, `secrets`, `.env`), `600`);
-    await chmod(path.join(dir, `secrets`, `acme-client-connection-config.json`), `600`);
-    await chmod(path.join(dir, `secrets`, `server-admin-connection-config.json`), `600`);
-    await chmod(path.join(dir, `secrets`, `certbot-acme-client-connection-config.ini`), `600`);
+    await chmod(path.join(dir, `secrets`, `acme-client.pc3.json`), `600`);
+    await chmod(path.join(dir, `secrets`, `server-admin.pc3.json`), `600`);
+    await chmod(path.join(dir, `secrets`, `certbot-acme-client.pc3.ini`), `600`);
 };
 
 export const genBasicAuthHashed = (username: string, password: string) => {
@@ -602,7 +602,7 @@ export const createStartScript = async (pektinConfig: PektinConfig, dir: string)
     // run pektin-start
     file += `
 docker rm pektin-scripts -v &> /dev/null 
-docker run --env UID=$(id -u) --env GID=$(id -g) --name pektin-scripts --network container:pektin-vault --mount "type=bind,source=$PWD,dst=/pektin-compose/" -it pektin-scripts node ./dist/js/compose/scripts.js start\n`;
+docker run --env UID=$(id -u) --env GID=$(id -g) --env FORCE_COLOR=3 --name pektin-scripts --network container:pektin-vault --mount "type=bind,source=$PWD,dst=/pektin-compose/" -it pektin-scripts node ./dist/js/compose/scripts.js start\n`;
     // remove pektin-start artifacts
     file += `docker rm pektin-scripts -v &> /dev/null \n`;
     // compose up everything

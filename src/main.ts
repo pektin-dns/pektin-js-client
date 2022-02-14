@@ -17,8 +17,6 @@ import {
     DeleteResponseSuccess,
     GetZoneRecordsResponseSuccess,
     ManagerPassword,
-    PektinClientConnectionConfigOverride,
-    SearchResponseSuccess,
     SNSNameserver,
     PektinZoneData,
     absoluteName,
@@ -29,6 +27,7 @@ import {
     get,
     RecordIdentifier,
     Glob,
+    PC3,
 } from "./index.js";
 import { getVaultValue, vaultLoginUserpass } from "./vault/vault.js";
 
@@ -56,24 +55,22 @@ export class PektinClient {
 
     internal: boolean;
 
-    constructor(connectionConfig: PektinClientConnectionConfigOverride, throwErrors?: boolean) {
-        if (connectionConfig === undefined) throw Error(`Missing connectionConfig`);
-        this.vaultEndpoint = connectionConfig.internal
-            ? `http://pektin-vault`
-            : connectionConfig.vaultEndpoint;
-        this.username = connectionConfig.username;
+    constructor(pc3: PC3, throwErrors?: boolean) {
+        if (pc3 === undefined) throw Error(`Missing connectionConfig`);
+        this.vaultEndpoint = pc3.internal ? `http://pektin-vault` : pc3.vaultEndpoint;
+        this.username = pc3.username;
 
-        this.confidantPassword = checkConfidantPassword(connectionConfig.confidantPassword);
+        this.confidantPassword = checkConfidantPassword(pc3.confidantPassword);
 
-        this.managerPassword = checkManagerPassword(connectionConfig.managerPassword);
+        this.managerPassword = checkManagerPassword(pc3.managerPassword);
 
         this.confidantToken = null;
         this.managerToken = null;
 
-        this.pektinApiEndpoint = connectionConfig.override?.pektinApiEndpoint || null;
-        this.pektinConfig = connectionConfig.override?.pektinConfig || null;
+        this.pektinApiEndpoint = pc3.override?.pektinApiEndpoint || null;
+        this.pektinConfig = pc3.override?.pektinConfig || null;
         this.throwErrors = throwErrors;
-        this.internal = connectionConfig.internal || false;
+        this.internal = pc3.internal || false;
     }
 
     init = async () => {
@@ -345,8 +342,8 @@ export class PektinClient {
         const rr_set = [
             {
                 ttl: 60,
-                mname: absoluteName(nameServer.name),
-                rname: absoluteName(`hostmaster.` + domain),
+                mname: absoluteName(nameServer.fullNsDomain),
+                rname: absoluteName(`hostmaster${domain === `.` ? `` : `.`}` + domain),
                 serial: 0,
                 refresh: 0,
                 retry: 0,
@@ -358,7 +355,7 @@ export class PektinClient {
     };
 
     setupNameServers = async (domain: string, nameServers: SNSNameserver[]) => {
-        const subDomains = nameServers.map((ns) => ns.name);
+        const subDomains = nameServers.map((ns) => ns.fullNsDomain);
         const rr_set = subDomains.map((subDomain) => ({
             ttl: 60,
             value: absoluteName(subDomain),
@@ -371,7 +368,7 @@ export class PektinClient {
         nameServers.forEach((ns) => {
             if (ns.ips && ns.ips.length) {
                 records.push({
-                    name: absoluteName(ns.name),
+                    name: absoluteName(ns.fullNsDomain),
                     rr_type: PektinRRType.AAAA,
                     rr_set: ns.ips.map((ip) => ({
                         ttl: 60,
@@ -381,7 +378,7 @@ export class PektinClient {
             }
             if (ns.legacyIps && ns.legacyIps.length) {
                 records.push({
-                    name: absoluteName(ns.name),
+                    name: absoluteName(ns.fullNsDomain),
                     rr_type: PektinRRType.A,
                     rr_set: ns.legacyIps.map((legacyIp) => ({
                         ttl: 60,

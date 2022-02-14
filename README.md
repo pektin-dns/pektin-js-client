@@ -1,5 +1,7 @@
 TODO when a service has a domain that is not one of the ns domains its not creating a soa record
 
+TODO mark position in output when serde returns something like `at line 1 column 357`
+
 # JavaScript / TypeScript
 
 [git.y.gy](https://git.y.gy/pektin/pektin-js-client) | [GitLab](https://gitlab.com/pektin/pektin-js-client) | [GitHub](https://github.com/pektin-dns/pektin-js-client) | [NPM](https://www.npmjs.com/package/@pektin/client)

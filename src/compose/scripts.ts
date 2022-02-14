@@ -32,12 +32,6 @@ const script = argv[2];
         case `first-start`:
             await pektinComposeFirstStart();
             break;
-        case `check-config`:
-            await checkConfig(
-                `/pektin-compose/pektin-config.json`,
-                `node_modules/@pektin/config/pektin-config.schema.yml`
-            );
-            break;
         default:
             throw Error(`Invalid script: ${script}`);
     }

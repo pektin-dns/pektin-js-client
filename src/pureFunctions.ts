@@ -15,7 +15,6 @@ import {
     ApiResponseType,
     ApiSearchRequestBody,
     ApiSetRequestBody,
-    ConfidantPassword,
     DeleteResponse,
     DeleteResponseSuccess,
     DomainName,
@@ -31,7 +30,7 @@ import {
     SetResponseSuccess,
 } from "./types.js";
 import { getVaultValue } from "./vault/vault.js";
-import chalk from "chalk";
+import { exit } from "process";
 
 export const replaceNameInRrSet = (
     rr_set: ResourceRecord[],
@@ -207,42 +206,67 @@ export const pektinApiRequest = async (
     const tEnd = performance.now();
     const text = await res.text();
     let json;
-    // TODO add coloring
+
     try {
         json = JSON.parse(text);
         json.time = tEnd - tStart;
     } catch (e) {
-        if (!throwErrors) {
-            return {
-                type: ApiResponseType.Error,
-                message: `Pektin client couldn't parse response from API as JSON. The response was: ${text}`,
-                time: tEnd - tStart,
-                data: [],
-            };
-        }
-        body.client_username = `<REDACTED>`;
-        if (body.confidant_password) body.confidant_password = `<REDACTED>` as ConfidantPassword;
-        throw Error(
-            c.bold.red(`Pektin client couldn't parse JSON response from API\n`) +
-                `Pektin-API returned this body:\n` +
-                `${text}\n` +
-                `while client was trying to ${method} the following body:\n` +
-                beautifyJSON(body)
-        );
+        if (throwErrors) err({ type: `ERR_PARSE_JSON`, body, method, text });
+        json = {
+            type: ApiResponseType.Error,
+            message: `Pektin client couldn't parse response from API as JSON. The response was: ${text}`,
+            time: tEnd - tStart,
+            data: [],
+        };
     }
-    if (json.type === `error` && throwErrors) {
-        body.client_username = `<REDACTED>`;
-        if (body.confidant_password) body.confidant_password = `<REDACTED>` as ConfidantPassword;
 
-        throw Error(
-            c.bold.red(`API Error:\n`) +
-                `${beautifyJSON(json)}\n` +
-                c.bold.red(
-                    `while client was trying to ${c.yellow.bold(method)} the following body: \n`
-                ) +
-                `${beautifyJSON(body)}\n`
-        );
+    if (json.type === `error` && throwErrors) {
+        err({ type: `ERR_API`, body, method, text, json });
     }
-    if (throwErrors) return json as ApiResponseBody;
+
     return json as ApiResponseBody;
+};
+
+export const err = ({
+    type,
+    body,
+    text,
+    method,
+    json,
+}: {
+    type: `ERR_PARSE_JSON` | `ERR_API`;
+    body: ApiRequestBody;
+    text: string;
+    method: string;
+    json?: ApiResponseBody;
+}) => {
+    let e = ``;
+    if (type === `ERR_PARSE_JSON`) {
+        e =
+            c.bold.red(`Pektin client couldn't parse JSON response from API\n`) +
+            `Pektin-API returned this body:\n` +
+            `${text}\n` +
+            `while client was trying to ${method} the following body:\n` +
+            beautifyJSON({ obj: body });
+    } else if (type === `ERR_API` && json !== undefined) {
+        const deserializeError = JSON.stringify(text).includes(`Json deserialize error`);
+
+        e =
+            c.bold.red(`API Error:\n`) +
+            `${beautifyJSON({ obj: json })}\n` +
+            c.bold.red(
+                `while client was trying to ${c.yellow.bold(method)} the following body: \n`
+            ) +
+            `${beautifyJSON({ obj: body, deserializeError, answer: text })}\n`;
+    }
+
+    throw new Error(e);
+    /*
+    if (typeof window === `undefined`) {
+        console.log(e);
+        exit(1);
+    } else {
+        throw new Error(e);
+    }
+    */
 };

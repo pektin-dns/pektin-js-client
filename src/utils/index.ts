@@ -9,9 +9,8 @@ import {
     ConfidantPassword,
     ManagerPassword,
 } from "../index.js";
-import colorize from "json-colorizer";
-
-const defaultColorizeOptions = {
+import { colorizeJson, ColorizeOptions } from "./colorize-json.js";
+const defaultColorizeOptions: ColorizeOptions = {
     colors: {
         BRACE: `#bbbbbb`,
         BRACKET: `#bbbbbb`,
@@ -23,10 +22,66 @@ const defaultColorizeOptions = {
         BOOLEAN_LITERAL: `#d8985f`,
         NULL_LITERAL: `#d8985f`,
     },
+    brackets: true,
 };
 
-export const beautifyJSON = (obj: any, indent = 2, colorizeOptions = defaultColorizeOptions) => {
-    return colorize(JSON.stringify(obj, null, indentSpaces(indent)), colorizeOptions);
+export const beautifyJSON = ({
+    obj,
+    deserializeError = false,
+    indent = 4,
+    colorizeOptions = defaultColorizeOptions,
+    answer,
+}: {
+    obj: any;
+    deserializeError?: boolean;
+    indent?: number;
+    colorizeOptions?: any;
+    answer?: string;
+}) => {
+    //const sog = JSON.stringify(obj);
+
+    //let uLength, confLength;
+    const rw = `<REDACTED>`;
+    if (obj.client_username) {
+        //uLength = obj.client_username.length;
+        obj.client_username = rw;
+    }
+    if (obj.confidant_password) {
+        //confLength = obj.confidant_password.length;
+        obj.confidant_password = rw;
+    }
+
+    const s = JSON.stringify(obj, null, indentSpaces(indent));
+    /*
+    if (deserializeError && answer && answer.includes(`at line`)) {
+        const { line, column } = getLineAndColumn(answer);
+        if (line !== undefined && column !== undefined) {
+            let realCount = 1 + uLength + confLength - 2 * rw.length;
+            for (let i = 0; i < s.length; i++) {
+                const char = s[i];
+                if (char !== ` ` && char !== `\n`) {
+                    realCount += 1;
+                }
+            }
+            //console.log(sog);
+
+            return colorizeJson(s, colorizeOptions);
+        }
+    }*/
+    return colorizeJson(s, colorizeOptions);
+};
+
+const getLineAndColumn = (s: string) => {
+    const line = getNumberAfterString(s, `line`);
+    const column = getNumberAfterString(s, `column`);
+    return { line, column };
+};
+
+const getNumberAfterString = (s: string, search: string) => {
+    const a = s.substring(s.indexOf(search) + search.length + 1);
+    const b = a.match(/[0-9]*/);
+    if (b && b.length) return parseInt(b[0]);
+    return false;
 };
 
 export const indentSpaces = (indent: number) => {

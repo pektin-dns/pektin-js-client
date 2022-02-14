@@ -6,7 +6,7 @@ export interface TempDomain {
 }
 
 export interface SNSNameserver {
-    name: string;
+    fullNsDomain: string;
     ips?: string[];
     legacyIps?: string[];
 }
@@ -41,15 +41,13 @@ export type ConfidantPassword = `c.${string}`;
 
 export type ClientVaultAccountType = `confidant` | `manager`;
 
-export interface PektinClientConnectionConfig {
+// Pektin Client Connection Config
+export interface PC3 {
     vaultEndpoint?: string;
     username: string;
     confidantPassword?: ConfidantPassword;
     managerPassword?: ManagerPassword;
     internal?: boolean;
-}
-
-export interface PektinClientConnectionConfigOverride extends PektinClientConnectionConfig {
     override?: OverrideClientCredentials;
 }
 

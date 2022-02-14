@@ -2,7 +2,7 @@ import { promises as fs } from "fs";
 import path from "path";
 import { chownRecursive, chown, chmod } from "./utils.js";
 import { unsealVault } from "./../vault/vault.js";
-import { PektinClientConnectionConfigOverride } from "./../index.js";
+import { PC3 } from "./../index.js";
 import { PektinConfig } from "@pektin/config/src/config-types.js";
 import { config } from "dotenv";
 import { genTraefikConfs } from "../traefik/index.js";
@@ -28,8 +28,8 @@ export const updateConfig = async (dir: string = `/pektin-compose/`) => {
         })
     );
 
-    const adminPC3: PektinClientConnectionConfigOverride = JSON.parse(
-        await fs.readFile(path.join(dir, `secrets`, `server-admin-connection-config.json`), {
+    const adminPC3: PC3 = JSON.parse(
+        await fs.readFile(path.join(dir, `secrets`, `server-admin.pc3.json`), {
             encoding: `utf-8`,
         })
     );
@@ -104,7 +104,7 @@ export const updateConfig = async (dir: string = `/pektin-compose/`) => {
     await chownRecursive(path.join(dir, `secrets`), process.env.UID, process.env.GID);
     await chmod(path.join(dir, `secrets`), `700`);
     await chmod(path.join(dir, `secrets`, `.env`), `600`);
-    await chmod(path.join(dir, `secrets`, `acme-client-connection-config.json`), `600`);
-    await chmod(path.join(dir, `secrets`, `server-admin-connection-config.json`), `600`);
-    await chmod(path.join(dir, `secrets`, `certbot-acme-client-connection-config.ini`), `600`);
+    await chmod(path.join(dir, `secrets`, `acme-client.pc3.json`), `600`);
+    await chmod(path.join(dir, `secrets`, `server-admin.pc3.json`), `600`);
+    await chmod(path.join(dir, `secrets`, `certbot-acme-client.pc3.ini`), `600`);
 };
