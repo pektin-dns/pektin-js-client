@@ -4,9 +4,10 @@ import { beautifyJSON, fromBase64 } from "../index.js";
 import { PC3 } from "../types.js";
 import { createSh } from "../utils/fs-sh.js";
 import { installVault } from "./install-vault.js";
-import { configToCertbotIni } from "./utils.js";
+import { chownRecursive, configToCertbotIni } from "./utils.js";
 import { promises as fs } from "fs";
 import path from "path";
+import { chmod } from "./utils.js";
 
 export const installK8s = async (pektinConfigYamlB64: string, secretsYamlB64: string) => {
     if (!pektinConfigYamlB64 || !secretsYamlB64) {
@@ -18,13 +19,13 @@ export const installK8s = async (pektinConfigYamlB64: string, secretsYamlB64: st
     let pektinConfig, secrets;
     try {
         pektinConfig = yaml.parse(pektinConfigYaml);
-        secrets = yaml.parse(secretsYaml) as K8sSecrets;
+        secrets = yaml.parse(secretsYaml);
     } catch (error: any) {
         throw Error(`Failed to parse yaml: ${error?.message}`);
     }
 
     const { pektinAdminConnectionConfig, vaultTokens, acmeClientConnectionConfig } =
-        await installVault({ pektinConfig, secrets });
+        await installVault({ pektinConfig, secrets: secrets.secrets, k8s: true });
     console.log(`-----`);
 
     console.log(
@@ -37,6 +38,14 @@ export const installK8s = async (pektinConfigYamlB64: string, secretsYamlB64: st
 };
 
 export const createSecrets = async (baseDir = `/base/`) => {
+    if (process.env.UID === undefined || process.env.GID === undefined) {
+        throw Error(
+            `No UID and/or GID defined. Current is: UID: ` +
+                process.env.UID +
+                `, GID: ` +
+                process.env.GID
+        );
+    }
     let log = await fs.readFile(path.join(baseDir, `.secrets.tmp`), { encoding: `utf-8` });
     log = log.substring(log.indexOf(`-----`) + 5);
 
@@ -59,6 +68,15 @@ export const createSecrets = async (baseDir = `/base/`) => {
         path.join(baseDir, `secrets`, `certbot-acme-client.pc3.ini`),
         configToCertbotIni(j.acmeClientConnectionConfig)
     );
+
+    await chownRecursive(path.join(baseDir, `secrets`), process.env.UID, process.env.GID);
+
+    await chmod(path.join(baseDir, `secrets`), `700`);
+    await chmod(path.join(baseDir, `secrets`, `acme-client.pc3.json`), `600`);
+    await chmod(path.join(baseDir, `secrets`, `server-admin.pc3.json`), `600`);
+    await chmod(path.join(baseDir, `secrets`, `vault-tokens.json`), `600`);
+    await chmod(path.join(baseDir, `secrets`, `certbot-acme-client.pc3.ini`), `600`);
+
     await fs.unlink(path.join(baseDir, `.secrets.tmp`));
 };
 

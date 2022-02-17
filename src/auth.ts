@@ -137,7 +137,7 @@ export const updatePektinSharedPasswords = async (
     );
 
     for (let i = 1; i < 3; i++) {
-        if (password.length % 2 !== 0) throw new Error(`Password must have a even length`);
+        if (password.length % 2 !== 0) throw new Error(`Password must have an even length`);
         const passwordHalf =
             i === 1
                 ? password.substring(0, password.length / 2)

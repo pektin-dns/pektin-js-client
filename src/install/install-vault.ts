@@ -1,4 +1,4 @@
-import { getPektinEndpoint, isReady } from "../index.js";
+import { absoluteName, deAbsolute, getPektinEndpoint, isReady } from "../index.js";
 import {
     createPektinVaultEngines,
     createPektinAuthVaultPolicies,
@@ -66,15 +66,23 @@ export const installVault = async ({
 
     if (pektinConfig.nameservers !== undefined) {
         // create the signer vault infra for the nameserver domains
+
         pektinConfig.nameservers.forEach(async (ns) => {
+            const nsPass =
+                secrets?.nameserverSignerPasswords?.[absoluteName(ns.domain)] ??
+                secrets?.nameserverSignerPasswords?.[deAbsolute(ns.domain)];
             if (ns.main) {
-                if (!secrets?.nameserverSignerPasswords?.[ns.domain] && k8s) {
+                if (!nsPass && k8s) {
                     throw Error(
-                        `Trying to install vault for k8s but missing necessary signer passwords for domain:${ns.domain}`
+                        `Trying to install vault for k8s but missing necessary signer passwords for domain: ${
+                            ns.domain
+                        } got nsPass: ${nsPass} and secrets?.nameserverSignerPasswords: ${JSON.stringify(
+                            secrets?.nameserverSignerPasswords
+                        )}`
                     );
                 }
-                const domainSignerPassword =
-                    secrets?.nameserverSignerPasswords?.[ns.domain] ?? randomString();
+
+                const domainSignerPassword = nsPass ?? randomString();
                 await createPektinSigner(
                     internalVaultUrl,
                     vaultTokens.rootToken,
