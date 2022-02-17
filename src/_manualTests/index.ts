@@ -1,6 +1,6 @@
 import { PektinClient } from "../main.js";
 import { promises as fs } from "fs";
-import { beautifyJSON, PektinRRType } from "../index.js";
+import { beautifyJSON, isReady, PektinRRType } from "../index.js";
 
 import { config } from "dotenv";
 import { getAllFromPdns } from "../import/pdns/index.js";
@@ -25,6 +25,10 @@ const pc = new PektinClient(JSON.parse(serverAdminConfig));
 const c: PektinConfig = {
     ...JSON.parse(await fs.readFile(`../pektin-compose/pektin-config.json`, { encoding: `utf8` })),
 } as const;
+
+await isReady(`http://vault-н.яндекс.рф.localhost`);
+console.log(`ready`);
+
 /*
 pc.setupDomain(`example.com.`, [{ name: `ns1.example.com.`, ips: [`1::1`] }]);
 pc.setupDomain(`a.example.com.`, [{ name: `ns1.a.example.com.`, ips: [`1::1`] }]);

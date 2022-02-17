@@ -10,6 +10,8 @@ import {
     ManagerPassword,
 } from "../index.js";
 import { colorizeJson, ColorizeOptions } from "./colorize-json.js";
+import f from "cross-fetch";
+
 const defaultColorizeOptions: ColorizeOptions = {
     colors: {
         BRACE: `#bbbbbb`,
@@ -24,6 +26,9 @@ const defaultColorizeOptions: ColorizeOptions = {
     },
     brackets: true,
 };
+
+export const toBase64 = (input: string) => Buffer.from(input).toString(`base64`);
+export const fromBase64 = (input: string) => Buffer.from(input, `base64`).toString(`utf8`);
 
 export const beautifyJSON = ({
     obj,
@@ -202,6 +207,25 @@ export const checkManagerPassword = (input: string | undefined): ManagerPassword
 export const isSupportedRecordType = (type: string) => {
     if (Object.values(supportedRecordTypesArray).includes(type as PektinRRType)) return true;
     return false;
+};
+
+export const isReady = async (url: string): Promise<any> => {
+    return await f(url)
+        .then(async (res) => {
+            if (res.status >= 500) {
+                await new Promise((resolve) => setTimeout(resolve, 500));
+                console.log(`Target: ${url} is not reachable. Retrying...`);
+
+                return await isReady(url);
+            }
+            console.log(`Reached target ${url}`);
+        })
+        .catch(async () => {
+            await new Promise((resolve) => setTimeout(resolve, 500));
+            console.log(`Target: ${url} is not reachable. Retrying...`);
+
+            await isReady(url);
+        });
 };
 
 export const supportedRecordTypesArray = [

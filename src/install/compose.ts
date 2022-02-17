@@ -1,6 +1,13 @@
 import { promises as fs } from "fs";
 import path from "path";
-import { chownRecursive, chown, chmod, randomString, requestPektinDomain } from "./utils.js";
+import {
+    chownRecursive,
+    chown,
+    chmod,
+    randomString,
+    requestPektinDomain,
+    configToCertbotIni,
+} from "./utils.js";
 import crypto from "crypto";
 /*@ts-ignore*/
 import cfonts from "cfonts";
@@ -10,7 +17,7 @@ import { PektinConfig } from "@pektin/config/src/config-types.js";
 
 import { genTraefikConfs } from "../traefik/index.js";
 import { getMainNode } from "../pureFunctions.js";
-import { TempDomain } from "../types.js";
+import { PC3, TempDomain } from "../types.js";
 import { concatDomain } from "../utils/index.js";
 import { toASCII } from "../utils/puny.js";
 import { installVault } from "./install-vault.js";
@@ -57,8 +64,14 @@ export const installPektinCompose = async (
               \__|
     */
 
-    const { vaultTokens, recursorBasicAuthHashed, proxyBasicAuthHashed, V_PEKTIN_API_PASSWORD } =
-        await installVault(pektinConfig);
+    const {
+        vaultTokens,
+        recursorBasicAuthHashed,
+        proxyBasicAuthHashed,
+        V_PEKTIN_API_PASSWORD,
+        pektinAdminConnectionConfig,
+        acmeClientConnectionConfig,
+    } = await installVault({ pektinConfig });
 
     /*
     $$\                                 $$\             $$\           $$\                      
@@ -71,6 +84,20 @@ export const installPektinCompose = async (
     \__|  \__| \_______|\__|       \_______|       \_______|\__|      \__|    \_/     \_______|
     */
 
+    await fs.writeFile(
+        path.join(dir, `secrets`, `server-admin.pc3.json`),
+        JSON.stringify(pektinAdminConnectionConfig)
+    );
+    if (acmeClientConnectionConfig) {
+        await fs.writeFile(
+            path.join(dir, `secrets`, `acme-client.pc3.json`),
+            JSON.stringify(acmeClientConnectionConfig)
+        );
+        await fs.writeFile(
+            path.join(dir, `secrets`, `certbot-acme-client.pc3.ini`),
+            configToCertbotIni(acmeClientConnectionConfig as PC3)
+        );
+    }
     // init redis access control
     const R_PEKTIN_API_PASSWORD = randomString();
     const R_PEKTIN_SERVER_PASSWORD = randomString();
@@ -418,11 +445,14 @@ export const envSetValues = async (
 
 export const createStartScript = async (pektinConfig: PektinConfig, dir: string) => {
     const p = path.join(dir, `start.sh`);
-    let file = `#!/bin/sh\n`;
+    let file = `#!/bin/sh\n
+SCRIPTS_IMAGE_NAME=pektin/scripts
+SCRIPTS_CONTAINER_NAME=pektin-scripts
+ACTIVE_COMPOSE_FILES="${activeComposeFiles(pektinConfig)}"\n\n`;
     // create pektin compose command with different options
     let composeCommand = `docker-compose --env-file secrets/.env`;
 
-    composeCommand += activeComposeFiles(pektinConfig);
+    composeCommand += `\${ACTIVE_COMPOSE_FILES}`;
     composeCommand += ` up -d`;
     const buildAny =
         pektinConfig.build.ui.enabled ||
@@ -435,10 +465,10 @@ export const createStartScript = async (pektinConfig: PektinConfig, dir: string)
     file += `${composeCommand} vault\n`;
     // run pektin-start
     file += `
-docker rm pektin-scripts -v &> /dev/null 
-docker run --env UID=$(id -u) --env GID=$(id -g) --env FORCE_COLOR=3 --name pektin-scripts --network container:pektin-vault --mount "type=bind,source=$PWD,dst=/pektin-compose/" -it pektin-scripts node ./dist/js/install/scripts.js compose-start\n`;
+docker rm \${SCRIPTS_CONTAINER_NAME} -v &> /dev/null 
+docker run --env UID=$(id -u) --env GID=$(id -g) --env FORCE_COLOR=3 --name \${SCRIPTS_CONTAINER_NAME} --network container:pektin-vault --mount "type=bind,source=$PWD,dst=/pektin-compose/" -it \${SCRIPTS_IMAGE_NAME} node ./dist/js/install/scripts.js compose-start\n`;
     // remove pektin-start artifacts
-    file += `docker rm pektin-scripts -v &> /dev/null \n`;
+    file += `docker rm \${SCRIPTS_CONTAINER_NAME} -v &> /dev/null \n`;
     // compose up everything
     file += composeCommand;
 

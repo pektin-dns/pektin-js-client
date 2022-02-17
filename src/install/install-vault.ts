@@ -1,5 +1,4 @@
-import path from "path";
-import { getPektinEndpoint, PC3 } from "../index.js";
+import { getPektinEndpoint, isReady } from "../index.js";
 import {
     createPektinVaultEngines,
     createPektinAuthVaultPolicies,
@@ -10,15 +9,24 @@ import {
 } from "../auth.js";
 import { initVault, unsealVault, enableVaultCors, updateKvValue } from "../vault/vault.js";
 import { genBasicAuthHashed, genBasicAuthString } from "./compose.js";
-import { randomString, configToCertbotIni } from "./utils.js";
+import { randomString } from "./utils.js";
 import { PektinConfig } from "@pektin/config/src/config-types";
 import { promises as fs } from "fs";
+import { K8sSecrets } from "./k8s.js";
+import { PC3 } from "../types.js";
 
-export const installVault = async (
-    pektinConfig: PektinConfig,
-    dir: string = `/pektin-compose/`,
-    internalVaultUrl: string = `http://pektin-vault`
-) => {
+export const installVault = async ({
+    pektinConfig,
+    internalVaultUrl = `http://pektin-vault`,
+    secrets,
+    k8s,
+}: {
+    pektinConfig: PektinConfig;
+    internalVaultUrl?: string;
+    secrets?: K8sSecrets;
+    k8s?: boolean;
+}) => {
+    await isReady(internalVaultUrl);
     // init vault
     const vaultTokens = await initVault(internalVaultUrl);
     await unsealVault(internalVaultUrl, vaultTokens.key);
@@ -60,7 +68,13 @@ export const installVault = async (
         // create the signer vault infra for the nameserver domains
         pektinConfig.nameservers.forEach(async (ns) => {
             if (ns.main) {
-                const domainSignerPassword = randomString();
+                if (!secrets?.nameserverSignerPasswords?.[ns.domain] && k8s) {
+                    throw Error(
+                        `Trying to install vault for k8s but missing necessary signer passwords for domain:${ns.domain}`
+                    );
+                }
+                const domainSignerPassword =
+                    secrets?.nameserverSignerPasswords?.[ns.domain] ?? randomString();
                 await createPektinSigner(
                     internalVaultUrl,
                     vaultTokens.rootToken,
@@ -79,7 +93,10 @@ export const installVault = async (
         });
     }
     // create the vault infra for the api
-    const V_PEKTIN_API_PASSWORD = randomString();
+    if (!secrets?.V_PEKTIN_API_PASSWORD && k8s) {
+        throw Error(`Trying to install vault for k8s but missing necessary api password`);
+    }
+    const V_PEKTIN_API_PASSWORD = secrets?.V_PEKTIN_API_PASSWORD ?? randomString();
 
     createPektinApiAccount(internalVaultUrl, vaultTokens.rootToken, V_PEKTIN_API_PASSWORD);
 
@@ -88,6 +105,15 @@ export const installVault = async (
     await enableVaultCors(internalVaultUrl, vaultTokens.rootToken);
 
     // create admin account
+    if (k8s) {
+        if (
+            !secrets?.adminClientInfo?.confidant ||
+            !secrets?.adminClientInfo?.manager ||
+            !secrets?.adminClientInfo?.username
+        ) {
+            throw Error(`Trying to install vault for k8s but missing necessary admin passwords`);
+        }
+    }
     const pektinAdminConnectionConfig = {
         username: `admin-${randomString(10)}`,
         managerPassword: `m.${randomString()}`,
@@ -114,15 +140,23 @@ export const installVault = async (
         },
     });
 
+    let acmeClientConnectionConfig: false | PC3 = false;
+
     // create acme client if enabled
     if (pektinConfig.letsencrypt) {
-        const acmeClientConnectionConfig = {
+        if (k8s) {
+            if (!secrets?.acmeClientInfo?.confidant || !secrets?.acmeClientInfo?.username) {
+                throw Error(`Trying to install vault for k8s but missing necessary acme passwords`);
+            }
+        }
+        acmeClientConnectionConfig = {
             username: `acme-${randomString(10)}`,
             confidantPassword: `c.${randomString()}`,
             override: {
                 pektinApiEndpoint: getPektinEndpoint(pektinConfig, `api`),
             },
         };
+
         const acmeClientRibstonPolicy = await fs.readFile(
             `/app/node_modules/@pektin/client/dist/policies/acme.ribston.js`,
             `utf-8`
@@ -131,31 +165,40 @@ export const installVault = async (
             endpoint: internalVaultUrl,
             token: vaultTokens.rootToken,
             clientName: acmeClientConnectionConfig.username,
-            confidantPassword: acmeClientConnectionConfig.confidantPassword,
+            confidantPassword: acmeClientConnectionConfig.confidantPassword as string,
             capabilities: {
                 ribstonPolicy: acmeClientRibstonPolicy,
                 allowAllSigningDomains: true,
                 opaPolicy: ``, // TODO add OPA policies
             },
         });
-        await fs.writeFile(
-            path.join(dir, `secrets`, `acme-client.pc3.json`),
-            JSON.stringify(acmeClientConnectionConfig)
-        );
-        await fs.writeFile(
-            path.join(dir, `secrets`, `certbot-acme-client.pc3.ini`),
-            configToCertbotIni(acmeClientConnectionConfig as PC3)
-        );
+    }
+
+    if (k8s) {
+        if (pektinConfig.services.recursor.enabled) {
+            if (!secrets?.recursorAuth?.password || !secrets?.recursorAuth?.username) {
+                throw Error(
+                    `Trying to install vault for k8s but missing necessary recursorAuth info`
+                );
+            }
+        }
+        if (pektinConfig.reverseProxy.external.enabled) {
+            if (!secrets?.proxyAuth?.password || !secrets?.proxyAuth?.username) {
+                throw Error(
+                    `Trying to install vault for k8s but missing necessary recursorAuth info`
+                );
+            }
+        }
     }
 
     // create basic auth for recursor
-    const RECURSOR_USER = randomString(20);
-    const RECURSOR_PASSWORD = randomString();
+    const RECURSOR_USER = secrets?.recursorAuth?.username ?? randomString(20);
+    const RECURSOR_PASSWORD = secrets?.recursorAuth?.password ?? randomString();
     const recursorBasicAuthHashed = genBasicAuthHashed(RECURSOR_USER, RECURSOR_PASSWORD);
 
     // create basic auth for recursor
-    const PROXY_USER = randomString(20);
-    const PROXY_PASSWORD = randomString();
+    const PROXY_USER = secrets?.proxyAuth?.username ?? randomString(20);
+    const PROXY_PASSWORD = secrets?.proxyAuth?.password ?? randomString();
     const proxyBasicAuthHashed = genBasicAuthHashed(PROXY_USER, PROXY_PASSWORD);
 
     // set recursor basic auth string on vault
@@ -189,16 +232,12 @@ export const installVault = async (
         `pektin-kv`
     );
 
-    await fs.writeFile(
-        path.join(dir, `secrets`, `server-admin.pc3.json`),
-        JSON.stringify(pektinAdminConnectionConfig)
-    );
-
     return {
         pektinAdminConnectionConfig,
         vaultTokens,
         recursorBasicAuthHashed,
         proxyBasicAuthHashed,
         V_PEKTIN_API_PASSWORD,
+        acmeClientConnectionConfig,
     };
 };

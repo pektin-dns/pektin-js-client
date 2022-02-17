@@ -207,7 +207,7 @@ export const initVault = async (vaultEndpoint: string) => {
     });
     const vaultTokens = await vaultRes.json();
     if (!vaultTokens || !vaultTokens.keys) {
-        throw new Error(c.bold.red(`Error: Vault has already been initialized`));
+        throw new Error(c.bold.red(`Vault has already been initialized`));
     }
     return { key: vaultTokens.keys[0], rootToken: vaultTokens.root_token };
 };

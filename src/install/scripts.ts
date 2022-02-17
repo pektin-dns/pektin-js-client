@@ -4,7 +4,7 @@ import { pektinComposeFirstStart } from "./first-start.js";
 import { unsealVault } from "../vault/vault.js";
 import { checkConfig } from "@pektin/config";
 import { updateConfig } from "./updateConfig.js";
-import { installK8s } from "./k8s.js";
+import { createSecrets, installK8s } from "./k8s.js";
 
 config({ path: `/pektin-compose/secrets/.env` });
 
@@ -34,7 +34,10 @@ const script = argv[2];
             await pektinComposeFirstStart();
             break;
         case `k8s-install`:
-            await installK8s();
+            await installK8s(argv[3], argv[4]);
+            break;
+        case `k8s-create-secrets`:
+            await createSecrets();
             break;
         default:
             throw Error(`Invalid script: ${script}`);
