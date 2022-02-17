@@ -34,7 +34,8 @@ const script = argv[2];
             await pektinComposeFirstStart();
             break;
         case `k8s-install`:
-            await installK8s(argv[3], argv[4]);
+            await installK8s();
+            //await pektinComposeFirstStart(`/base/`);
             break;
         case `k8s-create-secrets`:
             await createSecrets();

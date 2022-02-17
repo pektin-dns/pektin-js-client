@@ -1,43 +1,12 @@
-import { PektinConfig } from "@pektin/config/src/config-types";
 import yaml from "yaml";
-import { beautifyJSON, fromBase64 } from "../index.js";
 import { PC3 } from "../types.js";
-import { createSh } from "../utils/fs-sh.js";
 import { installVault } from "./install-vault.js";
 import { chownRecursive, configToCertbotIni } from "./utils.js";
 import { promises as fs } from "fs";
 import path from "path";
 import { chmod } from "./utils.js";
 
-export const installK8s = async (pektinConfigYamlB64: string, secretsYamlB64: string) => {
-    if (!pektinConfigYamlB64 || !secretsYamlB64) {
-        throw Error(`install needs a pektin config and the secrets`);
-    }
-    const pektinConfigYaml = fromBase64(pektinConfigYamlB64);
-    const secretsYaml = fromBase64(secretsYamlB64);
-
-    let pektinConfig, secrets;
-    try {
-        pektinConfig = yaml.parse(pektinConfigYaml);
-        secrets = yaml.parse(secretsYaml);
-    } catch (error: any) {
-        throw Error(`Failed to parse yaml: ${error?.message}`);
-    }
-
-    const { pektinAdminConnectionConfig, vaultTokens, acmeClientConnectionConfig } =
-        await installVault({ pektinConfig, secrets: secrets.secrets, k8s: true });
-    console.log(`-----`);
-
-    console.log(
-        JSON.stringify({
-            pektinAdminConnectionConfig,
-            vaultTokens,
-            acmeClientConnectionConfig,
-        })
-    );
-};
-
-export const createSecrets = async (baseDir = `/base/`) => {
+export const installK8s = async (dir: string = `/base/`) => {
     if (process.env.UID === undefined || process.env.GID === undefined) {
         throw Error(
             `No UID and/or GID defined. Current is: UID: ` +
@@ -46,39 +15,50 @@ export const createSecrets = async (baseDir = `/base/`) => {
                 process.env.GID
         );
     }
-    let log = await fs.readFile(path.join(baseDir, `.secrets.tmp`), { encoding: `utf-8` });
-    log = log.substring(log.indexOf(`-----`) + 5);
-
-    const j = JSON.parse(log);
-
-    await fs.mkdir(path.join(baseDir, `secrets`), { recursive: true });
-    await fs.writeFile(
-        path.join(baseDir, `secrets`, `server-admin.pc3.json`),
-        JSON.stringify(j.pektinAdminConnectionConfig)
+    const secrets = yaml.parse(
+        await fs.readFile(path.join(dir, `secrets.yml`), {
+            encoding: `utf-8`,
+        })
     );
-    await fs.writeFile(
-        path.join(baseDir, `secrets`, `vault-tokens.json`),
-        JSON.stringify(j.vaultTokens)
-    );
-    await fs.writeFile(
-        path.join(baseDir, `secrets`, `acme-client.pc3.json`),
-        JSON.stringify(j.acmeClientConnectionConfig)
-    );
-    await fs.writeFile(
-        path.join(baseDir, `secrets`, `certbot-acme-client.pc3.ini`),
-        configToCertbotIni(j.acmeClientConnectionConfig)
+    const pektinConfig = yaml.parse(
+        await fs.readFile(path.join(dir, `pektin-config.yml`), {
+            encoding: `utf-8`,
+        })
     );
 
-    await chownRecursive(path.join(baseDir, `secrets`), process.env.UID, process.env.GID);
+    const { pektinAdminConnectionConfig, vaultTokens, acmeClientConnectionConfig } =
+        await installVault({
+            pektinConfig,
+            secrets: secrets.secrets,
+            k8s: true,
+            internalVaultUrl: `http://127.0.0.1:8200`,
+        });
 
-    await chmod(path.join(baseDir, `secrets`), `700`);
-    await chmod(path.join(baseDir, `secrets`, `acme-client.pc3.json`), `600`);
-    await chmod(path.join(baseDir, `secrets`, `server-admin.pc3.json`), `600`);
-    await chmod(path.join(baseDir, `secrets`, `vault-tokens.json`), `600`);
-    await chmod(path.join(baseDir, `secrets`, `certbot-acme-client.pc3.ini`), `600`);
+    await fs.mkdir(path.join(dir, `secrets`), { recursive: true });
+    await fs.writeFile(
+        path.join(dir, `secrets`, `server-admin.pc3.json`),
+        JSON.stringify(pektinAdminConnectionConfig)
+    );
+    await fs.writeFile(path.join(dir, `secrets`, `vault-tokens.json`), JSON.stringify(vaultTokens));
+    await fs.writeFile(
+        path.join(dir, `secrets`, `acme-client.pc3.json`),
+        JSON.stringify(acmeClientConnectionConfig)
+    );
+    await fs.writeFile(
+        path.join(dir, `secrets`, `certbot-acme-client.pc3.ini`),
+        configToCertbotIni(acmeClientConnectionConfig as PC3)
+    );
 
-    await fs.unlink(path.join(baseDir, `.secrets.tmp`));
+    await chownRecursive(path.join(dir, `secrets`), process.env.UID, process.env.GID);
+
+    await chmod(path.join(dir, `secrets`), `700`);
+    await chmod(path.join(dir, `secrets`, `acme-client.pc3.json`), `600`);
+    await chmod(path.join(dir, `secrets`, `server-admin.pc3.json`), `600`);
+    await chmod(path.join(dir, `secrets`, `vault-tokens.json`), `600`);
+    await chmod(path.join(dir, `secrets`, `certbot-acme-client.pc3.ini`), `600`);
 };
+
+export const createSecrets = async () => {};
 
 export interface K8sSecrets {
     nameserverSignerPasswords?: {

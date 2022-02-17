@@ -7,9 +7,7 @@ import { createSingleScript } from "./utils.js";
 import { absoluteName, concatDomain } from "../index.js";
 import { getMainNode } from "../pureFunctions.js";
 
-const dir = `/pektin-compose/`;
-
-export const pektinComposeFirstStart = async () => {
+export const pektinComposeFirstStart = async (dir = `/pektin-compose/`) => {
     const pektinConfig = JSON.parse(
         await fs.readFile(path.join(dir, `pektin-config.json`), `utf-8`)
     ) as PektinConfig;

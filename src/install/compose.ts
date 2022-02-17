@@ -24,7 +24,7 @@ import { installVault } from "./install-vault.js";
 
 export const installPektinCompose = async (
     dir: string = `/pektin-compose/`,
-    internalVaultUrl: string = `http://pektin-vault`
+    vaultUrl: string = `http://pektin-vault`
 ) => {
     cfonts.say(`install`, {
         font: `block`,
@@ -112,7 +112,7 @@ export const installPektinCompose = async (
     const tempDomain = await requestPektinDomain(pektinConfig);
 
     await updateKvValue(
-        internalVaultUrl,
+        vaultUrl,
         vaultTokens.rootToken,
         `tempDomain`,
         { tempDomain: tempDomain },
