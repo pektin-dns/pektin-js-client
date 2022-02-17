@@ -1,9 +1,10 @@
 import { config } from "dotenv";
-import { installPektinCompose } from "./install.js";
+import { installPektinCompose } from "./compose.js";
 import { pektinComposeFirstStart } from "./first-start.js";
 import { unsealVault } from "../vault/vault.js";
 import { checkConfig } from "@pektin/config";
 import { updateConfig } from "./updateConfig.js";
+import { installK8s } from "./k8s.js";
 
 config({ path: `/pektin-compose/secrets/.env` });
 
@@ -11,7 +12,7 @@ const argv = process.argv;
 const script = argv[2];
 (async () => {
     switch (script) {
-        case `install`:
+        case `compose-install`:
             await checkConfig(
                 `/pektin-compose/pektin-config.json`,
                 `node_modules/@pektin/config/pektin-config.schema.yml`,
@@ -20,7 +21,7 @@ const script = argv[2];
             );
             await installPektinCompose();
             break;
-        case `start`:
+        case `compose-start`:
             if (!process.env.V_KEY) throw Error(`Could not get key from .env file to unlock vault`);
             await unsealVault(`http://pektin-vault`, process.env.V_KEY);
             await checkConfig(
@@ -29,8 +30,11 @@ const script = argv[2];
             );
             await updateConfig();
             break;
-        case `first-start`:
+        case `compose-first-start`:
             await pektinComposeFirstStart();
+            break;
+        case `k8s-install`:
+            await installK8s();
             break;
         default:
             throw Error(`Invalid script: ${script}`);

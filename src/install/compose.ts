@@ -1,35 +1,19 @@
 import { promises as fs } from "fs";
 import path from "path";
-import {
-    chownRecursive,
-    chown,
-    chmod,
-    randomString,
-    configToCertbotIni,
-    requestPektinDomain,
-} from "./utils.js";
+import { chownRecursive, chown, chmod, randomString, requestPektinDomain } from "./utils.js";
 import crypto from "crypto";
 /*@ts-ignore*/
 import cfonts from "cfonts";
 
-import { unsealVault, initVault, enableVaultCors, updateKvValue } from "./../vault/vault.js";
-import { PC3 } from "./../index.js";
+import { updateKvValue } from "../vault/vault.js";
 import { PektinConfig } from "@pektin/config/src/config-types.js";
 
-import {
-    createPektinClient,
-    createPektinApiAccount,
-    createPektinAuthVaultPolicies,
-    createPektinSigner,
-    createPektinVaultEngines,
-    updatePektinSharedPasswords,
-} from "./../auth.js";
-import { getPektinEndpoint } from "../index.js";
 import { genTraefikConfs } from "../traefik/index.js";
 import { getMainNode } from "../pureFunctions.js";
 import { TempDomain } from "../types.js";
 import { concatDomain } from "../utils/index.js";
 import { toASCII } from "../utils/puny.js";
+import { installVault } from "./install-vault.js";
 
 export const installPektinCompose = async (
     dir: string = `/pektin-compose/`,
@@ -59,183 +43,33 @@ export const installPektinCompose = async (
     // creates secrets directory
     await fs.mkdir(path.join(dir, `secrets`), { recursive: true }).catch(() => {});
 
-    // HTTP API CALL RELATED
-    // init vault
-    const vaultTokens = await initVault(internalVaultUrl);
-    await unsealVault(internalVaultUrl, vaultTokens.key);
+    /*
+                        $$\                          $$\ $$\ 
+                        \__|                         $$ |$$ |
+     $$$$$$\   $$$$$$\  $$\        $$$$$$$\ $$$$$$\  $$ |$$ |
+     \____$$\ $$  __$$\ $$ |      $$  _____|\____$$\ $$ |$$ |
+     $$$$$$$ |$$ /  $$ |$$ |      $$ /      $$$$$$$ |$$ |$$ |
+    $$  __$$ |$$ |  $$ |$$ |      $$ |     $$  __$$ |$$ |$$ |
+    \$$$$$$$ |$$$$$$$  |$$ |      \$$$$$$$\\$$$$$$$ |$$ |$$ |
+     \_______|$$  ____/ \__|       \_______|\_______|\__|\__|
+              $$ |                                           
+              $$ |                                           
+              \__|
+    */
 
-    // create resources on vault
-    await createPektinVaultEngines(
-        internalVaultUrl,
-        vaultTokens.rootToken,
-        [
-            { path: `pektin-transit`, options: { type: `transit` } },
-            {
-                path: `pektin-kv`,
-                options: { type: `kv`, options: { version: 2 } },
-            },
-            {
-                path: `pektin-signer-passwords-1`,
-                options: { type: `kv`, options: { version: 2 } },
-            },
-            {
-                path: `pektin-signer-passwords-2`,
-                options: { type: `kv`, options: { version: 2 } },
-            },
-            {
-                path: `pektin-signer-passwords`,
-                options: { type: `kv`, options: { version: 2 } },
-            },
-            {
-                path: `pektin-policies`,
-                options: { type: `kv`, options: { version: 2 } },
-            },
-        ],
-        [{ path: `userpass`, options: { type: `userpass` } }]
-    );
+    const { vaultTokens, recursorBasicAuthHashed, proxyBasicAuthHashed, V_PEKTIN_API_PASSWORD } =
+        await installVault(pektinConfig);
 
-    // create the 2 not domain or client related policies
-    await createPektinAuthVaultPolicies(internalVaultUrl, vaultTokens.rootToken);
-
-    if (pektinConfig.nameservers !== undefined) {
-        // create the signer vault infra for the nameserver domains
-        pektinConfig.nameservers.forEach(async (ns) => {
-            if (ns.main) {
-                const domainSignerPassword = randomString();
-                await createPektinSigner(
-                    internalVaultUrl,
-                    vaultTokens.rootToken,
-                    ns.domain,
-                    domainSignerPassword
-                );
-
-                await updatePektinSharedPasswords(
-                    internalVaultUrl,
-                    vaultTokens.rootToken,
-                    `signer`,
-                    domainSignerPassword,
-                    ns.domain
-                );
-            }
-        });
-    }
-    // create the vault infra for the api
-    const V_PEKTIN_API_PASSWORD = randomString();
-
-    createPektinApiAccount(internalVaultUrl, vaultTokens.rootToken, V_PEKTIN_API_PASSWORD);
-
-    let vaultEndpoint = getPektinEndpoint(pektinConfig, `vault`);
-
-    await enableVaultCors(internalVaultUrl, vaultTokens.rootToken);
-
-    // create admin account
-    const pektinAdminConnectionConfig = {
-        username: `admin-${randomString(10)}`,
-        managerPassword: `m.${randomString()}`,
-        confidantPassword: `c.${randomString()}`,
-        vaultEndpoint,
-    };
-
-    const pektinAdminRibstonPolicy = await fs.readFile(
-        `/app/node_modules/@pektin/client/dist/policies/allow-everything.ribston.js`,
-        `utf-8`
-    );
-
-    await createPektinClient({
-        endpoint: internalVaultUrl,
-        token: vaultTokens.rootToken,
-        clientName: pektinAdminConnectionConfig.username,
-        managerPassword: pektinAdminConnectionConfig.managerPassword,
-        confidantPassword: pektinAdminConnectionConfig.confidantPassword,
-        capabilities: {
-            allowAllSigningDomains: true,
-            allAccess: true,
-            ribstonPolicy: pektinAdminRibstonPolicy,
-            opaPolicy: ``, // TODO add OPA policies
-        },
-    });
-
-    await fs.writeFile(
-        path.join(dir, `secrets`, `server-admin.pc3.json`),
-        JSON.stringify(pektinAdminConnectionConfig)
-    );
-
-    // create acme client if enabled
-    if (pektinConfig.letsencrypt) {
-        const acmeClientConnectionConfig = {
-            username: `acme-${randomString(10)}`,
-            confidantPassword: `c.${randomString()}`,
-            override: {
-                pektinApiEndpoint: getPektinEndpoint(pektinConfig, `api`),
-            },
-        };
-        const acmeClientRibstonPolicy = await fs.readFile(
-            `/app/node_modules/@pektin/client/dist/policies/acme.ribston.js`,
-            `utf-8`
-        );
-        await createPektinClient({
-            endpoint: internalVaultUrl,
-            token: vaultTokens.rootToken,
-            clientName: acmeClientConnectionConfig.username,
-            confidantPassword: acmeClientConnectionConfig.confidantPassword,
-            capabilities: {
-                ribstonPolicy: acmeClientRibstonPolicy,
-                allowAllSigningDomains: true,
-                opaPolicy: ``, // TODO add OPA policies
-            },
-        });
-        await fs.writeFile(
-            path.join(dir, `secrets`, `acme-client.pc3.json`),
-            JSON.stringify(acmeClientConnectionConfig)
-        );
-        await fs.writeFile(
-            path.join(dir, `secrets`, `certbot-acme-client.pc3.ini`),
-            configToCertbotIni(acmeClientConnectionConfig as PC3)
-        );
-    }
-
-    // create basic auth for recursor
-    const RECURSOR_USER = randomString(20);
-    const RECURSOR_PASSWORD = randomString();
-    const recursorBasicAuthHashed = genBasicAuthHashed(RECURSOR_USER, RECURSOR_PASSWORD);
-
-    // create basic auth for recursor
-    const PROXY_USER = randomString(20);
-    const PROXY_PASSWORD = randomString();
-    const proxyBasicAuthHashed = genBasicAuthHashed(PROXY_USER, PROXY_PASSWORD);
-
-    // set recursor basic auth string on vault
-    await updateKvValue(
-        internalVaultUrl,
-        vaultTokens.rootToken,
-        `recursor-auth`,
-        {
-            basicAuth: genBasicAuthString(RECURSOR_USER, RECURSOR_PASSWORD),
-            hashedAuth: recursorBasicAuthHashed,
-        },
-        `pektin-kv`
-    );
-    await updateKvValue(
-        internalVaultUrl,
-        vaultTokens.rootToken,
-        `proxy-auth`,
-        {
-            basicAuth: genBasicAuthString(PROXY_USER, PROXY_PASSWORD),
-            hashedAuth: proxyBasicAuthHashed,
-        },
-        `pektin-kv`
-    );
-
-    // set the pektin config on vault for easy service discovery
-    await updateKvValue(
-        internalVaultUrl,
-        vaultTokens.rootToken,
-        `pektin-config`,
-        pektinConfig,
-        `pektin-kv`
-    );
-
-    // HARD DRIVE RELATED
+    /*
+    $$\                                 $$\             $$\           $$\                      
+    $$ |                                $$ |            $$ |          \__|                     
+    $$$$$$$\   $$$$$$\   $$$$$$\   $$$$$$$ |       $$$$$$$ | $$$$$$\  $$\ $$\    $$\  $$$$$$\  
+    $$  __$$\  \____$$\ $$  __$$\ $$  __$$ |      $$  __$$ |$$  __$$\ $$ |\$$\  $$  |$$  __$$\ 
+    $$ |  $$ | $$$$$$$ |$$ |  \__|$$ /  $$ |      $$ /  $$ |$$ |  \__|$$ | \$$\$$  / $$$$$$$$ |
+    $$ |  $$ |$$  __$$ |$$ |      $$ |  $$ |      $$ |  $$ |$$ |      $$ |  \$$$  /  $$   ____|
+    $$ |  $$ |\$$$$$$$ |$$ |      \$$$$$$$ |      \$$$$$$$ |$$ |      $$ |   \$  /   \$$$$$$$\ 
+    \__|  \__| \_______|\__|       \_______|       \_______|\__|      \__|    \_/     \_______|
+    */
 
     // init redis access control
     const R_PEKTIN_API_PASSWORD = randomString();
@@ -602,7 +436,7 @@ export const createStartScript = async (pektinConfig: PektinConfig, dir: string)
     // run pektin-start
     file += `
 docker rm pektin-scripts -v &> /dev/null 
-docker run --env UID=$(id -u) --env GID=$(id -g) --env FORCE_COLOR=3 --name pektin-scripts --network container:pektin-vault --mount "type=bind,source=$PWD,dst=/pektin-compose/" -it pektin-scripts node ./dist/js/compose/scripts.js start\n`;
+docker run --env UID=$(id -u) --env GID=$(id -g) --env FORCE_COLOR=3 --name pektin-scripts --network container:pektin-vault --mount "type=bind,source=$PWD,dst=/pektin-compose/" -it pektin-scripts node ./dist/js/install/scripts.js compose-start\n`;
     // remove pektin-start artifacts
     file += `docker rm pektin-scripts -v &> /dev/null \n`;
     // compose up everything

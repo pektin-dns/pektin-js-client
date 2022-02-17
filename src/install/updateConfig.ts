@@ -1,13 +1,13 @@
 import { promises as fs } from "fs";
 import path from "path";
 import { chownRecursive, chown, chmod } from "./utils.js";
-import { unsealVault } from "./../vault/vault.js";
-import { PC3 } from "./../index.js";
+import { unsealVault } from "../vault/vault.js";
+import { PC3 } from "../index.js";
 import { PektinConfig } from "@pektin/config/src/config-types.js";
 import { config } from "dotenv";
 import { genTraefikConfs } from "../traefik/index.js";
 import { getMainNode } from "../pureFunctions.js";
-import { createStartScript, createStopScript, createUpdateScript } from "./install.js";
+import { createStartScript, createStopScript, createUpdateScript } from "./compose.js";
 import { TempDomain } from "../types.js";
 import { PektinComposeClient } from "./first-start.js";
 
