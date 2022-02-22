@@ -26,7 +26,10 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-import chalk from "chalk";
+import { Chalk } from "chalk";
+
+const chalk = new Chalk({ level: 3 });
+
 import _ from "lodash";
 const defaultColors = {
     BRACE: `gray`,
