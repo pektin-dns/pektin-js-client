@@ -8,6 +8,7 @@ import { PektinConfig } from "@pektin/config/src/config-types.js";
 import { PC3, TempDomain } from "../types.js";
 import f from "cross-fetch";
 import c from "chalk";
+import { toASCII } from "../index.js";
 
 const exec = promisify(execDefault);
 
@@ -86,7 +87,7 @@ export const createSingleScript = async (
 
 export const configToCertbotIni = (cc: PC3) => `dns_pektin_username = ${cc.username}
 dns_pektin_confidant_password = ${cc.confidantPassword}
-dns_pektin_api_endpoint = ${cc.override?.pektinApiEndpoint}
+dns_pektin_api_endpoint = ${toASCII(cc.override?.pektinApiEndpoint)}
 `;
 
 export const requestPektinDomain = async (config: PektinConfig): Promise<TempDomain | false> => {

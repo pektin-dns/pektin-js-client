@@ -218,7 +218,7 @@ export const isReady = async (url: string): Promise<any> => {
 
                 return await isReady(url);
             }
-            console.log(`Reached target ${url}`);
+            //console.log(`Reached target ${url}`);
         })
         .catch(async () => {
             await new Promise((resolve) => setTimeout(resolve, 500));

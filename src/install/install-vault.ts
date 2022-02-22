@@ -217,6 +217,8 @@ export const installVault = async ({
         {
             basicAuth: genBasicAuthString(RECURSOR_USER, RECURSOR_PASSWORD),
             hashedAuth: recursorBasicAuthHashed,
+            user: RECURSOR_USER,
+            password: RECURSOR_PASSWORD,
         },
         `pektin-kv`
     );
@@ -227,6 +229,8 @@ export const installVault = async ({
         {
             basicAuth: genBasicAuthString(PROXY_USER, PROXY_PASSWORD),
             hashedAuth: proxyBasicAuthHashed,
+            user: PROXY_USER,
+            password: PROXY_PASSWORD,
         },
         `pektin-kv`
     );

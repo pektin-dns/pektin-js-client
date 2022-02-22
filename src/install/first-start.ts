@@ -3,11 +3,22 @@ import fs from "fs/promises";
 import path from "path";
 import { PektinClient, PC3 } from "../index.js";
 import { ApiRecord, PektinRRType } from "../index.js";
-import { createSingleScript } from "./utils.js";
+import { chmod, chown, createSingleScript } from "./utils.js";
 import { absoluteName, concatDomain } from "../index.js";
-import { getMainNode } from "../pureFunctions.js";
+import { getFirstMainNameServer, getMainNode, getPektinEndpoint } from "../pureFunctions.js";
+import { Chalk } from "chalk";
+
+const c = new Chalk({ level: 3 });
 
 export const pektinComposeFirstStart = async (dir = `/pektin-compose/`) => {
+    if (process.env.UID === undefined || process.env.GID === undefined) {
+        throw Error(
+            `No UID and/or GID defined. Current is: UID: ` +
+                process.env.UID +
+                `, GID: ` +
+                process.env.GID
+        );
+    }
     const pektinConfig = JSON.parse(
         await fs.readFile(path.join(dir, `pektin-config.json`), `utf-8`)
     ) as PektinConfig;
@@ -34,6 +45,42 @@ export const pektinComposeFirstStart = async (dir = `/pektin-compose/`) => {
             );
         }
     }
+    const infos = getInfos(pektinConfig);
+    console.log(infos);
+
+    await fs.writeFile(
+        path.join(dir, `your-infos.md`),
+        infos.replaceAll(
+            /[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g,
+            ``
+        )
+    );
+    await chmod(path.join(dir, `your-infos.md`), `600`);
+    await chown(path.join(dir, `your-infos.md`), process.env.UID, process.env.GID);
+};
+
+export const getInfos = (pektinConfig: PektinConfig) => {
+    return `
+Endpoints:
+
+💻 ${c.bold(`UI`)}: ${c.bold.cyan(getPektinEndpoint(pektinConfig, `ui`))}
+🤖 ${c.bold(`API`)}: ${c.bold.cyan(getPektinEndpoint(pektinConfig, `api`))}
+You can find the admin credentials at ${c.bold.cyan(`./secrets/server-admin.pc3.json`)}
+
+🔐 ${c.bold(`Vault`)}: ${c.bold.cyan(getPektinEndpoint(pektinConfig, `vault`))}
+Vault key and root token can be found here (V_KEY,V_ROOT_TOKEN): ${c.bold.cyan(`./secrets/.env`)}
+
+🌳 ${c.bold(`Recursor`)}: ${c.bold.cyan(getPektinEndpoint(pektinConfig, `recursor`))}
+The recursor basic auth username and password can be found in Vault at\n${c.bold.cyan(
+        `${getPektinEndpoint(pektinConfig, `vault`)}/ui/vault/secrets/pektin-kv/show/recursor-auth`
+    )}
+`;
+};
+
+const getEmojiForServiceName = (name: string) => {
+    const map = { api: `🤖`, ui: `💻`, vault: `🔐`, recursor: `🌳` };
+    /*@ts-ignore*/
+    return map[name];
 };
 
 export class PektinSetupClient extends PektinClient {
@@ -41,6 +88,41 @@ export class PektinSetupClient extends PektinClient {
         await this.createNameserverDNS(pektinConfig);
         await this.createPektinServiceEndpointsDNS(pektinConfig);
         // setup at the registrar
+    };
+
+    private createServiceSoaIfDifferentDomain = (
+        pektinConfig: PektinConfig,
+        records: ApiRecord[]
+    ) => {
+        Object.keys(pektinConfig.services).forEach((service) => {
+            /*@ts-ignore*/
+            const s = pektinConfig.services[service];
+            if (!s.domain) return;
+            const match = pektinConfig.nameservers.some((ns) => {
+                return s.enabled && absoluteName(s.domain) !== absoluteName(ns.domain);
+            });
+            if (match) {
+                const mainNameserver = getFirstMainNameServer(pektinConfig);
+                records.push({
+                    name: absoluteName(s.domain),
+                    rr_type: PektinRRType.SOA,
+                    rr_set: [
+                        {
+                            ttl: 60,
+                            mname: absoluteName(
+                                concatDomain(mainNameserver.domain, mainNameserver.subDomain)
+                            ),
+                            rname: absoluteName(`hostmaster.` + mainNameserver.domain),
+                            serial: 0,
+                            refresh: 0,
+                            retry: 0,
+                            expire: 0,
+                            minimum: 0,
+                        },
+                    ],
+                });
+            }
+        });
     };
 
     private createNameserverDNS = async (pektinConfig: PektinConfig) => {
@@ -63,6 +145,7 @@ export class PektinSetupClient extends PektinClient {
                         },
                     ],
                 });
+                this.createServiceSoaIfDifferentDomain(pektinConfig, records);
 
                 const rr_set: { ttl: number; value: string }[] = [];
                 pektinConfig.nameservers.forEach((ns2) => {
