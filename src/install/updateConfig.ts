@@ -9,7 +9,7 @@ import { genTraefikConfs } from "../traefik/index.js";
 import { getMainNode } from "../pureFunctions.js";
 import { createStartScript, createStopScript, createUpdateScript } from "./compose.js";
 import { TempDomain } from "../types.js";
-import { PektinComposeClient } from "./first-start.js";
+import { PektinSetupClient } from "./first-start.js";
 
 config({ path: `/pektin-compose/secrets/.env` });
 
@@ -34,7 +34,7 @@ export const updateConfig = async (dir: string = `/pektin-compose/`) => {
         })
     );
 
-    const pc = new PektinComposeClient({
+    const pc = new PektinSetupClient({
         ...adminPC3,
         internal: true,
     });

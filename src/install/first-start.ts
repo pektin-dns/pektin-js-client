@@ -17,7 +17,7 @@ export const pektinComposeFirstStart = async (dir = `/pektin-compose/`) => {
     );
 
     if (pektinConfig.nameservers?.length) {
-        const pc = new PektinComposeClient({
+        const pc = new PektinSetupClient({
             ...adminCreds,
             internal: true,
         });
@@ -36,7 +36,7 @@ export const pektinComposeFirstStart = async (dir = `/pektin-compose/`) => {
     }
 };
 
-export class PektinComposeClient extends PektinClient {
+export class PektinSetupClient extends PektinClient {
     public setup = async (pektinConfig: PektinConfig) => {
         await this.createNameserverDNS(pektinConfig);
         await this.createPektinServiceEndpointsDNS(pektinConfig);

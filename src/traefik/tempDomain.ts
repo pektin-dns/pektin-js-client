@@ -88,7 +88,7 @@ export const genTempServerConf = ({
             routers: {
                 "pektin-temp-server-tcp": {
                     ...(tls && { tls }),
-                    rule: `HostSNI(${getNsList(nns, false)})`,
+                    rule: `HostSNI(${getNsList(nns, `domain`)})`,
                     entrypoints: `pektin-server-tcp`,
                     service: `pektin-server-tcp`,
                 },
@@ -110,7 +110,7 @@ export const genTempServerConf = ({
                     ...(tls && { tls }),
                     rule: (() => {
                         if (rp.routing === `domain`) {
-                            return `Host(${getNsList(nns, false)}) && Path(\`/dns-query\`)`;
+                            return `Host(${getNsList(nns, `domain`)}) && Path(\`/dns-query\`)`;
                         }
                     })(),
                     entrypoints: rp.tls ? `websecure` : `web`,

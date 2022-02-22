@@ -1,4 +1,4 @@
-import { ClientCapabilities, ClientName, DomainName, ManagerName } from "./index.js";
+import { ClientCapabilities, ClientName, DomainName, ManagerName, toASCII } from "./index.js";
 import {
     pektinApiPolicy,
     pektinConfidantPolicy,
@@ -25,7 +25,8 @@ export const createPektinSigner = async (
     domainName: string,
     password: string
 ) => {
-    domainName = deAbsolute(domainName);
+    domainName = toASCII(deAbsolute(domainName));
+
     const name = `pektin-signer-${domainName}`;
 
     const metadata = { domain: domainName };

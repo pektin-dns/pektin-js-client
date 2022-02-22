@@ -38,6 +38,12 @@ const script = argv[2];
             //await pektinComposeFirstStart(`/base/`);
             break;
         case `k8s-create-secrets`:
+            await checkConfig(
+                `/base/pektin-config.yml`,
+                `node_modules/@pektin/config/pektin-config.schema.yml`,
+                `yaml`,
+                false
+            );
             await createSecrets();
             break;
         default:

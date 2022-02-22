@@ -120,7 +120,7 @@ export const serverConf = ({
             routers: {
                 "pektin-server-tcp": {
                     ...(tls && { tls }),
-                    rule: `HostSNI(${getNsList(nodeNameServers, false)})`,
+                    rule: `HostSNI(${getNsList(nodeNameServers, `domain`)})`,
                     entrypoints: `pektin-server-tcp`,
                     service: `pektin-server-tcp`,
                 },
@@ -155,13 +155,19 @@ export const serverConf = ({
                         if (rp.routing === `domain`) {
                             return `Host(${getNsList(
                                 nodeNameServers,
-                                false
+                                `domain`
                             )}) && Path(\`/dns-query\`)`;
                         }
                         if (rp.routing === `local`) {
                             return `Host(${getNsList(
                                 nodeNameServers,
-                                true
+                                `local`
+                            )}) && Path(\`/dns-query\`)`;
+                        }
+                        if (rp.routing === `minikube`) {
+                            return `Host(${getNsList(
+                                nodeNameServers,
+                                `minikube`
                             )}) && Path(\`/dns-query\`)`;
                         }
                     })(),
@@ -211,6 +217,12 @@ export const pektinServicesConf = ({
                         if (rp.routing === `local`) {
                             return `Host(\`${concatDomain(
                                 `localhost`,
+                                concatDomain(domain, subDomain)
+                            )}\`)`;
+                        }
+                        if (rp.routing === `minikube`) {
+                            return `Host(\`${concatDomain(
+                                `minikube`,
                                 concatDomain(domain, subDomain)
                             )}\`)`;
                         }
@@ -279,6 +291,12 @@ export const proxyConf = ({
                                 concatDomain(domain, subDomain)
                             )}\`) && PathPrefix(\`/proxy-${name}\`)`;
                         }
+                        if (rp.routing === `minikube`) {
+                            return `Host(\`${concatDomain(
+                                `minikube`,
+                                concatDomain(domain, subDomain)
+                            )}\`) && PathPrefix(\`/proxy-${name}\`)`;
+                        }
                     })(),
                 },
             },
@@ -303,7 +321,7 @@ export const proxyConf = ({
                 [`pektin-proxy-cors-${name}`]: {
                     headers: {
                         accessControlAllowMethods: allowedMethods,
-                        accessControlAllowOriginlist: `*`,
+                        accessControlAllowOriginList: `*`,
                         accessControlMaxAge: 86400,
                     },
                 },
@@ -360,6 +378,12 @@ export const recursorConf = ({
                                 fullDomain
                             )}\`) && Path(\`/dns-query\`)`;
                         }
+                        if (rp.routing === `minikube`) {
+                            return `Host(\`${concatDomain(
+                                `minikube`,
+                                fullDomain
+                            )}\`) && Path(\`/dns-query\`)`;
+                        }
                     })(),
                     entrypoints: rp.tls ? `websecure` : `web`,
                     middlewares: [`pektin-recursor-cors`, `pektin-recursor-auth`],
@@ -369,7 +393,7 @@ export const recursorConf = ({
                 "pektin-recursor-cors": {
                     headers: {
                         accessControlAllowMethods: `GET,OPTIONS,POST`,
-                        accessControlAllowOriginlist: `*`,
+                        accessControlAllowOriginList: `*`,
                         accessControlAllowHeaders: `authorization,content-type`,
                         accessControlMaxAge: 86400,
                     },
@@ -481,14 +505,22 @@ export const tlsConfig = (pektinConfig: PektinConfig) => {
     };*/
 };
 
-export const getNsList = (nodeNameServers: PektinConfig[`nameservers`], local: boolean) => {
+export const getNsList = (
+    nodeNameServers: PektinConfig[`nameservers`],
+    routing: `local` | `domain` | `minikube`
+) => {
     let sni = ``;
     if (nodeNameServers) {
         nodeNameServers.forEach((ns, i) => {
             if (i > 0) sni += `,`;
             sni += `\`${
-                local
-                    ? toASCII(concatDomain(`localhost`, concatDomain(ns.domain, ns.subDomain)))
+                routing === `local` || routing === `minikube`
+                    ? toASCII(
+                          concatDomain(
+                              routing === `local` ? `localhost` : `minikube`,
+                              concatDomain(ns.domain, ns.subDomain)
+                          )
+                      )
                     : toASCII(concatDomain(ns.domain, ns.subDomain))
             }\``;
         });
