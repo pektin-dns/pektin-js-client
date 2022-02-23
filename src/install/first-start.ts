@@ -5,7 +5,7 @@ import { PektinClient, PC3 } from "../index.js";
 import { ApiRecord, PektinRRType } from "../index.js";
 import { chmod, chown, createSingleScript } from "./utils.js";
 import { absoluteName, concatDomain } from "../index.js";
-import { getFirstMainNameServer, getMainNode, getPektinEndpoint } from "../pureFunctions.js";
+import { getMainNameServers, getMainNode, getPektinEndpoint } from "../pureFunctions.js";
 import { Chalk } from "chalk";
 
 const c = new Chalk({ level: 3 });
@@ -47,9 +47,13 @@ export const pektinComposeFirstStart = async (dir = `/pektin-compose/`) => {
     }
     const infos = getInfos(pektinConfig);
     console.log(infos);
+    console.log(
+        `These infos are also available in the just created file ${c.bold.cyan(`your-infos.md`)}`
+    );
 
     await fs.writeFile(
         path.join(dir, `your-infos.md`),
+        // this is to uncolor chalk
         infos.replaceAll(
             /[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g,
             ``
@@ -61,8 +65,6 @@ export const pektinComposeFirstStart = async (dir = `/pektin-compose/`) => {
 
 export const getInfos = (pektinConfig: PektinConfig) => {
     return `
-Endpoints:
-
 💻 ${c.bold(`UI`)}: ${c.bold.cyan(getPektinEndpoint(pektinConfig, `ui`))}
 🤖 ${c.bold(`API`)}: ${c.bold.cyan(getPektinEndpoint(pektinConfig, `api`))}
 You can find the admin credentials at ${c.bold.cyan(`./secrets/server-admin.pc3.json`)}
@@ -98,21 +100,41 @@ export class PektinSetupClient extends PektinClient {
             /*@ts-ignore*/
             const s = pektinConfig.services[service];
             if (!s.domain) return;
-            const match = pektinConfig.nameservers.some((ns) => {
-                return s.enabled && absoluteName(s.domain) !== absoluteName(ns.domain);
+            if (s.enabled === false) {
+                return;
+            }
+
+            const match = pektinConfig.nameservers.every((ns) => {
+                return absoluteName(s.domain) !== absoluteName(ns.domain);
             });
+
             if (match) {
-                const mainNameserver = getFirstMainNameServer(pektinConfig);
+                const mainNameserver = getMainNameServers(pektinConfig);
+                const mname = absoluteName(
+                    concatDomain(mainNameserver[0].domain, mainNameserver[0].subDomain)
+                );
+
+                if (mainNameserver.length > 1) {
+                    console.warn(
+                        `${c.yellow.bold(
+                            `\nWARNING`
+                        )}: Multiple main nameservers are set but none of their SOA records\nis matching up with your set service domain ${c.bold.red(
+                            s.domain
+                        )} for the service ${c.bold.red(
+                            service
+                        )}\nWe are asuming that you want to use the nameserver at index 0: ${c.bold.red(
+                            mname
+                        )}`
+                    );
+                }
                 records.push({
                     name: absoluteName(s.domain),
                     rr_type: PektinRRType.SOA,
                     rr_set: [
                         {
                             ttl: 60,
-                            mname: absoluteName(
-                                concatDomain(mainNameserver.domain, mainNameserver.subDomain)
-                            ),
-                            rname: absoluteName(`hostmaster.` + mainNameserver.domain),
+                            mname,
+                            rname: absoluteName(`hostmaster.` + mainNameserver[0].domain),
                             serial: 0,
                             refresh: 0,
                             retry: 0,
@@ -127,6 +149,7 @@ export class PektinSetupClient extends PektinClient {
 
     private createNameserverDNS = async (pektinConfig: PektinConfig) => {
         const records: ApiRecord[] = [];
+        this.createServiceSoaIfDifferentDomain(pektinConfig, records);
         pektinConfig.nameservers.forEach((ns) => {
             if (ns.main) {
                 records.push({
@@ -145,7 +168,6 @@ export class PektinSetupClient extends PektinClient {
                         },
                     ],
                 });
-                this.createServiceSoaIfDifferentDomain(pektinConfig, records);
 
                 const rr_set: { ttl: number; value: string }[] = [];
                 pektinConfig.nameservers.forEach((ns2) => {

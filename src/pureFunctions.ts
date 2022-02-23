@@ -66,8 +66,8 @@ export const duplicateZoneConversion = (
 export const getMainNode = (pektinConfig: PektinConfig) => {
     return pektinConfig.nodes.filter((node) => node.main === true)[0];
 };
-export const getFirstMainNameServer = (pektinConfig: PektinConfig) => {
-    return pektinConfig.nameservers.filter((ns) => ns.main === true)[0];
+export const getMainNameServers = (pektinConfig: PektinConfig) => {
+    return pektinConfig.nameservers.filter((ns) => ns.main === true);
 };
 
 // get the pektin api endpoint from  the pektin config

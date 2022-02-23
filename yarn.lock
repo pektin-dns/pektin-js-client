@@ -611,6 +611,11 @@
     lodash "^4.17.21"
     yaml "^1.10.2"
 
+"@pektin/declare-fs@^1.7.9":
+  version "1.7.9"
+  resolved "https://registry.yarnpkg.com/@pektin/declare-fs/-/declare-fs-1.7.9.tgz#f3e6bb4ec98240d9a945b36246d805eea2ce46ea"
+  integrity sha512-iPy3lvPN9IaFp9dWuJblAOexyGCu5WxmpTTdOdNUyZ5JMQhE5R8I13J79AAqLRKnz0WShlWxILARpdGZQjiQvg==
+
 "@pektin/dns-zonefile@^0.3.1":
   version "0.3.3"
   resolved "https://registry.yarnpkg.com/@pektin/dns-zonefile/-/dns-zonefile-0.3.3.tgz#28d7f6be32b837223dc6ebe26420edfe7c33dcd0"

@@ -7,7 +7,7 @@ import { PektinConfig } from "@pektin/config/src/config-types.js";
 import { config } from "dotenv";
 import { genTraefikConfs } from "../traefik/index.js";
 import { getMainNode } from "../pureFunctions.js";
-import { createStartScript, createStopScript, createUpdateScript } from "./compose.js";
+import { genStartScript, genStopScript, genUpdateScript } from "./compose.js";
 import { TempDomain } from "../types.js";
 import { PektinSetupClient } from "./first-start.js";
 
@@ -90,9 +90,10 @@ export const updateConfig = async (dir: string = `/pektin-compose/`) => {
     // impl build
     // impl traefik.static-config.certificate-resolvers
 
-    await createStartScript(pektinConfig, dir);
-    await createStopScript(pektinConfig, dir);
-    await createUpdateScript(pektinConfig, dir);
+    await genStartScript(pektinConfig);
+    await genStopScript(pektinConfig);
+    await genUpdateScript(pektinConfig);
+    // TODO transition this to declareFs
 
     await fs.mkdir(path.join(dir, `secrets`, `letsencrypt`), { recursive: true }).catch(() => {});
 

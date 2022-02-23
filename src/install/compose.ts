@@ -21,6 +21,7 @@ import { PC3, TempDomain } from "../types.js";
 import { concatDomain } from "../utils/index.js";
 import { toASCII } from "../utils/puny.js";
 import { installVault } from "./install-vault.js";
+import { declareFs } from "@pektin/declare-fs";
 
 export const installPektinCompose = async (
     dir: string = `/pektin-compose/`,
@@ -84,20 +85,6 @@ export const installPektinCompose = async (
     \__|  \__| \_______|\__|       \_______|       \_______|\__|      \__|    \_/     \_______|
     */
 
-    await fs.writeFile(
-        path.join(dir, `secrets`, `server-admin.pc3.json`),
-        JSON.stringify(pektinAdminConnectionConfig)
-    );
-    if (acmeClientConnectionConfig) {
-        await fs.writeFile(
-            path.join(dir, `secrets`, `acme-client.pc3.json`),
-            JSON.stringify(acmeClientConnectionConfig)
-        );
-        await fs.writeFile(
-            path.join(dir, `secrets`, `certbot-acme-client.pc3.ini`),
-            configToCertbotIni(acmeClientConnectionConfig as PC3)
-        );
-    }
     // init redis access control
     const R_PEKTIN_API_PASSWORD = randomString();
     const R_PEKTIN_SERVER_PASSWORD = randomString();
@@ -128,17 +115,13 @@ export const installPektinCompose = async (
 
         await chownRecursive(
             path.join(dir, `arbeiter`),
-            process.env.UID || `700`,
-            process.env.GID || `700`
+            process.env.UID || `600`,
+            process.env.GID || `600`
         );
         await chown(path.join(dir, `swarm.sh`), process.env.UID, process.env.GID);
     }
 
-    await setRedisPasswordHashes(redisPasswords, pektinConfig, dir);
-
-    await fs
-        .mkdir(path.join(dir, `secrets`, `traefik`, `dynamic`), { recursive: true })
-        .catch(() => {});
+    const redisPasswordHashes = await genRedisPasswordHashes(redisPasswords, pektinConfig, dir);
 
     const traefikConfs = genTraefikConfs({
         pektinConfig,
@@ -147,23 +130,9 @@ export const installPektinCompose = async (
         ...(tempDomain && { tempDomain }),
         proxyAuth: proxyBasicAuthHashed,
     });
-    await fs.writeFile(
-        path.join(dir, `secrets`, `traefik`, `dynamic`, `default.yml`),
-        traefikConfs.dynamic
-    );
-    await fs.writeFile(path.join(dir, `secrets`, `traefik`, `static.yml`), traefikConfs.static);
-    if (
-        pektinConfig.reverseProxy.tempZone.enabled &&
-        traefikConfs.tempDomain &&
-        pektinConfig.reverseProxy.routing === `domain`
-    ) {
-        await fs.writeFile(
-            path.join(dir, `secrets`, `traefik`, `dynamic`, `tempDomain.yml`),
-            traefikConfs.tempDomain
-        );
-    }
+
     // set the values in the .env file for provisioning them to the containers
-    await envSetValues(
+    const envFile = await genEnvValues(
         {
             vaultTokens,
             R_PEKTIN_API_PASSWORD,
@@ -176,22 +145,57 @@ export const installPektinCompose = async (
         dir
     );
 
-    await createStartScript(pektinConfig, dir);
-    await createStopScript(pektinConfig, dir);
-    await createUpdateScript(pektinConfig, dir);
+    const useTempDomain =
+        pektinConfig.reverseProxy.tempZone.enabled &&
+        traefikConfs.tempDomain &&
+        pektinConfig.reverseProxy.routing === `domain`;
 
-    await fs.mkdir(path.join(dir, `secrets`, `letsencrypt`), { recursive: true }).catch(() => {});
     // change ownership of all created files to host user
     // also chmod 700 all secrets except for redis ACL
-    await chown(path.join(dir, `start.sh`), process.env.UID, process.env.GID);
-    await chown(path.join(dir, `stop.sh`), process.env.UID, process.env.GID);
-    await chown(path.join(dir, `update.sh`), process.env.UID, process.env.GID);
-    await chownRecursive(path.join(dir, `secrets`), process.env.UID, process.env.GID);
-    await chmod(path.join(dir, `secrets`), `700`);
-    await chmod(path.join(dir, `secrets`, `.env`), `600`);
-    await chmod(path.join(dir, `secrets`, `acme-client.pc3.json`), `600`);
-    await chmod(path.join(dir, `secrets`, `server-admin.pc3.json`), `600`);
-    await chmod(path.join(dir, `secrets`, `certbot-acme-client.pc3.ini`), `600`);
+
+    const user = `${process.env.UID}:${process.env.GID}`;
+
+    await declareFs(
+        {
+            "start.sh": { $file: await genStartScript(pektinConfig), $owner: user },
+            "stop.sh": { $file: await genStopScript(pektinConfig), $owner: user },
+            "update.sh": { $file: await genUpdateScript(pektinConfig), $owner: user },
+            secrets: {
+                ".env": { $file: envFile, $owner: user, $perms: `600` },
+                ...(acmeClientConnectionConfig && {
+                    "acme-client.pc3.json": {
+                        $file: JSON.stringify(acmeClientConnectionConfig),
+                        $owner: user,
+                        $perms: `600`,
+                    },
+                    "certbot-acme-client.pc3.ini": {
+                        $file: configToCertbotIni(acmeClientConnectionConfig as PC3),
+                        $owner: user,
+                        $perms: `600`,
+                    },
+                }),
+                "server-admin.pc3.json": {
+                    $file: JSON.stringify(pektinAdminConnectionConfig),
+                    $owner: user,
+                    $perms: `600`,
+                },
+                redis: {
+                    "users.acl": redisPasswordHashes,
+                },
+                letsencrypt: {},
+                traefik: {
+                    dynamic: {
+                        "default.yml": { $file: traefikConfs.dynamic, $owner: user, $perms: `600` },
+                        ...(useTempDomain && { "tempDomain.yml": traefikConfs.tempDomain }),
+                    },
+                    "static.yml": { $file: traefikConfs.static, $owner: user, $perms: `600` },
+                },
+                $owner: user,
+                $perms: `600`,
+            },
+        },
+        { method: `node`, basePath: dir }
+    );
 };
 
 export const genBasicAuthHashed = (username: string, password: string) => {
@@ -218,17 +222,12 @@ export const createArbeiterConfig = async (
 
         if (!node.main) {
             await fs
-                .mkdir(path.join(dir, `arbeiter`, node.name, `secrets`, `traefik`, `dynamic`), {
-                    recursive: true,
-                })
-                .catch(() => {});
-            await fs
                 .mkdir(path.join(dir, `arbeiter`, node.name, `secrets`, `redis`), {
                     recursive: true,
                 })
                 .catch(() => {});
             const R_PEKTIN_SERVER_PASSWORD = randomString();
-            const redisAclFile = await setRedisPasswordHashes(
+            const redisAclFile = await genRedisPasswordHashes(
                 [[`R_PEKTIN_SERVER_PASSWORD`, R_PEKTIN_SERVER_PASSWORD]],
                 v.pektinConfig,
                 dir,
@@ -237,19 +236,10 @@ export const createArbeiterConfig = async (
             if (redisAclFile === undefined) {
                 throw new Error(`This should never happen: createArbeiterConfig`);
             }
-            await fs.writeFile(
-                path.join(dir, `arbeiter`, node.name, `secrets`, `redis`, `users.acl`),
-                redisAclFile
-            );
 
             const redisConf = await fs.readFile(
                 path.join(dir, `config`, `redis`, `arbeiter`, `redis.conf`),
                 { encoding: `utf8` }
-            );
-
-            await fs.writeFile(
-                path.join(dir, `arbeiter`, node.name, `secrets`, `redis`, `redis.conf`),
-                redisConf.replace(`#MASTERAUTH`, v.R_PEKTIN_GEWERKSCHAFT_PASSWORD)
             );
 
             const repls = [[`R_PEKTIN_SERVER_PASSWORD`, R_PEKTIN_SERVER_PASSWORD]];
@@ -259,40 +249,11 @@ export const createArbeiterConfig = async (
                 node: getMainNode(v.pektinConfig),
                 tempDomain: v.tempDomain,
             });
-            await fs.writeFile(
-                path.join(
-                    dir,
-                    `arbeiter`,
-                    node.name,
-                    `secrets`,
-                    `traefik`,
-                    `dynamic`,
-                    `default.yml`
-                ),
-                traefikConfs.dynamic
-            );
-            await fs.writeFile(
-                path.join(dir, `arbeiter`, node.name, `secrets`, `traefik`, `static.yml`),
-                traefikConfs.static
-            );
-            if (
+
+            const useTempDomain =
                 v.pektinConfig.reverseProxy.tempZone.enabled &&
                 traefikConfs.tempDomain &&
-                v.pektinConfig.reverseProxy.routing === `domain`
-            ) {
-                await fs.writeFile(
-                    path.join(
-                        dir,
-                        `arbeiter`,
-                        node.name,
-                        `secrets`,
-                        `traefik`,
-                        `dynamic`,
-                        `tempDomain.yml`
-                    ),
-                    traefikConfs.tempDomain
-                );
-            }
+                v.pektinConfig.reverseProxy.routing === `domain`;
 
             /*
             traefik.tcp.routers.pektin-server-dot.tls.domains[0].main: "${SERVER_DOMAIN}"
@@ -308,22 +269,40 @@ export const createArbeiterConfig = async (
             file += `# bash -c 'docker exec -it $(docker ps --filter name=pektin-redis --format {{.ID}}) redis-cli --pass ${R_PEKTIN_SERVER_PASSWORD} --user r-pektin-server'`;
             const composeCommand = `docker-compose --env-file secrets/.env -f pektin-compose/arbeiter/base.yml -f pektin-compose/traefik.yml`;
 
-            await fs.writeFile(path.join(dir, `arbeiter`, node.name, `secrets`, `.env`), file);
-            const startScript = `${composeCommand} up -d`;
-
-            await fs.writeFile(path.join(dir, `arbeiter`, node.name, `start.sh`), startScript);
-
-            const setupScript = `docker swarm leave\n`;
-            await fs.writeFile(path.join(dir, `arbeiter`, node.name, `setup.sh`), setupScript);
-
-            const stopScript = `${composeCommand} down --remove-orphans`;
-            await fs.writeFile(path.join(dir, `arbeiter`, node.name, `stop.sh`), stopScript);
-
-            const updateScript = `${composeCommand} pull\nsh start.sh`;
-            await fs.writeFile(path.join(dir, `arbeiter`, node.name, `update.sh`), updateScript);
-
             const resetScript = `${composeCommand} down --remove-orphans\ndocker swarm leave --force\ndocker volume rm pektin-compose_db\nrm -rf update.sh start.sh stop.sh secrets/ `;
-            await fs.writeFile(path.join(dir, `arbeiter`, node.name, `reset.sh`), resetScript);
+
+            await fs
+                .mkdir(path.join(dir, `arbeiter`, node.name), {
+                    recursive: true,
+                })
+                .catch(() => {});
+            declareFs(
+                {
+                    "start.sh": `${composeCommand} up -d`,
+                    "setup.sh": `docker swarm leave\n`,
+                    "stop.sh": `${composeCommand} down --remove-orphans`,
+                    "update.sh": `${composeCommand} pull\nsh start.sh`,
+                    "reset.sh": resetScript,
+                    secrets: {
+                        ".env": file,
+                        redis: {
+                            "redis.conf": redisConf.replace(
+                                `#MASTERAUTH`,
+                                v.R_PEKTIN_GEWERKSCHAFT_PASSWORD
+                            ),
+                            "users.acl": redisAclFile,
+                        },
+                        traefik: {
+                            "static.yml": traefikConfs.static,
+                            dynamic: {
+                                "default.yml": traefikConfs.dynamic,
+                                ...(useTempDomain && { "tempDomain.yml": traefikConfs.tempDomain }),
+                            },
+                        },
+                    },
+                },
+                { basePath: path.join(dir, `arbeiter`, node.name), method: `node` }
+            );
         }
     }
 };
@@ -338,7 +317,7 @@ export const createSwarmScript = async (pektinConfig: PektinConfig, dir: string)
     await fs.writeFile(path.join(dir, `swarm.sh`), swarmScript);
 };
 
-export const setRedisPasswordHashes = async (
+export const genRedisPasswordHashes = async (
     repls: string[][],
     pektinConfig: PektinConfig,
     dir: string,
@@ -367,8 +346,8 @@ export const setRedisPasswordHashes = async (
     if (arbeiter) {
         return file;
     }
-    await fs.mkdir(path.join(dir, `secrets`, `redis`), { recursive: true }).catch(() => {});
-    await fs.writeFile(path.join(dir, `secrets`, `redis`, `users.acl`), file);
+
+    return file;
     //crypto.create;
 };
 
@@ -401,7 +380,7 @@ const createCspConnectSources = (c: PektinConfig, tempDomain?: TempDomain) => {
     return connectSources;
 };
 
-export const envSetValues = async (
+export const genEnvValues = async (
     v: {
         pektinConfig: PektinConfig;
         R_PEKTIN_API_PASSWORD: string;
@@ -440,11 +419,10 @@ export const envSetValues = async (
     file += `# Some commands for debugging\n`;
     file += `# Logs into redis (then try 'KEYS *' for example to get all record keys):\n`;
     file += `# bash -c 'docker exec -it $(docker ps --filter name=pektin-redis --format {{.ID}}) redis-cli --pass ${v.R_PEKTIN_API_PASSWORD} --user r-pektin-api'`;
-    await fs.writeFile(path.join(dir, `secrets`, `.env`), file);
+    return file;
 };
 
-export const createStartScript = async (pektinConfig: PektinConfig, dir: string) => {
-    const p = path.join(dir, `start.sh`);
+export const genStartScript = async (pektinConfig: PektinConfig) => {
     let file = `#!/bin/sh\n
 SCRIPTS_IMAGE_NAME=pektin/scripts
 SCRIPTS_CONTAINER_NAME=pektin-scripts
@@ -472,22 +450,20 @@ docker run --env UID=$(id -u) --env GID=$(id -g) --env FORCE_COLOR=3 --name \${S
     // compose up everything
     file += composeCommand;
 
-    await fs.writeFile(p, file);
+    return file;
 };
 
-export const createStopScript = async (pektinConfig: PektinConfig, dir: string) => {
-    const p = path.join(dir, `stop.sh`);
+export const genStopScript = async (pektinConfig: PektinConfig) => {
     let file = `#!/bin/sh\n`;
     let composeCommand = `docker-compose --env-file secrets/.env`;
     composeCommand += activeComposeFiles(pektinConfig);
     composeCommand += ` down`;
     file += composeCommand;
 
-    await fs.writeFile(p, file);
+    return file;
 };
 
-export const createUpdateScript = async (pektinConfig: PektinConfig, dir: string) => {
-    const p = path.join(dir, `update.sh`);
+export const genUpdateScript = async (pektinConfig: PektinConfig) => {
     let file = `#!/bin/sh\n`;
     let composeCommand = `docker-compose --env-file secrets/.env`;
     composeCommand += activeComposeFiles(pektinConfig);
@@ -496,7 +472,7 @@ export const createUpdateScript = async (pektinConfig: PektinConfig, dir: string
 
     file += composeCommand + `\n`;
     file += `sh start.sh`;
-    await fs.writeFile(p, file);
+    return file;
 };
 
 export const activeComposeFiles = (pektinConfig: PektinConfig) => {
