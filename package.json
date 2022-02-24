@@ -1,6 +1,6 @@
 {
     "name": "@pektin/client",
-    "version": "1.2.6",
+    "version": "1.2.7",
     "description": "A client to facilitate the control of pektin dns servers",
     "main": "dist/js/index.js",
     "module": "dist/js/index.js",
@@ -67,9 +67,6 @@
         "cross-fetch": "^3.1.4",
         "punycode": "1.4.1",
         "yaml": "^1.10.2"
-    },
-    "resolutions": {
-        "chalk": "^5.0.0"
     },
     "scripts": {
         "build": "tsc && yarn compile-cjs && yarn convert-deno && yarn bundle-policies",
