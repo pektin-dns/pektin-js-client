@@ -63,6 +63,11 @@ export const duplicateZoneConversion = (
     });
 };
 
+export const clampTTL = (ttl: number | string) => {
+    if (typeof ttl === `string`) ttl = parseInt(ttl);
+    return Math.min(Math.max(ttl, 0), 4294967295);
+};
+
 export const getEmojiForServiceName = (name: string) => {
     const map = { api: `🤖`, ui: `💻`, vault: `🔐`, recursor: `🌳` };
     /*@ts-ignore*/
@@ -74,6 +79,18 @@ export const getMainNode = (pektinConfig: PektinConfig) => {
 };
 export const getMainNameServers = (pektinConfig: PektinConfig) => {
     return pektinConfig.nameservers.filter((ns) => ns.main === true);
+};
+
+export const getNameServersByDomain = (pektinConfig: PektinConfig, domain: string) => {
+    return pektinConfig.nameservers.filter(
+        (ns) => absoluteName(ns.domain) === absoluteName(domain)
+    );
+};
+
+export const isNameServer = (pektinConfig: PektinConfig, domain: string) => {
+    return !!pektinConfig.nameservers.filter(
+        (ns) => absoluteName(ns.domain) === absoluteName(domain)
+    ).length;
 };
 
 // get the pektin api endpoint from  the pektin config

@@ -61,7 +61,7 @@ export const pektinComposeFirstStart = async (
     const infos = getInfos(pektinConfig, setupType);
     console.log(infos);
     console.log(
-        `These infos are also available in the just created file ${c.bold.cyan(`your-infos.md`)}`
+        `These infos are also available in the just created file ${c.bold.cyan(`./your-infos.md`)}`
     );
 
     await fs.writeFile(

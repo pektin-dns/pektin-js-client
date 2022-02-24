@@ -248,7 +248,7 @@ export const createArbeiterConfig = async (
 
             const traefikConfs = genTraefikConfs({
                 pektinConfig: v.pektinConfig,
-                node: getMainNode(v.pektinConfig),
+                node: node,
                 tempDomain: v.tempDomain,
             });
 

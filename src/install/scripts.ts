@@ -30,7 +30,7 @@ const script = argv[2];
                 `/pektin-compose/pektin-config.json`,
                 `node_modules/@pektin/config/pektin-config.schema.yml`
             );
-            await updateConfig();
+            //await updateConfig();
             break;
         case `compose-first-start`:
             await pektinComposeFirstStart();

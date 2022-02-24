@@ -23,9 +23,10 @@ export const genTraefikConfs = ({
 }) => {
     const nodeNameServers = getNodesNameservers(pektinConfig, node.name);
     if (!nodeNameServers) throw Error(`Could not get NS for node`);
+    const serviceKeys = Object.keys(pektinConfig.services);
     const enabledServices = Object.values(pektinConfig.services).filter(
         /*@ts-ignore*/
-        (s) => s.enabled !== false && s.hasOwnProperty(`domain`)
+        (s, i) => s.enabled !== false && s.hasOwnProperty(`domain`) && serviceKeys[i] !== `recursor`
     );
 
     const dynamicConf = _.merge(
@@ -48,7 +49,7 @@ export const genTraefikConfs = ({
                   .map((proxy) => proxyConf({ ...proxy, pektinConfig, proxyAuth }))
             : []),
         tlsConfig(pektinConfig),
-        pektinConfig.reverseProxy.traefikUi.enabled && traefikUiConf(pektinConfig),
+        node.main && pektinConfig.reverseProxy.traefikUi.enabled && traefikUiConf(pektinConfig),
         pektinConfig.reverseProxy.tls ? redirectHttps() : {},
         node.main && recursorAuth
             ? recursorConf({
@@ -57,6 +58,7 @@ export const genTraefikConfs = ({
               })
             : {}
     );
+
     const staticConf = _.merge(genStaticConf(pektinConfig));
 
     const yamlOptions: yaml.Options = { indent: 4, version: `1.1` };
@@ -403,6 +405,7 @@ export const recursorConf = ({
                             )}\`) && Path(\`/dns-query\`)`;
                         }
                     })(),
+                    service: `pektin-recursor`,
                     entrypoints: rp.tls ? `websecure` : `web`,
                     middlewares: [`pektin-recursor-cors`, `pektin-recursor-auth`],
                 },
@@ -420,11 +423,12 @@ export const recursorConf = ({
             },
             services: {
                 "pektin-recursor": {
-                    loadbalancer: {
-                        servers: {
-                            schema: `h2c`,
-                            url: `http://pektin-recursor`,
-                        },
+                    loadBalancer: {
+                        servers: [
+                            {
+                                url: `h2c://pektin-recursor`,
+                            },
+                        ],
                     },
                 },
             },
@@ -460,6 +464,7 @@ export const genStaticConf = (pektinConfig: PektinConfig) => {
         docker: {
             network: `rp`,
         },
+        log: { level: `DEBUG` },
         providers: {
             docker: { exposedbydefault: false },
             file: { directory: `/traefik/dynamic/`, watch: true },

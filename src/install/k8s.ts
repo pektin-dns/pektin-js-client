@@ -36,7 +36,7 @@ export const installK8s = async (dir: string = `/base/`) => {
             pektinConfig,
             secrets: secrets.secrets,
             k8s: true,
-            internalVaultUrl: `http://127.0.0.1:8200`,
+            internalVaultUrl: `http://127.0.0.1:8227`,
         });
 
     await fs.mkdir(path.join(dir, `secrets`), { recursive: true });
