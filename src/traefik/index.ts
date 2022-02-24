@@ -310,6 +310,8 @@ export const proxyConf = ({
     };
 };
 
+// TODO secure dashboard with basicauth
+
 export const traefikUiConf = (pektinConfig: PektinConfig) => {
     const rp = pektinConfig.reverseProxy;
     let domain = pektinConfig.reverseProxy.traefikUi.domain;
