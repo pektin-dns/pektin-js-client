@@ -1,16 +1,7 @@
 import { PektinClient } from "../main.js";
 import { promises as fs } from "fs";
-import { beautifyJSON, isReady, PektinRRType } from "../index.js";
 
 import { config } from "dotenv";
-import { getAllFromPdns } from "../import/pdns/index.js";
-import { getZoneFromFile } from "../import/zone-file/index.js";
-import { importByZoneWalking } from "../import/wanderlust/index.js";
-import { serverConf, genTraefikConfs } from "../traefik/index.js";
-import { crtFormatQuery, getNodesNameservers } from "../pureFunctions.js";
-import { PektinConfig } from "@pektin/config/src/config-types";
-import { randomString, requestPektinDomain } from "../install/utils.js";
-import { toASCII } from "punycode";
 
 config({ path: `/home/paul/Documents/powerdns-api/.env` });
 
