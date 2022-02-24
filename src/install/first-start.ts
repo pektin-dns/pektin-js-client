@@ -7,10 +7,14 @@ import { chmod, chown, createSingleScript } from "./utils.js";
 import { absoluteName, concatDomain } from "../index.js";
 import { getMainNameServers, getMainNode, getPektinEndpoint } from "../pureFunctions.js";
 import { Chalk } from "chalk";
+import yaml from "yaml";
 
 const c = new Chalk({ level: 3 });
 
-export const pektinComposeFirstStart = async (dir = `/pektin-compose/`) => {
+export const pektinComposeFirstStart = async (
+    dir = `/pektin-compose/`,
+    setupType: `k8s` | `compose` = `compose`
+) => {
     if (process.env.UID === undefined || process.env.GID === undefined) {
         throw Error(
             `No UID and/or GID defined. Current is: UID: ` +
@@ -19,9 +23,12 @@ export const pektinComposeFirstStart = async (dir = `/pektin-compose/`) => {
                 process.env.GID
         );
     }
-    const pektinConfig = JSON.parse(
-        await fs.readFile(path.join(dir, `pektin-config.json`), `utf-8`)
-    ) as PektinConfig;
+    const pektinConfig =
+        setupType === `compose`
+            ? (JSON.parse(
+                  await fs.readFile(path.join(dir, `pektin-config.json`), `utf-8`)
+              ) as PektinConfig)
+            : yaml.parse(await fs.readFile(path.join(dir, `pektin-config.yml`), `utf-8`));
 
     const adminCreds: PC3 = JSON.parse(
         await fs.readFile(path.join(dir, `secrets`, `server-admin.pc3.json`), `utf-8`)
@@ -30,22 +37,28 @@ export const pektinComposeFirstStart = async (dir = `/pektin-compose/`) => {
     if (pektinConfig.nameservers?.length) {
         const pc = new PektinSetupClient({
             ...adminCreds,
-            internal: true,
+            ...(setupType === `compose` && { internal: true }),
+            ...(setupType === `k8s` && { vaultEndpoint: `http://127.0.0.1:8200` }),
+            ...(setupType === `k8s` && {
+                override: { pektinApiEndpoint: `http://127.0.0.1:3333` },
+            }),
         });
 
         await pc.setup(pektinConfig);
     }
-    for (let i = 1; i < pektinConfig.nodes.length; i++) {
-        const node = pektinConfig.nodes[i];
-        if (node.setup && node.setup.system) {
-            await createSingleScript(
-                path.join(dir, `arbeiter`, node.name),
-                path.join(dir, `arbeiter`, `${node.name}.sh`),
-                node
-            );
+    if (setupType === `compose`) {
+        for (let i = 0; i < pektinConfig.nodes.length; i++) {
+            const node = pektinConfig.nodes[i];
+            if (node.setup && node.setup.system) {
+                await createSingleScript(
+                    path.join(dir, `arbeiter`, node.name),
+                    path.join(dir, `arbeiter`, `${node.name}.sh`),
+                    node
+                );
+            }
         }
     }
-    const infos = getInfos(pektinConfig);
+    const infos = getInfos(pektinConfig, setupType);
     console.log(infos);
     console.log(
         `These infos are also available in the just created file ${c.bold.cyan(`your-infos.md`)}`
@@ -63,26 +76,22 @@ export const pektinComposeFirstStart = async (dir = `/pektin-compose/`) => {
     await chown(path.join(dir, `your-infos.md`), process.env.UID, process.env.GID);
 };
 
-export const getInfos = (pektinConfig: PektinConfig) => {
+export const getInfos = (pektinConfig: PektinConfig, setupType: `k8s` | `compose`) => {
     return `
 💻 ${c.bold(`UI`)}: ${c.bold.cyan(getPektinEndpoint(pektinConfig, `ui`))}
 🤖 ${c.bold(`API`)}: ${c.bold.cyan(getPektinEndpoint(pektinConfig, `api`))}
 You can find the admin credentials at ${c.bold.cyan(`./secrets/server-admin.pc3.json`)}
 
 🔐 ${c.bold(`Vault`)}: ${c.bold.cyan(getPektinEndpoint(pektinConfig, `vault`))}
-Vault key and root token can be found here (V_KEY,V_ROOT_TOKEN): ${c.bold.cyan(`./secrets/.env`)}
+Vault key and root token can be found here: ${c.bold.cyan(
+        setupType === `compose` ? `./secrets/.env` : `./secrets/vault-tokens.json`
+    )}
 
 🌳 ${c.bold(`Recursor`)}: ${c.bold.cyan(getPektinEndpoint(pektinConfig, `recursor`))}
 The recursor basic auth username and password can be found in Vault at\n${c.bold.cyan(
         `${getPektinEndpoint(pektinConfig, `vault`)}/ui/vault/secrets/pektin-kv/show/recursor-auth`
     )}
 `;
-};
-
-const getEmojiForServiceName = (name: string) => {
-    const map = { api: `🤖`, ui: `💻`, vault: `🔐`, recursor: `🌳` };
-    /*@ts-ignore*/
-    return map[name];
 };
 
 export class PektinSetupClient extends PektinClient {

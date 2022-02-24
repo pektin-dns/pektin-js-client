@@ -26,8 +26,6 @@ export interface PektinZoneData {
     [domainName: string]: ApiRecord[];
 }
 
-// TODO support dynDns
-
 export type RibstonPolicy = string; // A valid ribston policy
 export type OpaPolicy = string; // A valid opa policy
 export type ClientName = string;

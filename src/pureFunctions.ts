@@ -1,6 +1,7 @@
 import { PektinConfig } from "@pektin/config/src/config-types";
 import { absoluteName, beautifyJSON, concatDomain, ResourceRecord } from "./index.js";
 import c from "chalk";
+import _ from "lodash";
 
 import f from "cross-fetch";
 import {
@@ -30,7 +31,6 @@ import {
     SetResponseSuccess,
 } from "./types.js";
 import { getVaultValue } from "./vault/vault.js";
-import { exit } from "process";
 
 export const replaceNameInRrSet = (
     rr_set: ResourceRecord[],
@@ -63,6 +63,12 @@ export const duplicateZoneConversion = (
     });
 };
 
+export const getEmojiForServiceName = (name: string) => {
+    const map = { api: `🤖`, ui: `💻`, vault: `🔐`, recursor: `🌳` };
+    /*@ts-ignore*/
+    return map[name];
+};
+
 export const getMainNode = (pektinConfig: PektinConfig) => {
     return pektinConfig.nodes.filter((node) => node.main === true)[0];
 };
@@ -73,7 +79,7 @@ export const getMainNameServers = (pektinConfig: PektinConfig) => {
 // get the pektin api endpoint from  the pektin config
 export const getPektinEndpoint = (
     c: PektinConfig,
-    endpointType: `api` | `vault` | `ui` | `recursor`,
+    endpointType: `api` | `vault` | `ui` | `recursor` | `proxy`,
     useInternal = false
 ): string => {
     if (useInternal) {
@@ -82,10 +88,13 @@ export const getPektinEndpoint = (
         if (endpointType === `ui`) return `http://pektin-ui`;
         if (endpointType === `recursor`) return `http://pektin-recursor`;
     }
-    const domain = concatDomain(
-        c.services[endpointType].domain,
-        c.services[endpointType].subDomain
-    );
+    let domain = ``;
+
+    if (endpointType === `proxy`) {
+        domain = concatDomain(c.reverseProxy.external.domain, c.reverseProxy.external.subDomain);
+    } else {
+        domain = concatDomain(c.services[endpointType].domain, c.services[endpointType].subDomain);
+    }
     const protocol = c.reverseProxy.tls ? `https` : `http`;
     let host = ``;
     if (c.reverseProxy.routing === `local`) {
@@ -230,6 +239,39 @@ export const pektinApiRequest = async (
     }
 
     return json as ApiResponseBody;
+};
+
+export const crtFormatQuery = (domain: string) => {
+    return `?q=${domain}&output=json`;
+};
+
+export const fetchProxy = ({
+    proxyEndpoint,
+    name,
+    path,
+    proxyAuth,
+    fetchOptions,
+}: {
+    proxyEndpoint: string;
+    name: string;
+    path?: string;
+    proxyAuth: string;
+    fetchOptions: any;
+}) => {
+    const fetchPath = `${proxyEndpoint}/proxy-${name}${path ?? `/`}`;
+    console.log(fetchPath);
+
+    return f(
+        fetchPath,
+        _.merge(
+            {
+                headers: {
+                    Authorization: proxyAuth || ``,
+                },
+            },
+            fetchOptions
+        )
+    );
 };
 
 export const err = ({

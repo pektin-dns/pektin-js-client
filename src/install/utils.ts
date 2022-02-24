@@ -12,8 +12,9 @@ import { toASCII } from "../index.js";
 
 const exec = promisify(execDefault);
 
-export const randomString = (length = 100) =>
-    crypto.randomBytes(length).toString(`base64url`).replaceAll(`=`, ``);
+export const randomString = (length = 100) => {
+    return crypto.randomBytes(length).toString(`base64url`).replaceAll(`=`, ``);
+};
 
 export const chmod = async (path: string, perms: string) => {
     await exec(`chmod ${perms} ${path}`);

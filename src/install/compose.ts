@@ -10,7 +10,7 @@ import {
 } from "./utils.js";
 import crypto from "crypto";
 /*@ts-ignore*/
-import cfonts from "cfonts";
+//import cfonts from "cfonts";
 
 import { updateKvValue } from "../vault/vault.js";
 import { PektinConfig } from "@pektin/config/src/config-types.js";
@@ -27,12 +27,13 @@ export const installPektinCompose = async (
     dir: string = `/pektin-compose/`,
     vaultUrl: string = `http://pektin-vault`
 ) => {
+    /*
     cfonts.say(`install`, {
         font: `block`,
         align: `left`,
         colors: [`yellow`, `cyan`],
     });
-
+*/
     if (process.env.UID === undefined || process.env.GID === undefined) {
         throw Error(
             `No UID and/or GID defined. Current is: UID: ` +
@@ -191,11 +192,12 @@ export const installPektinCompose = async (
                     "static.yml": { $file: traefikConfs.static, $owner: user, $perms: `600` },
                 },
                 $owner: user,
-                $perms: `600`,
+                $perms: `700`,
             },
         },
         { method: `node`, basePath: dir }
     );
+    await chownRecursive(dir, process.env.UID, process.env.GID);
 };
 
 export const genBasicAuthHashed = (username: string, password: string) => {

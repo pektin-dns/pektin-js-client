@@ -11,6 +11,8 @@ config({ path: `/pektin-compose/secrets/.env` });
 const argv = process.argv;
 const script = argv[2];
 (async () => {
+    console.log(`Running ${script}`);
+
     switch (script) {
         case `compose-install`:
             await checkConfig(
@@ -35,7 +37,7 @@ const script = argv[2];
             break;
         case `k8s-install`:
             await installK8s();
-            //await pektinComposeFirstStart(`/base/`);
+            await pektinComposeFirstStart(`/base/`, `k8s`);
             break;
         case `k8s-create-secrets`:
             await checkConfig(

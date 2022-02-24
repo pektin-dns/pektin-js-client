@@ -6,26 +6,6 @@ import { getNodesNameservers } from "../pureFunctions.js";
 import { TempDomain } from "../types.js";
 import { genTempDomainConfig } from "./tempDomain.js";
 
-// TODO fix everything for IDNs
-// TODO add traefik ui
-
-export const externalProxyServices: {
-    name: `gandi` | `crt`;
-    url: string;
-    allowedMethods: string;
-}[] = [
-    {
-        name: `gandi`,
-        url: `https://api.gandi.net/v5`,
-        allowedMethods: `OPTIONS, POST, GET, DELETE`,
-    },
-    {
-        name: `crt`,
-        url: `https://crt.sh`,
-        allowedMethods: `OPTIONS, GET`,
-    },
-];
-
 // TODO add traefik UI with auth
 
 export const genTraefikConfs = ({
@@ -63,11 +43,12 @@ export const genTraefikConfs = ({
               )
             : []),
         ...(node.main
-            ? externalProxyServices
-                  .filter((p) => pektinConfig.reverseProxy.external.services[p.name])
+            ? pektinConfig.reverseProxy.external.services
+                  .filter((s) => s.enabled)
                   .map((proxy) => proxyConf({ ...proxy, pektinConfig, proxyAuth }))
             : []),
         tlsConfig(pektinConfig),
+        pektinConfig.reverseProxy.traefikUi.enabled && traefikUiConf(pektinConfig),
         pektinConfig.reverseProxy.tls ? redirectHttps() : {},
         node.main && recursorAuth
             ? recursorConf({
@@ -240,30 +221,28 @@ export const pektinServicesConf = ({
     };
 };
 
-//TODO check that nothing relies on domain names being absolute or not absolute
-
 export const proxyConf = ({
     pektinConfig,
     name,
-    url,
-    allowedMethods,
+    domain,
+    accessControlAllowMethods,
     proxyAuth,
 }: {
     pektinConfig: PektinConfig;
     name: string;
-    url: string;
-    allowedMethods: string;
+    domain: string;
+    accessControlAllowMethods: string[];
     proxyAuth?: string;
 }) => {
     if (!proxyAuth) return {};
     const rp = pektinConfig.reverseProxy;
-    const domain = toASCII(rp.external.domain);
+    const internalDomain = toASCII(rp.external.domain);
     const subDomain = toASCII(rp.external.subDomain);
 
     const tls = rp.tls
         ? {
               certResolver: `default`,
-              domains: [{ main: domain, sans: [`*.${domain}`] }],
+              domains: [{ main: internalDomain, sans: [`*.${internalDomain}`] }],
           }
         : false;
     return {
@@ -281,20 +260,20 @@ export const proxyConf = ({
                     rule: (() => {
                         if (rp.routing === `domain`) {
                             return `Host(\`${concatDomain(
-                                domain,
+                                internalDomain,
                                 subDomain
                             )}\`) && PathPrefix(\`/proxy-${name}\`)`;
                         }
                         if (rp.routing === `local`) {
                             return `Host(\`${concatDomain(
                                 `localhost`,
-                                concatDomain(domain, subDomain)
+                                concatDomain(internalDomain, subDomain)
                             )}\`) && PathPrefix(\`/proxy-${name}\`)`;
                         }
                         if (rp.routing === `minikube`) {
                             return `Host(\`${concatDomain(
                                 `minikube`,
-                                concatDomain(domain, subDomain)
+                                concatDomain(internalDomain, subDomain)
                             )}\`) && PathPrefix(\`/proxy-${name}\`)`;
                         }
                     })(),
@@ -306,7 +285,7 @@ export const proxyConf = ({
                         passHostHeader: false,
                         servers: [
                             {
-                                url,
+                                url: `https://${domain}`,
                             },
                         ],
                     },
@@ -315,12 +294,12 @@ export const proxyConf = ({
             middlewares: {
                 "pektin-proxy-strip-proxy": {
                     stripPrefixRegex: {
-                        regex: [`^\/proxy-[^/]{1,}`],
+                        regex: [`^\/proxy-[^/]+`],
                     },
                 },
                 [`pektin-proxy-cors-${name}`]: {
                     headers: {
-                        accessControlAllowMethods: allowedMethods,
+                        accessControlAllowMethods: accessControlAllowMethods.join(`,`),
                         accessControlAllowOriginList: `*`,
                         accessControlMaxAge: 86400,
                     },
@@ -331,9 +310,46 @@ export const proxyConf = ({
     };
 };
 
-export const apiConf = () => {
+export const traefikUiConf = (pektinConfig: PektinConfig) => {
+    const rp = pektinConfig.reverseProxy;
+    let domain = pektinConfig.reverseProxy.traefikUi.domain;
+    let subDomain = pektinConfig.reverseProxy.traefikUi.subDomain;
+
+    domain = toASCII(domain);
+    subDomain = toASCII(subDomain);
+    const tls = rp.tls
+        ? {
+              certResolver: `default`,
+              domains: [{ main: domain, sans: [`*.${domain}`] }],
+          }
+        : false;
     return {
-        http: { routers: { api: { rule: `Host()`, entrypoints: `web`, service: `api@internal` } } },
+        http: {
+            routers: {
+                "traefik-api": {
+                    ...(tls && { tls }),
+                    rule: (() => {
+                        if (rp.routing === `domain`) {
+                            return `Host(\`${concatDomain(domain, subDomain)}\`)`;
+                        }
+                        if (rp.routing === `local`) {
+                            return `Host(\`${concatDomain(
+                                `localhost`,
+                                concatDomain(domain, subDomain)
+                            )}\`)`;
+                        }
+                        if (rp.routing === `minikube`) {
+                            return `Host(\`${concatDomain(
+                                `minikube`,
+                                concatDomain(domain, subDomain)
+                            )}\`)`;
+                        }
+                    })(),
+                    entrypoints: rp.tls ? `websecure` : `web`,
+                    service: `api@internal`,
+                },
+            },
+        },
     };
 };
 
@@ -438,6 +454,7 @@ export const redirectHttps = () => {
 
 export const genStaticConf = (pektinConfig: PektinConfig) => {
     return {
+        ...(pektinConfig.reverseProxy.traefikUi.enabled && { api: { dashboard: true } }),
         docker: {
             network: `rp`,
         },

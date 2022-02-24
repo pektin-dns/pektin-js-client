@@ -1,5 +1,3 @@
-TODO when a service has a domain that is not one of the ns domains its not creating a soa record
-
 TODO mark position in output when serde returns something like `at line 1 column 357`
 
 # JavaScript / TypeScript

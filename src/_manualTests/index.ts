@@ -7,7 +7,7 @@ import { getAllFromPdns } from "../import/pdns/index.js";
 import { getZoneFromFile } from "../import/zone-file/index.js";
 import { importByZoneWalking } from "../import/wanderlust/index.js";
 import { serverConf, genTraefikConfs } from "../traefik/index.js";
-import { getNodesNameservers } from "../pureFunctions.js";
+import { crtFormatQuery, getNodesNameservers } from "../pureFunctions.js";
 import { PektinConfig } from "@pektin/config/src/config-types";
 import { randomString, requestPektinDomain } from "../install/utils.js";
 import { toASCII } from "punycode";
@@ -22,12 +22,16 @@ const serverAdminConfig = await fs.readFile(`../pektin-compose/secrets/server-ad
 
 const pc = new PektinClient(JSON.parse(serverAdminConfig));
 
+const res = await pc.getCrtInfo(`frieb.de`);
+console.log(res);
+
+/*
 const c: PektinConfig = {
     ...JSON.parse(await fs.readFile(`../pektin-compose/pektin-config.json`, { encoding: `utf8` })),
 } as const;
-
-await isReady(`http://vault-н.яндекс.рф.localhost`);
-console.log(`ready`);
+*/
+//await isReady(`http://vault-н.яндекс.рф.localhost`);
+//console.log(`ready`);
 
 /*
 pc.setupDomain(`example.com.`, [{ name: `ns1.example.com.`, ips: [`1::1`] }]);
@@ -36,7 +40,7 @@ pc.setupDomain(`a.example.com.`, [{ name: `ns1.a.example.com.`, ips: [`1::1`] }]
 */
 //console.log(await pc.get([{ name: `яндекс.рф.`, rr_type: PektinRRType.SOA }]));
 
-console.log(await pc.setupDomain(`a.de.`, [{ fullNsDomain: `.a.`, ips: [`1::1`] }]));
+//console.log(await pc.setupDomain(`a.de.`, [{ fullNsDomain: `.a.`, ips: [`1::1`] }]));
 /*
 console.log(
     beautifyJSON(
@@ -85,7 +89,7 @@ await pc.set([
     },
 ]);
 */
-
+/*
 const file = `$ORIGIN pektin.io
 @ 86400 IN SOA ns1.gandi.net. hostmaster.gandi.net. 1643461544 10800 3600 604800 10800
 @ 10800 IN A 217.70.184.38
@@ -100,4 +104,5 @@ gm3._domainkey 10800 IN CNAME gm3.gandimail.net.
 webmail 10800 IN CNAME webmail.gandi.net.
 www 10800 IN CNAME webredir.vip.gandi.net.
 `;
+*/
 //await pc.setPektinZoneData(getZoneFromFile(file));

@@ -1,5 +1,5 @@
 import { PektinConfig } from "@pektin/config/src/config-types.js";
-
+import { Crt } from "./external/crt.js";
 import {
     deleteRecords,
     duplicateZoneConversion,
@@ -29,6 +29,7 @@ import {
     Glob,
     PC3,
 } from "./index.js";
+import { crtFormatQuery, fetchProxy } from "./pureFunctions.js";
 import { getVaultValue, vaultLoginUserpass } from "./vault/vault.js";
 
 export class PektinClient {
@@ -102,7 +103,7 @@ export class PektinClient {
         return this.pektinConfig;
     };
 
-    // gets the auth info for the recursor
+    // gets the auth info for the recursor returns it and sets it on the object
     getAuth = async (service: `recursor` | `proxy`, hashed = false) => {
         if (!this.vaultEndpoint) {
             throw Error(
@@ -116,7 +117,7 @@ export class PektinClient {
             }
         }
         const auth = await getAuth(this.vaultEndpoint, this.confidantToken, service, hashed);
-        this[`${service}Auth`] = auth;
+        if (!hashed) this[`${service}Auth`] = auth;
         return auth;
     };
 
@@ -304,8 +305,6 @@ export class PektinClient {
         return getPektinEndpoint(this.pektinConfig, type, this.internal);
     };
 
-    // TODO colour while client was trying to * something
-
     getDomains = async () => {
         const searchResponse = await this.search([{ name_glob: `*`, rr_type_glob: `SOA` }], true);
         if (searchResponse.type !== `success` || !searchResponse.data?.length) return [];
@@ -480,6 +479,47 @@ export class PektinClient {
         return insert;
     };
     // replaces a name in an rrset
+
+    fetchProxy = async ({
+        name,
+        path,
+        fetchOptions,
+    }: {
+        name: string;
+        path?: string;
+        fetchOptions?: any;
+    }) => {
+        if (!this.pektinConfig) {
+            await this.getPektinConfig();
+            if (!this.pektinConfig) {
+                throw Error(`Couldn't obtain pektinApiEndpoint`);
+            }
+        }
+        if (!this.proxyAuth) {
+            await this.getAuth(`proxy`);
+            if (!this.proxyAuth) {
+                throw Error(`Couldn't obtain proxyAuth`);
+            }
+        }
+        const proxyEndpoint = getPektinEndpoint(this.pektinConfig, `proxy`);
+        return fetchProxy({ name, path, fetchOptions, proxyAuth: this.proxyAuth, proxyEndpoint });
+    };
+
+    getCrtInfo = async (domain: string) => {
+        const res = await this.fetchProxy({ name: `crt`, path: crtFormatQuery(domain) });
+        const text = await res.text();
+        let j;
+        if (this.throwErrors) {
+            j = JSON.parse(text);
+        } else {
+            try {
+                j = JSON.parse(text);
+            } catch (error) {
+                return false;
+            }
+        }
+        return j as Crt[];
+    };
 }
 
 // TODO coloring only shows special characters in browser

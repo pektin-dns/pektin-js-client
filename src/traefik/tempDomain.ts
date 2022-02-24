@@ -2,7 +2,7 @@ import { PektinConfig } from "@pektin/config/src/config-types";
 import _ from "lodash";
 import { concatDomain, TempDomain, toASCII } from "../index.js";
 import { getNodesNameservers } from "../pureFunctions.js";
-import { externalProxyServices, getNsList } from "./index.js";
+import { getNsList } from "./index.js";
 
 export const genTempDomainConfig = ({
     pektinConfig,
@@ -36,8 +36,8 @@ export const genTempDomainConfig = ({
               )
             : []),
         ...(node.main
-            ? externalProxyServices
-                  .filter((p) => pektinConfig.reverseProxy.external.services[p.name])
+            ? pektinConfig.reverseProxy.external.services
+                  .filter((s) => s.enabled)
                   .map((proxy) => genTempProxyConf({ ...proxy, pektinConfig }))
             : []),
         node.main && recursorAuth

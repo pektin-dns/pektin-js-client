@@ -10,6 +10,7 @@ import { getMainNode } from "../pureFunctions.js";
 import { genStartScript, genStopScript, genUpdateScript } from "./compose.js";
 import { TempDomain } from "../types.js";
 import { PektinSetupClient } from "./first-start.js";
+import { declareFs } from "@pektin/declare-fs";
 
 config({ path: `/pektin-compose/secrets/.env` });
 
@@ -51,10 +52,6 @@ export const updateConfig = async (dir: string = `/pektin-compose/`) => {
 
     // HARD DRIVE RELATED
 
-    await fs
-        .mkdir(path.join(dir, `secrets`, `traefik`, `dynamic`), { recursive: true })
-        .catch(() => {});
-
     const recursorBasicAuthHashed = await pc.getAuth(`recursor`, true);
 
     const proxyBasicAuthHashed = await pc.getAuth(`proxy`, true);
@@ -71,41 +68,38 @@ export const updateConfig = async (dir: string = `/pektin-compose/`) => {
         tempDomain,
         proxyAuth: proxyBasicAuthHashed,
     });
-    await fs.writeFile(
-        path.join(dir, `secrets`, `traefik`, `dynamic`, `default.yml`),
-        traefikConfs.dynamic
-    );
-    await fs.writeFile(path.join(dir, `secrets`, `traefik`, `static.yml`), traefikConfs.static);
-    if (
-        pektinConfig.reverseProxy.tempZone.enabled &&
-        traefikConfs.tempDomain &&
-        pektinConfig.reverseProxy.routing === `domain`
-    ) {
-        await fs.writeFile(
-            path.join(dir, `secrets`, `traefik`, `dynamic`, `tempDomain.yml`),
-            traefikConfs.tempDomain
-        );
-    }
+
     // impl compose.compose-scripts
     // impl build
     // impl traefik.static-config.certificate-resolvers
 
-    await genStartScript(pektinConfig);
-    await genStopScript(pektinConfig);
-    await genUpdateScript(pektinConfig);
-    // TODO transition this to declareFs
+    const user = `${process.env.UID}:${process.env.GID}`;
 
-    await fs.mkdir(path.join(dir, `secrets`, `letsencrypt`), { recursive: true }).catch(() => {});
-
-    // change ownership of all created files to host user
-    // also chmod 700 all secrets except for redis ACL
-    await chown(path.join(dir, `start.sh`), process.env.UID, process.env.GID);
-    await chown(path.join(dir, `stop.sh`), process.env.UID, process.env.GID);
-    await chown(path.join(dir, `update.sh`), process.env.UID, process.env.GID);
-    await chownRecursive(path.join(dir, `secrets`), process.env.UID, process.env.GID);
-    await chmod(path.join(dir, `secrets`), `700`);
-    await chmod(path.join(dir, `secrets`, `.env`), `600`);
-    await chmod(path.join(dir, `secrets`, `acme-client.pc3.json`), `600`);
-    await chmod(path.join(dir, `secrets`, `server-admin.pc3.json`), `600`);
-    await chmod(path.join(dir, `secrets`, `certbot-acme-client.pc3.ini`), `600`);
+    const useTempDomain =
+        pektinConfig.reverseProxy.tempZone.enabled &&
+        traefikConfs.tempDomain &&
+        pektinConfig.reverseProxy.routing === `domain`;
+    await declareFs(
+        {
+            "start.sh": { $file: await genStartScript(pektinConfig), $owner: user, $perms: `700` },
+            "stop.sh": { $file: await genStopScript(pektinConfig), $owner: user, $perms: `700` },
+            "update.sh": {
+                $file: await genUpdateScript(pektinConfig),
+                $owner: user,
+                $perms: `700`,
+            },
+            secrets: {
+                traefik: {
+                    dynamic: {
+                        "default.yml": { $file: traefikConfs.dynamic, $owner: user, $perms: `600` },
+                        ...(useTempDomain && { "tempDomain.yml": traefikConfs.tempDomain }),
+                    },
+                    "static.yml": { $file: traefikConfs.static, $owner: user, $perms: `600` },
+                },
+                $owner: user,
+                $perms: `700`,
+            },
+        },
+        { method: `node`, basePath: dir }
+    );
 };
