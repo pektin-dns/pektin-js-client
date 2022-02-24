@@ -22,7 +22,7 @@ const serverAdminConfig = await fs.readFile(`../pektin-compose/secrets/server-ad
 
 const pc = new PektinClient(JSON.parse(serverAdminConfig));
 
-const res = await pc.getCrtInfo(`frieb.de`);
+const res = await pc.getCrtInfo(``);
 console.log(res);
 
 /*
