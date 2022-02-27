@@ -1,5 +1,5 @@
 import { PektinConfig } from "@pektin/config/src/config-types";
-import { absoluteName, beautifyJSON, concatDomain, ResourceRecord } from "./index.js";
+import { absoluteName, beautifyJSON, concatDomain, ResourceRecord, shortenTime } from "./index.js";
 import c from "chalk";
 import _ from "lodash";
 
@@ -61,6 +61,23 @@ export const duplicateZoneConversion = (
         }
         return record;
     });
+};
+
+export const supportedMethods = [`get`, `get-zone-records`, `set`, `delete`, `search`, `health`];
+
+export const methodToFunctionName = (method: string) => {
+    switch (method) {
+        case `get-zone-records`:
+            return `getZoneRecords`;
+        case `delete`:
+            return `deleteRecords`;
+        default:
+            return method;
+    }
+};
+
+export const isKnownApiMethod = (method: string) => {
+    return supportedMethods.includes(method);
 };
 
 export const clampTTL = (ttl: number | string) => {
@@ -207,6 +224,17 @@ export const health = async (
     return res as HealthResponse;
 };
 
+// get api health status
+export const any = async (
+    apiEndpoint: string,
+    apiPath: string,
+    body: any,
+    throwErrors?: boolean
+): Promise<any> => {
+    const res = await pektinApiRequest(apiEndpoint, apiPath as ApiMethod, body, throwErrors);
+    return res as any;
+};
+
 // get all records for zones
 export const getZoneRecords = async (
     apiEndpoint: string,
@@ -240,14 +268,16 @@ export const pektinApiRequest = async (
 
     try {
         json = JSON.parse(text);
-        json.time = tEnd - tStart;
+        json.time = shortenTime(tEnd - tStart);
     } catch (e) {
         if (throwErrors) err({ type: `ERR_PARSE_JSON`, body, method, text });
         json = {
             type: ApiResponseType.Error,
             message: `Pektin client couldn't parse response from API as JSON. The response was: ${text}`,
-            time: tEnd - tStart,
+            time: shortenTime(tEnd - tStart),
             data: [],
+            status: res.status,
+            statusText: res.statusText,
         };
     }
 

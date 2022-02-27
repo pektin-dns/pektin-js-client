@@ -30,6 +30,10 @@ const defaultColorizeOptions: ColorizeOptions = {
 export const toBase64 = (input: string) => Buffer.from(input).toString(`base64`);
 export const fromBase64 = (input: string) => Buffer.from(input, `base64`).toString(`utf8`);
 
+export const simpleBeautify = (s: string, indent = 4) => {
+    return JSON.stringify(s, null, indentSpaces(indent));
+};
+
 export const beautifyJSON = ({
     obj,
     deserializeError = false,
@@ -89,10 +93,12 @@ const getNumberAfterString = (s: string, search: string) => {
     return false;
 };
 
-export const indentSpaces = (indent: number) => {
+export const indentSpaces = (indent: number) => indentChracters(indent, ` `);
+
+export const indentChracters = (indent: number, character: string) => {
     let a = ``;
     for (let i = 0; i < indent; i++) {
-        a += ` `;
+        a += character;
     }
     return a;
 };
@@ -108,6 +114,7 @@ export const absoluteName = (name: string) => {
             `Input was undefined. This error indicates an upstream undefined value. Check if all the keys have the right names or use TS.`
         );
     }
+    if (typeof name !== `string`) return name;
     if (name.endsWith(`.`)) {
         return name;
     }
@@ -184,6 +191,10 @@ export const textToRRValue = (
         default:
             return { value: val, ttl };
     }
+};
+
+export const shortenTime = (t: number) => {
+    return parseInt(t.toFixed());
 };
 
 export const checkConfidantPassword = (

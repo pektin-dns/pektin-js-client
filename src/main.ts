@@ -29,31 +29,21 @@ import {
     Glob,
     PC3,
 } from "./index.js";
-import { crtFormatQuery, fetchProxy } from "./pureFunctions.js";
+import { any, crtFormatQuery, fetchProxy } from "./pureFunctions.js";
 import { getVaultValue, vaultLoginUserpass } from "./vault/vault.js";
 
 export class PektinClient {
     vaultEndpoint?: string;
-
     username: ClientName;
-
     confidantPassword?: ConfidantPassword;
-
     managerPassword?: ManagerPassword;
-
     recursorAuth?: string;
     proxyAuth?: string;
-
     throwErrors?: boolean;
-
     confidantToken: string | null;
-
     managerToken: string | null;
-
     pektinApiEndpoint: string | null;
-
     pektinConfig: PektinConfig | null;
-
     internal: boolean;
 
     constructor(pc3: PC3, throwErrors?: boolean) {
@@ -200,6 +190,30 @@ export class PektinClient {
             {
                 confidant_password: this.confidantPassword,
                 client_username: this.username,
+            },
+            throwErrors
+        );
+    };
+
+    // get whether or not the pektin setup is healthy
+    any = async (value: Record<string, any>, apiPath: string, throwErrors = this.throwErrors) => {
+        if (!this.pektinApiEndpoint) {
+            await this.getPektinConfig();
+            if (!this.pektinApiEndpoint) {
+                throw Error(`Couldn't obtain pektinApiEndpoint`);
+            }
+        }
+        if (!this.confidantPassword) {
+            throw Error(`Client cannot use this function because it requires a confidantPassword`);
+        }
+
+        return await any(
+            this.pektinApiEndpoint,
+            apiPath,
+            {
+                confidant_password: this.confidantPassword,
+                client_username: this.username,
+                ...value,
             },
             throwErrors
         );
