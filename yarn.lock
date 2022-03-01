@@ -620,10 +620,10 @@
   resolved "https://registry.yarnpkg.com/@pektin/declare-fs/-/declare-fs-1.7.9.tgz#f3e6bb4ec98240d9a945b36246d805eea2ce46ea"
   integrity sha512-iPy3lvPN9IaFp9dWuJblAOexyGCu5WxmpTTdOdNUyZ5JMQhE5R8I13J79AAqLRKnz0WShlWxILARpdGZQjiQvg==
 
-"@pektin/declare-fs@^2.1.2":
-  version "2.1.2"
-  resolved "https://registry.yarnpkg.com/@pektin/declare-fs/-/declare-fs-2.1.2.tgz#70ccb72776659a8c5f9528f27d5c8e7da227eab6"
-  integrity sha512-xpP8OtyKR25I2bfDDMJDkSyH2CHPtDUIeJM8IeDlidGj8d/0erJHYyy49JgH8KHDoY5+pwoUby0GMbcuTpwBMg==
+"@pektin/declare-fs@^2.1.4":
+  version "2.1.4"
+  resolved "https://registry.yarnpkg.com/@pektin/declare-fs/-/declare-fs-2.1.4.tgz#2e3ba89cdef3458f0cbb57cdb55f9102a2cdc021"
+  integrity sha512-aRa3p3qLtlvAGHCmsgb/JYJuxEl4WPumR5ItEARJ34SJGoTZBP95GoxyaCYVdvQGeae4txVwiK+RX5w7gt1d7w==
 
 "@pektin/dns-zonefile@^0.3.1":
   version "0.3.3"
