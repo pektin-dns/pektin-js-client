@@ -158,46 +158,40 @@ export const installPektinCompose = async (
 
     await declareFs(
         {
-            "start.sh": { $file: await genStartScript(pektinConfig), $owner: user },
-            "stop.sh": { $file: await genStopScript(pektinConfig), $owner: user },
-            "update.sh": { $file: await genUpdateScript(pektinConfig), $owner: user },
+            $ownerR: user,
+            $filePermsR: `600`,
+            $folderPermsR: `700`,
+            "start.sh": { $file: await genStartScript(pektinConfig) },
+            "stop.sh": { $file: await genStopScript(pektinConfig) },
+            "update.sh": { $file: await genUpdateScript(pektinConfig) },
             secrets: {
-                ".env": { $file: envFile, $owner: user, $perms: `600` },
+                ".env": { $file: envFile },
                 ...(acmeClientConnectionConfig && {
                     "acme-client.pc3.json": {
                         $file: JSON.stringify(acmeClientConnectionConfig),
-                        $owner: user,
-                        $perms: `600`,
                     },
                     "certbot-acme-client.pc3.ini": {
                         $file: configToCertbotIni(acmeClientConnectionConfig as PC3),
-                        $owner: user,
-                        $perms: `600`,
                     },
                 }),
                 "server-admin.pc3.json": {
                     $file: JSON.stringify(pektinAdminConnectionConfig),
-                    $owner: user,
-                    $perms: `600`,
                 },
                 redis: {
-                    "users.acl": redisPasswordHashes,
+                    "users.acl": { $file: redisPasswordHashes, $perms: `644` },
                 },
                 letsencrypt: {},
                 traefik: {
                     dynamic: {
-                        "default.yml": { $file: traefikConfs.dynamic, $owner: user, $perms: `600` },
+                        "default.yml": { $file: traefikConfs.dynamic },
                         ...(useTempDomain && { "tempDomain.yml": traefikConfs.tempDomain }),
                     },
-                    "static.yml": { $file: traefikConfs.static, $owner: user, $perms: `600` },
+                    "static.yml": { $file: traefikConfs.static },
                 },
-                $owner: user,
-                $perms: `700`,
             },
         },
         { method: `node`, basePath: dir }
     );
-    await chownRecursive(dir, process.env.UID, process.env.GID);
 };
 
 export const genBasicAuthHashed = (username: string, password: string) => {
@@ -273,13 +267,12 @@ export const createArbeiterConfig = async (
 
             const resetScript = `${composeCommand} down --remove-orphans\ndocker swarm leave --force\ndocker volume rm pektin-compose_db\nrm -rf update.sh start.sh stop.sh secrets/ `;
 
-            await fs
-                .mkdir(path.join(dir, `arbeiter`, node.name), {
-                    recursive: true,
-                })
-                .catch(() => {});
+            const user = `${process.env.UID}:${process.env.GID}`;
             declareFs(
                 {
+                    $ownerR: user,
+                    $filePermsR: `600`,
+                    $folderPermsR: `700`,
                     "start.sh": `${composeCommand} up -d`,
                     "setup.sh": `docker swarm leave\n`,
                     "stop.sh": `${composeCommand} down --remove-orphans`,
@@ -288,11 +281,14 @@ export const createArbeiterConfig = async (
                     secrets: {
                         ".env": file,
                         redis: {
-                            "redis.conf": redisConf.replace(
-                                `#MASTERAUTH`,
-                                v.R_PEKTIN_GEWERKSCHAFT_PASSWORD
-                            ),
-                            "users.acl": redisAclFile,
+                            "redis.conf": {
+                                $file: redisConf.replace(
+                                    `#MASTERAUTH`,
+                                    v.R_PEKTIN_GEWERKSCHAFT_PASSWORD
+                                ),
+                                $perms: `644`,
+                            },
+                            "users.acl": { $file: redisAclFile, $perms: `644` },
                         },
                         traefik: {
                             "static.yml": traefikConfs.static,
