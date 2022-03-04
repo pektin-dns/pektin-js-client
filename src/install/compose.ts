@@ -112,7 +112,8 @@ export const installPektinCompose = async (
             { R_PEKTIN_GEWERKSCHAFT_PASSWORD, pektinConfig, ...(tempDomain && { tempDomain }) },
             dir
         );
-        await createSwarmScript(pektinConfig, dir);
+        const swarmScript = await createSwarmScript(pektinConfig);
+        await fs.writeFile(path.join(dir, `swarm.sh`), swarmScript);
 
         await chownRecursive(
             path.join(dir, `arbeiter`),
@@ -161,11 +162,11 @@ export const installPektinCompose = async (
             $ownerR: user,
             $filePermsR: `600`,
             $folderPermsR: `700`,
-            "start.sh": { $file: await genStartScript(pektinConfig) },
-            "stop.sh": { $file: await genStopScript(pektinConfig) },
-            "update.sh": { $file: await genUpdateScript(pektinConfig) },
+            "start.sh": await genStartScript(pektinConfig),
+            "stop.sh": await genStopScript(pektinConfig),
+            "update.sh": await genUpdateScript(pektinConfig),
             secrets: {
-                ".env": { $file: envFile },
+                ".env": envFile,
                 ...(acmeClientConnectionConfig && {
                     "acme-client.pc3.json": {
                         $file: JSON.stringify(acmeClientConnectionConfig),
@@ -183,10 +184,10 @@ export const installPektinCompose = async (
                 letsencrypt: {},
                 traefik: {
                     dynamic: {
-                        "default.yml": { $file: traefikConfs.dynamic },
+                        "default.yml": traefikConfs.dynamic,
                         ...(useTempDomain && { "tempDomain.yml": traefikConfs.tempDomain }),
                     },
-                    "static.yml": { $file: traefikConfs.static },
+                    "static.yml": traefikConfs.static,
                 },
             },
         },
@@ -305,14 +306,14 @@ export const createArbeiterConfig = async (
     }
 };
 
-export const createSwarmScript = async (pektinConfig: PektinConfig, dir: string) => {
+export const createSwarmScript = async (pektinConfig: PektinConfig) => {
     let swarmScript = `docker swarm init \n`;
     pektinConfig.nodes.forEach((node, i) => {
         if (i === 0) return;
         swarmScript += `docker swarm join-token worker | grep docker >> arbeiter/${node.name}/setup.sh\n`;
     });
 
-    await fs.writeFile(path.join(dir, `swarm.sh`), swarmScript);
+    return swarmScript;
 };
 
 export const genRedisPasswordHashes = async (
