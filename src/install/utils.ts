@@ -63,7 +63,8 @@ export const createSingleScript = async (sourceFolder: string, node: PektinConfi
 
         content += `echo -ne "${contents
             .replaceAll(`\n`, `\\n`)
-            .replaceAll(`"`, `\\"`)}" > ${path.join(`.`, filePath)};`;
+            .replaceAll(`"`, `\\"`)
+            .replaceAll(`\``, `\\\``)}" > ${path.join(`.`, filePath)};`;
     }
 
     if (node?.setup?.root?.installDocker) {
