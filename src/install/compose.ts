@@ -307,7 +307,13 @@ export const createArbeiterConfig = async (
 };
 
 export const createSwarmScript = async (pektinConfig: PektinConfig) => {
-    let swarmScript = `docker swarm init \n`;
+    const mainNode = getMainNode(pektinConfig);
+    const advertiseAddress =
+        mainNode.ips?.[0] || mainNode.legacyIps?.[0]
+            ? `--advertise-addr ${mainNode.ips?.[0] ?? mainNode.legacyIps?.[0]}`
+            : ``;
+
+    let swarmScript = `docker swarm init ${advertiseAddress}\n`;
     pektinConfig.nodes.forEach((node, i) => {
         if (i === 0) return;
         swarmScript += `docker swarm join-token worker | grep docker >> arbeiter/${node.name}/setup.sh\n`;
