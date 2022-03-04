@@ -442,7 +442,7 @@ ACTIVE_COMPOSE_FILES="${activeComposeFiles(pektinConfig)}"\n\n`;
     // run pektin-start
     file += `
 docker rm \${SCRIPTS_CONTAINER_NAME} -v &> /dev/null 
-docker run --env UID=$(id -u) --env GID=$(id -g) --env FORCE_COLOR=3 --name \${SCRIPTS_CONTAINER_NAME} --network container:pektin-vault --mount "type=bind,source=$PWD,dst=/pektin-compose/" -it \${SCRIPTS_IMAGE_NAME} node ./dist/js/install/scripts.js compose-start\n`;
+docker run --env UID=$(id -u) --env GID=$(id -g) --env FORCE_COLOR=3 --name \${SCRIPTS_CONTAINER_NAME} --user $(id -u):$(id -g) --network container:pektin-vault --mount "type=bind,source=$PWD,dst=/pektin-compose/" -it \${SCRIPTS_IMAGE_NAME} node ./dist/js/install/scripts.js compose-start\n`;
     // remove pektin-start artifacts
     file += `docker rm \${SCRIPTS_CONTAINER_NAME} -v &> /dev/null \n`;
     // compose up everything
