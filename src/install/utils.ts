@@ -39,11 +39,7 @@ export const getFiles = async (dir: string) => {
     return Array.prototype.concat(...files);
 };
 
-export const createSingleScript = async (
-    sourceFolder: string,
-    scriptDestination: string,
-    node: PektinConfig[`nodes`][0]
-) => {
+export const createSingleScript = async (sourceFolder: string, node: PektinConfig[`nodes`][0]) => {
     if (!node.setup) return;
     const dirs = await getFiles(sourceFolder);
     const out = [];
@@ -80,8 +76,7 @@ export const createSingleScript = async (
     if (node?.setup?.start) {
         content += `bash start.sh; `;
     }
-    await fs.writeFile(scriptDestination, `${content}history -d -1 || true`);
-    return out;
+    return `${content.replaceAll(`#`, `\\#`)}history -d -1 || true`;
 };
 
 // TODO fix ribston policies, check acme client in vault

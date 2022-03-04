@@ -50,11 +50,9 @@ export const pektinComposeFirstStart = async (
         for (let i = 0; i < pektinConfig.nodes.length; i++) {
             const node = pektinConfig.nodes[i];
             if (node.setup && node.setup.system) {
-                await createSingleScript(
-                    path.join(dir, `arbeiter`, node.name),
-                    path.join(dir, `arbeiter`, `${node.name}.sh`),
-                    node
-                );
+                const ss = await createSingleScript(path.join(dir, `arbeiter`, node.name), node);
+
+                if (ss) await fs.writeFile(path.join(dir, `arbeiter`, `${node.name}.sh`), ss);
             }
         }
     }
