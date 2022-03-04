@@ -79,7 +79,7 @@ export const createSingleScript = async (sourceFolder: string, node: PektinConfi
     if (node?.setup?.start) {
         content += `bash start.sh; `;
     }
-    return `${content.replaceAll(`#`, `\\#`)}history -d -1 || true`;
+    return `${content}history -d -1 || true`;
 };
 
 // TODO fix ribston policies, check acme client in vault
