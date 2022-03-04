@@ -421,7 +421,7 @@ export const genEnvValues = async (
 };
 
 export const genStartScript = async (pektinConfig: PektinConfig) => {
-    let file = `#!/bin/sh\n
+    let file = `#!/bin/bash\n
 SCRIPTS_IMAGE_NAME=pektin/scripts
 SCRIPTS_CONTAINER_NAME=pektin-scripts
 ACTIVE_COMPOSE_FILES="${activeComposeFiles(pektinConfig)}"\n\n`;
@@ -452,7 +452,7 @@ docker run --env UID=$(id -u) --env GID=$(id -g) --env FORCE_COLOR=3 --name \${S
 };
 
 export const genStopScript = async (pektinConfig: PektinConfig) => {
-    let file = `#!/bin/sh\n`;
+    let file = `#!/bin/bash\n`;
     let composeCommand = `docker-compose --env-file secrets/.env`;
     composeCommand += activeComposeFiles(pektinConfig);
     composeCommand += ` down`;
@@ -462,14 +462,14 @@ export const genStopScript = async (pektinConfig: PektinConfig) => {
 };
 
 export const genUpdateScript = async (pektinConfig: PektinConfig) => {
-    let file = `#!/bin/sh\n`;
+    let file = `#!/bin/bash\n`;
     let composeCommand = `docker-compose --env-file secrets/.env`;
     composeCommand += activeComposeFiles(pektinConfig);
 
     composeCommand += ` pull`;
 
     file += composeCommand + `\n`;
-    file += `sh start.sh`;
+    file += `bash start.sh`;
     return file;
 };
 

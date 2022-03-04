@@ -1,6 +1,6 @@
 {
     "name": "@pektin/client",
-    "version": "1.2.12",
+    "version": "1.2.13",
     "description": "A client to facilitate the control of pektin dns servers",
     "main": "dist/js/index.js",
     "module": "dist/js/index.js",
@@ -74,10 +74,10 @@
         "before-publish": "yarn build ",
         "manual-test": "RED='\u001b[1;91m' ; NO_COLOR='\u001b[0m' ; echo \"${RED}Don't forget to compile the TS files first with: yarn start ${NO_COLOR}\" ; node dist/js/_manualTests/index.js",
         "upgrade-pektin": "yarn upgrade --latest @pektin/config @pektin/global-registrar @pektin/declare-fs",
-        "convert-deno": "sh scripts/convert-deno.sh",
-        "bundle-policies": "sh scripts/bundle-policies.sh",
+        "convert-deno": "bash scripts/convert-deno.sh",
+        "bundle-policies": "bash scripts/bundle-policies.sh",
         "compile-cjs": "tsc -p tsconfig-common.json",
-        "test-watch": "sh scripts/chalk-for-jest.sh && NODE_OPTIONS=--experimental-vm-modules jest --runInBand --watch ./dist/js/",
-        "test": "yarn build && sh scripts/chalk-for-jest.sh && NODE_OPTIONS=--experimental-vm-modules jest --runInBand ./dist/js/"
+        "test-watch": "bash scripts/chalk-for-jest.sh && NODE_OPTIONS=--experimental-vm-modules jest --runInBand --watch ./dist/js/",
+        "test": "yarn build && bash scripts/chalk-for-jest.sh && NODE_OPTIONS=--experimental-vm-modules jest --runInBand ./dist/js/"
     }
 }

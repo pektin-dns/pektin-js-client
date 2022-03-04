@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 DENO_DIR=dist/deno/
 
 
