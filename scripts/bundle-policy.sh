@@ -1,2 +1,1 @@
-
-deno bundle ./dist/js/ribston-policies/${1}.ribston.js > dist/policies/${1}.ribston.js
+yarn --silent rollup --no-treeshake  ./dist/js/ribston-policies/${1}.ribston.js > dist/policies/${1}.ribston.js

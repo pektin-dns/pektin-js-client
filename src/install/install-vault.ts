@@ -14,6 +14,7 @@ import { PektinConfig } from "@pektin/config/src/config-types";
 import { promises as fs } from "fs";
 import { K8sSecrets } from "./k8s.js";
 import { PC3 } from "../types.js";
+import path from "path";
 
 export const installVault = async ({
     pektinConfig,
@@ -26,6 +27,7 @@ export const installVault = async ({
     secrets?: K8sSecrets;
     k8s?: boolean;
 }) => {
+    const policyFolder = `dist/policies`;
     await isReady(internalVaultUrl);
     // init vault
     const vaultTokens = await initVault(internalVaultUrl);
@@ -130,7 +132,7 @@ export const installVault = async ({
     };
 
     const pektinAdminRibstonPolicy = await fs.readFile(
-        `/app/node_modules/@pektin/client/dist/policies/allow-everything.ribston.js`,
+        path.join(policyFolder, `allow-everything.ribston.js`),
         `utf-8`
     );
 
@@ -166,7 +168,7 @@ export const installVault = async ({
         };
 
         const acmeClientRibstonPolicy = await fs.readFile(
-            `/app/node_modules/@pektin/client/dist/policies/acme.ribston.js`,
+            path.join(policyFolder, `acme.ribston.js`),
             `utf-8`
         );
         await createPektinClient({

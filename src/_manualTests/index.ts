@@ -19,8 +19,10 @@ const acmeClientConfig = await fs.readFile(`../pektin-compose/secrets/acme-clien
 const pc = new PektinClient(JSON.parse(acmeClientConfig));
 
 //console.log(await pc.health());
+//console.log(await pc.get([{ name: `_acme-challenge.pektin.club.`, rr_type: PektinRRType.TXT }]));
+console.log(await pc.get([{ name: `sneaky-beaky.pektin.club.`, rr_type: PektinRRType.TXT }]));
 
-console.log(await pc.getZoneRecords([`pektin.club.`]));
+//console.log(await pc.getZoneRecords([`pektin.club.`]));
 
 //const res = await pc.getCrtInfo(``);
 //console.log(res);

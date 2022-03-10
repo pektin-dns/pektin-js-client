@@ -19,6 +19,8 @@ const input: Input = {} as Input;
 const output: Output = {} as Output;
 /* Your code goes beneath this */
 
+const policyInformation = { version: `1.0` };
+
 const err = (msg: string) => {
     output.status = `ERROR`;
     output.message = msg;
@@ -29,7 +31,7 @@ if (input.api_method === `get`) {
         (record) => record.name.startsWith(`_acme-challenge`) && record.rr_type === PektinRRType.TXT
     );
     if (!allCallNamesValid) {
-        err(`Invalid key`);
+        err(`Key not allowed`);
     }
 } else if (input.api_method === `delete` || input.api_method === `set`) {
     const records =
@@ -40,7 +42,7 @@ if (input.api_method === `get`) {
         (record) => record.name.startsWith(`_acme-challenge`) && record.rr_type === PektinRRType.TXT
     );
     if (!allCallNamesValid) {
-        err(`Invalid key`);
+        err(`Key not allowed`);
     }
 } else {
     err(`API method '${input.api_method}' not allowed`);
@@ -50,5 +52,3 @@ if (output.status === undefined) {
     output.status = `SUCCESS`;
     output.message = `Success`;
 }
-
-output;

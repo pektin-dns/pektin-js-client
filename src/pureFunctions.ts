@@ -340,7 +340,7 @@ export const err = ({
             c.bold.red(`Pektin client couldn't parse JSON response from API\n`) +
             `Pektin-API returned this body:\n` +
             `${text}\n` +
-            `while client was trying to ${method} the following body:\n` +
+            `while client was trying to ${method} with the following body:\n` +
             beautifyJSON({ obj: body });
     } else if (type === `ERR_API` && json !== undefined) {
         const deserializeError = JSON.stringify(text).includes(`Json deserialize error`);
