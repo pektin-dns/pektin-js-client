@@ -3,6 +3,8 @@ import { promises as fs } from "fs";
 
 import { config } from "dotenv";
 import { ApiRecordSOA, PektinRRType } from "../types.js";
+import { listVaultUsers } from "../vault/vault.js";
+import { createPektinClient, deleteClient, getPektinClients } from "../auth.js";
 
 config({ path: `/home/paul/Documents/powerdns-api/.env` });
 
@@ -16,11 +18,20 @@ const acmeClientConfig = await fs.readFile(`../pektin-compose/secrets/acme-clien
     encoding: `utf8`,
 });
 
-const pc = new PektinClient(JSON.parse(acmeClientConfig));
+const pc = new PektinClient(JSON.parse(serverAdminConfig));
+await pc.init();
+if (pc.vaultEndpoint && pc.managerToken) {
+    //await createPektinClient({ endpoint: pc.vaultEndpoint, token: pc.managerToken });
+    const clients = await getPektinClients(pc.vaultEndpoint, pc.managerToken);
+    console.log(clients);
+    await deleteClient(pc.vaultEndpoint, pc.managerToken, clients[0]);
+    const c2 = await getPektinClients(pc.vaultEndpoint, pc.managerToken);
+    console.log(c2);
+}
 
 //console.log(await pc.health());
 //console.log(await pc.get([{ name: `_acme-challenge.pektin.club.`, rr_type: PektinRRType.TXT }]));
-console.log(await pc.get([{ name: `sneaky-beaky.pektin.club.`, rr_type: PektinRRType.TXT }]));
+//console.log(await pc.get([{ name: `sneaky-beaky.pektin.club.`, rr_type: PektinRRType.TXT }]));
 
 //console.log(await pc.getZoneRecords([`pektin.club.`]));
 

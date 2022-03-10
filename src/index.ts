@@ -9,3 +9,4 @@ export * from "./import/wanderlust/index.js";
 export * from "./import/zone-file/index.js";
 export * from "./utils/puny.js";
 export * from "./logg/index.js";
+export * from "./auth.js";

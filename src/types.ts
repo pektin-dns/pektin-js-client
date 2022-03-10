@@ -1,5 +1,11 @@
 import { PektinConfig } from "@pektin/config/src/config-types.js";
 
+export interface Client {
+    name: string;
+    confidant: boolean;
+    manager: boolean;
+}
+
 export interface TempDomain {
     domain: string;
     zoneDomain: string;
@@ -16,6 +22,7 @@ export interface ClientCapabilities {
     opaPolicy: string;
     allowedSigningDomains?: string[];
     allowAllSigningDomains?: boolean;
+    allowFullUserManagement?: boolean;
     recursorAccess?: boolean;
     proxyAccess?: boolean;
     configAccess?: boolean;
@@ -30,8 +37,8 @@ export type RibstonPolicy = string; // A valid ribston policy
 export type OpaPolicy = string; // A valid opa policy
 export type ClientName = string;
 export type DomainName = string;
-export type ManagerName = `pektin-client-manager-${ClientName}`;
-export type ConfidantName = `pektin-client-confidant-${ClientName}`;
+export type ManagerName = `pektin-client-${ClientName}-manager`;
+export type ConfidantName = `pektin-client-${ClientName}-confidant`;
 export type SignerName = `pektin-signer-${DomainName}`;
 
 export type ManagerPassword = `m.${string}`;

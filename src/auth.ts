@@ -2,6 +2,7 @@ import { ClientCapabilities, ClientName, DomainName, ManagerName, toASCII } from
 import {
     pektinApiPolicy,
     pektinConfidantPolicy,
+    pektinServerAdminManagerPolicy,
     pektinSignerPolicy,
 } from "./vault/pektinVaultPolicies.js";
 import { VaultAuthEngine, VaultSecretEngine } from "./vault/types.js";
@@ -11,13 +12,17 @@ import {
     createSigningKey,
     createUserPassAccount,
     createVaultPolicy,
+    deleteUserPass,
+    deleteVaultPolicy,
     enableAuthMethod,
     enableSecretEngine,
     getAuthMethods,
     getEntityByName,
+    listVaultUsers,
     updateKvValue,
 } from "./vault/vault.js";
 import { deAbsolute } from "./utils/index.js";
+import { Client } from "./types.js";
 
 export const createPektinSigner = async (
     endpoint: string,
@@ -51,6 +56,11 @@ export const createPektinClient = async ({
     confidantPassword: string;
     capabilities: ClientCapabilities;
 }) => {
+    if (clientName !== clientName.toLowerCase()) {
+        throw Error(
+            `Vault normaly silently mangles usernames to lowercase thus we will tell you right away that any clients name must be lowercase. See https://github.com/hashicorp/vault/issues/13647`
+        );
+    }
     await updateKvValue(
         endpoint,
         token,
@@ -58,25 +68,38 @@ export const createPektinClient = async ({
         { ribstonPolicy: capabilities.ribstonPolicy, opaPolicy: capabilities.opaPolicy },
         `pektin-policies`
     );
-    if (managerPassword) await createPektinManager(endpoint, token, clientName, managerPassword);
+    if (managerPassword) {
+        await createPektinClientManager(endpoint, token, clientName, managerPassword, capabilities);
+    }
 
-    await createPektinConfidant(endpoint, token, clientName, confidantPassword, {}, capabilities);
+    await createPektinClientConfidant(
+        endpoint,
+        token,
+        clientName,
+        confidantPassword,
+        {},
+        capabilities
+    );
 
     return confidantPassword;
 };
 
-export const createPektinManager = async (
+export const createPektinClientManager = async (
     endpoint: string,
     token: string,
     clientName: ClientName,
-    password: string
+    password: string,
+    capabilities: ClientCapabilities
 ) => {
-    const name: ManagerName = `pektin-client-manager-${clientName}`;
+    const name: ManagerName = `pektin-client-${clientName}-manager`;
 
-    await createFullUserPass(endpoint, token, name, password, {}, [`pektin-client-manager`]);
+    await createFullUserPass(endpoint, token, name, password, {}, [name]);
+    if (capabilities.allowFullUserManagement) {
+        await createVaultPolicy(endpoint, token, name, pektinServerAdminManagerPolicy);
+    }
 };
 
-export const createPektinConfidant = async (
+export const createPektinClientConfidant = async (
     endpoint: string,
     token: string,
     clientName: ClientName,
@@ -84,7 +107,7 @@ export const createPektinConfidant = async (
     metadata: object,
     capabilities: ClientCapabilities
 ) => {
-    const confidantName = `pektin-client-confidant-${clientName}`;
+    const confidantName = `pektin-client-${clientName}-confidant`;
     await createFullUserPass(endpoint, token, confidantName, password, metadata, [confidantName]);
 
     await createVaultPolicy(endpoint, token, confidantName, pektinConfidantPolicy(capabilities));
@@ -186,10 +209,48 @@ export const createFullUserPass = async (
     });
 };
 
-const deleteClient = async () => {
-    // TODO
+// TODO
+export const deleteClient = async (endpoint: string, token: string, client: Client) => {
+    const deleteRequests = [];
+    if (client.confidant) {
+        const n = `pektin-client-${client.name}-confidant`;
+        deleteRequests.push(deleteUserPass(endpoint, token, n));
+        deleteRequests.push(deleteVaultPolicy(endpoint, token, n));
+    }
+    if (client.manager) {
+        const n = `pektin-client-${client.name}-manager`;
+        deleteRequests.push(deleteUserPass(endpoint, token, n));
+        deleteRequests.push(deleteVaultPolicy(endpoint, token, n));
+    }
+    return await Promise.all([deleteRequests]);
 };
 
-const getClients = async () => {
-    // TODO
+export const getPektinClients = async (endpoint: string, token: string) => {
+    const vaultUsers = await listVaultUsers(endpoint, token);
+    return filterDistinctClients(vaultUsers);
+};
+
+export const filterDistinctClients = (vaultClients: string[]) => {
+    vaultClients = filterStartsWith(vaultClients, `pektin-client`);
+    const clientList: Client[] = [];
+
+    const rec = () => {
+        const client = vaultClients[0];
+
+        const name = client.substring(14, client.lastIndexOf(`-`));
+        const confidant = vaultClients.findIndex((e) => e === `pektin-client-${name}-confidant`);
+        if (confidant > -1) vaultClients.splice(confidant, 1);
+
+        const manager = vaultClients.findIndex((e) => e === `pektin-client-${name}-manager`);
+        if (manager > -1) vaultClients.splice(manager, 1);
+
+        clientList.push({ confidant: confidant > -1, name, manager: manager > -1 });
+        if (vaultClients.length) rec();
+    };
+    rec();
+    return clientList;
+};
+
+export const filterStartsWith = (a: string[], startsWith: string) => {
+    return a.filter((b) => b.startsWith(startsWith));
 };

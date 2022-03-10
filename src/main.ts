@@ -65,7 +65,8 @@ export class PektinClient {
     }
 
     init = async () => {
-        await this.getVaultToken(`confidant`);
+        if (this.confidantPassword) await this.getVaultToken(`confidant`);
+        if (this.managerPassword) await this.getVaultToken(`manager`);
         await this.getPektinConfig();
     };
 
@@ -145,8 +146,8 @@ export class PektinClient {
 
         this[`${clientType}Token` as `confidantToken` | `managerToken`] = await vaultLoginUserpass({
             vaultEndpoint: this.vaultEndpoint,
-            username: `pektin-client-${clientType}-${this.username}`,
-            password: this.confidantPassword,
+            username: `pektin-client-${this.username}-${clientType}`,
+            password: this[`${clientType}Password`] as string,
         });
     };
 

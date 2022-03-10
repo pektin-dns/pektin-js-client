@@ -125,7 +125,7 @@ export const installVault = async ({
         }
     }
     const pektinAdminConnectionConfig = {
-        username: `admin-${randomString(10)}`,
+        username: `admin-${randomString(10).toLowerCase()}`,
         managerPassword: `m.${randomString()}`,
         confidantPassword: `c.${randomString()}`,
         vaultEndpoint,
@@ -145,6 +145,7 @@ export const installVault = async ({
         capabilities: {
             allowAllSigningDomains: true,
             allAccess: true,
+            allowFullUserManagement: true,
             ribstonPolicy: pektinAdminRibstonPolicy,
             opaPolicy: ``, // TODO add OPA policies
         },
@@ -160,7 +161,7 @@ export const installVault = async ({
             }
         }
         acmeClientConnectionConfig = {
-            username: `acme-${randomString(10)}`,
+            username: `acme-${randomString(10).toLowerCase()}`,
             confidantPassword: `c.${randomString()}`,
             override: {
                 pektinApiEndpoint: getPektinEndpoint(pektinConfig, `api`),

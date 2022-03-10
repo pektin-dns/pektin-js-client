@@ -7,6 +7,11 @@ path "pektin-transit/sign/{{identity.entity.metadata.domain}}/sha2-256" {
     capabilities = ["update"]
 }`;
 
+export const pektinServerAdminManagerPolicy: VaultPolicy = `
+path "auth/userpass/*" {
+    capabilities = ["create", "read", "update", "delete", "list"]
+}`;
+
 export const pektinConfidantPolicy = (capabilities: ClientCapabilities): VaultPolicy => {
     let policy = ``;
     if (capabilities.allAccess) {

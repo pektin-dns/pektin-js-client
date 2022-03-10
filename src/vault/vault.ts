@@ -192,6 +192,16 @@ export const createVaultPolicy = async (
     return vaultRes.status === 204;
 };
 
+export const deleteVaultPolicy = async (endpoint: string, token: string, policyName: string) => {
+    const vaultRes = await f(`${endpoint}/v1/sys/policies/acl/${policyName}`, {
+        method: `DELETE`,
+        headers: {
+            "X-Vault-Token": token,
+        },
+    });
+    return vaultRes.status === 204;
+};
+
 export const unsealVault = async (vaultEndpoint: string, vaultKey: string) => {
     const vaultRes = await f(`${vaultEndpoint}/v1/sys/unseal`, {
         method: `PUT`,
@@ -337,4 +347,44 @@ export const healthCheck = async (endpoint: string, token: string) => {
 
     const resJson = await res.json().catch(() => {});
     return resJson;
+};
+
+export const listVaultUsers = async (endpoint: string, token: string, engine = `userpass`) => {
+    const res: any = await f(endpoint + `/v1/auth/${engine}/users/?list=true`, {
+        headers: {
+            "X-Vault-Token": token,
+        },
+        method: `GET`,
+    }).catch((e) => {
+        e = e.toString();
+        return { error: e };
+    });
+
+    if (res.error) return res;
+
+    const resJson = await res.json().catch(() => {});
+
+    return resJson?.data?.keys as string[];
+};
+
+export const deleteUserPass = async (
+    endpoint: string,
+    token: string,
+    name: string,
+    engine = `userpass`
+) => {
+    const res: any = await f(endpoint + `/v1/auth/${engine}/users/${name}`, {
+        headers: {
+            "X-Vault-Token": token,
+        },
+        method: `DELETE`,
+    }).catch((e) => {
+        e = e.toString();
+        return { error: e };
+    });
+    if (res.error) return res;
+
+    const resJson = await res.json().catch(() => {});
+
+    return resJson?.data?.keys as string[];
 };
