@@ -110,7 +110,7 @@ export const isNameServer = (pektinConfig: PektinConfig, domain: string) => {
     ).length;
 };
 
-// get the pektin api endpoint from  the pektin config
+// get the pektin endpoints from the pektin config
 export const getPektinEndpoint = (
     c: PektinConfig,
     endpointType: `api` | `vault` | `ui` | `recursor` | `proxy`,

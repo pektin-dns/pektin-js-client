@@ -2,6 +2,7 @@ import { PektinClient } from "../main.js";
 import { promises as fs } from "fs";
 
 import { config } from "dotenv";
+import { ApiRecordSOA, PektinRRType } from "../types.js";
 
 config({ path: `/home/paul/Documents/powerdns-api/.env` });
 
@@ -11,10 +12,35 @@ const serverAdminConfig = await fs.readFile(`../pektin-compose/secrets/server-ad
     encoding: `utf8`,
 });
 
-const pc = new PektinClient(JSON.parse(serverAdminConfig));
+const acmeClientConfig = await fs.readFile(`../pektin-compose/secrets/acme-client.pc3.json`, {
+    encoding: `utf8`,
+});
 
-const res = await pc.getCrtInfo(``);
-console.log(res);
+const pc = new PektinClient(JSON.parse(acmeClientConfig));
+
+//console.log(await pc.health());
+
+console.log(await pc.getZoneRecords([`pektin.club.`]));
+
+//const res = await pc.getCrtInfo(``);
+//console.log(res);
+
+const r: ApiRecordSOA = {
+    name: `pektin.club.`,
+    rr_type: PektinRRType.SOA,
+    rr_set: [
+        {
+            ttl: 3600,
+            mname: `ns1.example.com.`,
+            rname: `hostmaster.example.com.`,
+            refresh: 0,
+            retry: 0,
+            serial: 0,
+            expire: 0,
+            minimum: 0,
+        },
+    ],
+};
 
 /*
 const c: PektinConfig = {

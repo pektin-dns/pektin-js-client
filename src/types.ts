@@ -216,6 +216,7 @@ export interface RecordIdentifier {
     name: string;
     rr_type: PektinRRType;
 }
+// API methods
 export interface ApiGetRequestBody extends ApiRequestBodyBase {
     records: RecordIdentifier[];
 }
