@@ -1,8 +1,19 @@
-import { ApiRecord, RecordIdentifier } from "../types.js";
+import { ApiRecord, Glob, RecordIdentifier } from "../types.js";
 
+export interface Output {
+    status: string;
+    message: string;
+}
+export type Input =
+    | GetInput
+    | GetZoneRecordsInput
+    | DeleteInput
+    | SetInput
+    | SearchInput
+    | HealthInput;
 export enum RequestType {
     Get = `get`,
-    GetZone = `get-zone`,
+    GetZoneRecords = `get-zone-records`,
     Delete = `delete`,
     Set = `set`,
     Search = `search`,
@@ -26,10 +37,10 @@ export interface GetInput extends BaseInput {
     };
 }
 
-export interface GetZoneInput extends BaseInput {
-    readonly api_method: RequestType.GetZone;
+export interface GetZoneRecordsInput extends BaseInput {
+    readonly api_method: RequestType.GetZoneRecords;
     readonly request_body: {
-        GetZone: {
+        GetZoneRecords: {
             names: string[];
         };
     };
@@ -57,7 +68,7 @@ export interface SearchInput extends BaseInput {
     readonly api_method: RequestType.Search;
     readonly request_body: {
         Search: {
-            records: RecordIdentifier;
+            globs: Glob[];
         };
     };
 }

@@ -615,15 +615,27 @@
     lodash "^4.17.21"
     yaml "^1.10.2"
 
+"@pektin/config@^1.0.64":
+  version "1.0.64"
+  resolved "https://registry.yarnpkg.com/@pektin/config/-/config-1.0.64.tgz#ea0ec1039cb1c56ce9835d47722f25c6e0c68508"
+  integrity sha512-6TxamX+7She+l6ou2SMMdxwM62AYue9W+f0ewSLi8aoUe4wfkKBs4QhvrOVTwWYhE2++oOvq2N0XX/KZdX9eNQ==
+  dependencies:
+    "@pektin/client" "^1.1.32"
+    ajv "^8.9.0"
+    cfonts "^2.10.0"
+    chalk "^5.0.0"
+    lodash "^4.17.21"
+    yaml "^1.10.2"
+
 "@pektin/declare-fs@^1.7.9":
   version "1.7.9"
   resolved "https://registry.yarnpkg.com/@pektin/declare-fs/-/declare-fs-1.7.9.tgz#f3e6bb4ec98240d9a945b36246d805eea2ce46ea"
   integrity sha512-iPy3lvPN9IaFp9dWuJblAOexyGCu5WxmpTTdOdNUyZ5JMQhE5R8I13J79AAqLRKnz0WShlWxILARpdGZQjiQvg==
 
-"@pektin/declare-fs@^2.2.0":
-  version "2.2.0"
-  resolved "https://registry.yarnpkg.com/@pektin/declare-fs/-/declare-fs-2.2.0.tgz#f5f87867ad0b1d7e29b0f9cdcd405f8814e08a28"
-  integrity sha512-xSy8DsOe2XWkYG93IEmTqJsCKELhlfJWQjKu8wL8Z4Ka+dO2mZhhgDan07wkGJjhaWVJ2og2rhxYu/HUgzDJAA==
+"@pektin/declare-fs@^2.2.1":
+  version "2.2.1"
+  resolved "https://registry.yarnpkg.com/@pektin/declare-fs/-/declare-fs-2.2.1.tgz#990e6c87e019ae6c9a36af9a42489939a029f985"
+  integrity sha512-0sc8Px0Dm2tXfO6bxeJCab8VA7n659vZ4ZWF5LyaJbZBPHpBrBZz5olDdquMY+/lHPweUJfNHTRaT1ReqKkpJQ==
 
 "@pektin/dns-zonefile@^0.3.1":
   version "0.3.3"

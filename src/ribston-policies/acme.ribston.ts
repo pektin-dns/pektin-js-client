@@ -1,54 +1,45 @@
 import { PektinRRType } from "../types.js";
-import {
-    DeleteInput,
-    GetInput,
-    GetZoneInput,
-    HealthInput,
-    SearchInput,
-    SetInput,
-} from "./ribston-types.js";
+import { Input, Output } from "./ribston-types.js";
+import { allow, deny, getBodyForApiMethod } from "./utils.js";
 
-type Input = GetInput | GetZoneInput | DeleteInput | SetInput | SearchInput | HealthInput;
-
-interface Output {
-    status: string;
-    message: string;
+/*
+POLICY INFORMATION
+{
+    "version": "1.0.0",
+    "name": "acme",
+    "class": "acme",
+    "contact": "pektin@y.gy"
 }
+*/
 
 const input: Input = {} as Input;
-const output: Output = {} as Output;
+const output: Output = {
+    status: `UNDECIDED`,
+    message: `Policy didn't reach a decission`,
+} as Output;
+
 /* Your code goes beneath this */
 
-const policyInformation = { version: `1.0` };
-
-const err = (msg: string) => {
-    output.status = `ERROR`;
-    output.message = msg;
-};
-
 if (input.api_method === `get`) {
-    const allCallNamesValid = input.request_body.Get.records.every(
-        (record) => record.name.startsWith(`_acme-challenge`) && record.rr_type === PektinRRType.TXT
-    );
-    if (!allCallNamesValid) {
-        err(`Key not allowed`);
+    const allRecordsValid = input.request_body.Get.records.every((record) => {
+        return record.name.startsWith(`_acme-challenge`) && record.rr_type === PektinRRType.TXT;
+    });
+    if (allRecordsValid) {
+        allow(output);
+    } else {
+        deny(output, `Name not allowed`);
     }
 } else if (input.api_method === `delete` || input.api_method === `set`) {
-    const records =
-        input.api_method === `delete`
-            ? input.request_body.Delete.records
-            : input.request_body.Set.records;
-    const allCallNamesValid = records.every(
-        (record) => record.name.startsWith(`_acme-challenge`) && record.rr_type === PektinRRType.TXT
-    );
-    if (!allCallNamesValid) {
-        err(`Key not allowed`);
+    const body = getBodyForApiMethod(input);
+    /*@ts-ignore*/
+    const allRecordsValid = body.records.every((record) => {
+        return record.name.startsWith(`_acme-challenge`) && record.rr_type === PektinRRType.TXT;
+    });
+    if (allRecordsValid) {
+        allow(output);
+    } else {
+        deny(output, `Name not allowed`);
     }
 } else {
-    err(`API method '${input.api_method}' not allowed`);
-}
-
-if (output.status === undefined) {
-    output.status = `SUCCESS`;
-    output.message = `Success`;
+    deny(output, `API method '${input.api_method}' not allowed`);
 }

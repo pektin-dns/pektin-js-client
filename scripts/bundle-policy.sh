@@ -1,1 +1,1 @@
-yarn --silent rollup --no-treeshake  ./dist/js/ribston-policies/${1}.ribston.js > dist/policies/${1}.ribston.js
+yarn --silent rollup ./dist/js/ribston-policies/${1}.ribston.js --preferConst --format es > dist/policies/${1}.ribston.js

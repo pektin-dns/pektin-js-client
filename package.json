@@ -1,6 +1,6 @@
 {
     "name": "@pektin/client",
-    "version": "1.2.20",
+    "version": "1.2.21",
     "description": "A client to facilitate the control of pektin dns servers",
     "main": "dist/js/index.js",
     "module": "dist/js/index.js",
@@ -58,8 +58,8 @@
     },
     "dependencies": {
         "@firstdorsal/powerdns-api": "^1.11.0",
-        "@pektin/config": "^1.0.63",
-        "@pektin/declare-fs": "^2.2.0",
+        "@pektin/config": "^1.0.64",
+        "@pektin/declare-fs": "^2.2.1",
         "@pektin/dns-zonefile": "^0.3.1",
         "@pektin/global-registrar": "^1.0.13",
         "@pektin/toluol-wasm-nodejs": "^0.3.0",
