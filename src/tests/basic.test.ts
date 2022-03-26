@@ -27,8 +27,9 @@ test(`try to create a record for a domain where no SOA exists`, async () => {
         await pc.set([
             {
                 name: `hallo.example.jest.`,
-                rr_set: [{ ttl: 3600, value: `hallo das ist ein test` }],
+                rr_set: [{ value: `hallo das ist ein test` }],
                 rr_type: PektinRRType.TXT,
+                ttl: 3600,
             },
         ]);
     }).rejects.toThrow(/No SOA record found for this zone/);
@@ -40,8 +41,9 @@ test(`try to set a txt record and check if it exists`, async () => {
     await pc.set([
         {
             name: `hallo.example.jest.`,
-            rr_set: [{ ttl: 3600, value: `hallo das ist ein test` }],
+            rr_set: [{ value: `hallo das ist ein test` }],
             rr_type: PektinRRType.TXT,
+            ttl: 3600,
         },
     ]);
 
@@ -58,6 +60,7 @@ test(`try to set a record with an empty rr_set`, async () => {
                 name: `hallo.example.jest.`,
                 rr_set: [],
                 rr_type: PektinRRType.TXT,
+                ttl: 3600,
             },
         ]);
     }).rejects.toThrow(/The record's RR set is empty/);

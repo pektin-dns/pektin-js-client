@@ -137,9 +137,9 @@ export class PektinSetupClient extends PektinClient {
                 records.push({
                     name: absoluteName(s.domain),
                     rr_type: PektinRRType.SOA,
+                    ttl: 60,
                     rr_set: [
                         {
-                            ttl: 60,
                             mname,
                             rname: absoluteName(`hostmaster.` + mainNameserver[0].domain),
                             serial: 0,
@@ -162,9 +162,9 @@ export class PektinSetupClient extends PektinClient {
                 records.push({
                     name: absoluteName(ns.domain),
                     rr_type: PektinRRType.SOA,
+                    ttl: 60,
                     rr_set: [
                         {
-                            ttl: 60,
                             mname: absoluteName(concatDomain(ns.domain, ns.subDomain)),
                             rname: absoluteName(`hostmaster.` + ns.domain),
                             serial: 0,
@@ -176,11 +176,10 @@ export class PektinSetupClient extends PektinClient {
                     ],
                 });
 
-                const rr_set: { ttl: number; value: string }[] = [];
+                const rr_set: { value: string }[] = [];
                 pektinConfig.nameservers.forEach((ns2) => {
                     if (ns2.domain === ns.domain) {
                         rr_set.push({
-                            ttl: 60,
                             value: absoluteName(concatDomain(ns.domain, ns.subDomain)),
                         });
                     }
@@ -189,6 +188,7 @@ export class PektinSetupClient extends PektinClient {
                     name: absoluteName(ns.domain),
                     rr_type: PektinRRType.NS,
                     rr_set,
+                    ttl: 60,
                 });
             }
             const currentNode = pektinConfig.nodes.filter((node) => node.name === ns.node)[0];
@@ -197,8 +197,8 @@ export class PektinSetupClient extends PektinClient {
                 records.push({
                     name: absoluteName(concatDomain(ns.domain, ns.subDomain)),
                     rr_type: PektinRRType.AAAA,
+                    ttl: 60,
                     rr_set: currentNode.ips.map((ip) => ({
-                        ttl: 60,
                         value: ip,
                     })),
                 });
@@ -207,8 +207,8 @@ export class PektinSetupClient extends PektinClient {
                 records.push({
                     name: absoluteName(concatDomain(ns.domain, ns.subDomain)),
                     rr_type: PektinRRType.A,
+                    ttl: 60,
                     rr_set: currentNode.legacyIps.map((legacyIp) => ({
-                        ttl: 60,
                         value: legacyIp,
                     })),
                 });
@@ -233,7 +233,8 @@ export class PektinSetupClient extends PektinClient {
                     /*@ts-ignore*/
                     name: absoluteName(concatDomain(s.domain, s.subDomain)),
                     rr_type: PektinRRType.AAAA,
-                    rr_set: mainNode.ips.map((ip) => ({ ttl: 60, value: ip })),
+                    ttl: 60,
+                    rr_set: mainNode.ips.map((ip) => ({ value: ip })),
                 });
             }
             if (mainNode.legacyIps) {
@@ -241,8 +242,8 @@ export class PektinSetupClient extends PektinClient {
                     /*@ts-ignore*/
                     name: absoluteName(concatDomain(s.domain, s.subDomain)),
                     rr_type: PektinRRType.A,
+                    ttl: 60,
                     rr_set: mainNode.legacyIps.map((legacyIp) => ({
-                        ttl: 60,
                         value: legacyIp,
                     })),
                 });

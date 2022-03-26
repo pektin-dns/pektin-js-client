@@ -41,9 +41,9 @@ if (pc.vaultEndpoint && pc.managerToken) {
 const r: ApiRecordSOA = {
     name: `pektin.club.`,
     rr_type: PektinRRType.SOA,
+    ttl: 3600,
     rr_set: [
         {
-            ttl: 3600,
             mname: `ns1.example.com.`,
             rname: `hostmaster.example.com.`,
             refresh: 0,

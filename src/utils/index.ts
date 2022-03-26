@@ -146,7 +146,6 @@ export const textToRRValue = (
                 retry: parseInt(t[4]),
                 expire: parseInt(t[5]),
                 minimum: parseInt(t[6]),
-                ttl,
             };
             return r;
         }
@@ -154,7 +153,6 @@ export const textToRRValue = (
             const r: MXRecord = {
                 preference: parseInt(t[0]),
                 exchange: t[1],
-                ttl,
             };
             return r;
         }
@@ -164,7 +162,6 @@ export const textToRRValue = (
                 weight: parseInt(t[1]),
                 port: parseInt(t[2]),
                 target: t[3],
-                ttl,
             };
             return r;
         }
@@ -174,7 +171,6 @@ export const textToRRValue = (
                 tag: t[1] as string,
                 value: t[2].replaceAll(`"`, ``),
                 issuer_critical: !!t[0],
-                ttl,
             };
             return r;
         }
@@ -184,12 +180,11 @@ export const textToRRValue = (
                 selector: parseInt(t[1]) as 0 | 1,
                 matching: parseInt(t[2]) as 0 | 1 | 2,
                 cert_data: t[3],
-                ttl,
             };
             return r;
         }
         default:
-            return { value: val, ttl };
+            return { value: val };
     }
 };
 

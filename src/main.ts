@@ -355,7 +355,6 @@ export class PektinClient {
     setupSOA = async (domain: string, nameServer: SNSNameserver) => {
         const rr_set = [
             {
-                ttl: 60,
                 mname: absoluteName(nameServer.fullNsDomain),
                 rname: absoluteName(`hostmaster${domain === `.` ? `` : `.`}` + domain),
                 serial: 0,
@@ -365,16 +364,19 @@ export class PektinClient {
                 minimum: 0,
             },
         ];
-        return await this.set([{ name: absoluteName(domain), rr_type: PektinRRType.SOA, rr_set }]);
+        return await this.set([
+            { name: absoluteName(domain), rr_type: PektinRRType.SOA, rr_set, ttl: 60 },
+        ]);
     };
 
     setupNameServers = async (domain: string, nameServers: SNSNameserver[]) => {
         const subDomains = nameServers.map((ns) => ns.fullNsDomain);
         const rr_set = subDomains.map((subDomain) => ({
-            ttl: 60,
             value: absoluteName(subDomain),
         }));
-        return await this.set([{ name: absoluteName(domain), rr_type: PektinRRType.NS, rr_set }]);
+        return await this.set([
+            { name: absoluteName(domain), rr_type: PektinRRType.NS, rr_set, ttl: 60 },
+        ]);
     };
 
     setupNameServerIps = async (nameServers: SNSNameserver[]) => {
@@ -384,8 +386,8 @@ export class PektinClient {
                 records.push({
                     name: absoluteName(ns.fullNsDomain),
                     rr_type: PektinRRType.AAAA,
+                    ttl: 60,
                     rr_set: ns.ips.map((ip) => ({
-                        ttl: 60,
                         value: ip,
                     })),
                 });
@@ -394,8 +396,8 @@ export class PektinClient {
                 records.push({
                     name: absoluteName(ns.fullNsDomain),
                     rr_type: PektinRRType.A,
+                    ttl: 60,
                     rr_set: ns.legacyIps.map((legacyIp) => ({
-                        ttl: 60,
                         value: legacyIp,
                     })),
                 });

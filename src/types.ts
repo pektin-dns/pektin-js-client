@@ -260,6 +260,7 @@ export type ApiRecord =
 
 export interface ApiRecordBase {
     name: string;
+    ttl: number;
 }
 export interface ApiRecordA extends ApiRecordBase {
     rr_type: PektinRRType.A;
@@ -306,10 +307,6 @@ export interface ApiRecordTXT extends ApiRecordBase {
     rr_set: TXTRecord[];
 }
 
-export interface ResourceRecordBase {
-    ttl: number;
-}
-
 export type ResourceRecord =
     | ARecord
     | AAAARecord
@@ -323,37 +320,37 @@ export type ResourceRecord =
     | TLSARecord
     | TXTRecord;
 
-export interface ARecord extends ResourceRecordBase {
+export interface ARecord {
     value: string;
 }
-export interface AAAARecord extends ResourceRecordBase {
+export interface AAAARecord {
     value: string;
 }
 export type CAARecord = CAARecordIssue | CAARecordIodef;
-export interface CAARecordIssue extends ResourceRecordBase {
+export interface CAARecordIssue {
     issuer_critical: boolean;
     tag: `issue` | `issuewild`;
     value: DomainName;
 }
-export interface CAARecordIodef extends ResourceRecordBase {
+export interface CAARecordIodef {
     issuer_critical: boolean;
     tag: `iodef`;
     value: `https://${string}` | `http://${string}` | `mailto:${string}`;
 }
-export interface CNAMERecord extends ResourceRecordBase {
+export interface CNAMERecord {
     value: string;
 }
-export interface MXRecord extends ResourceRecordBase {
+export interface MXRecord {
     preference: number;
     exchange: string;
 }
-export interface NSRecord extends ResourceRecordBase {
+export interface NSRecord {
     value: string;
 }
-export interface OPENPGPKEYRecord extends ResourceRecordBase {
+export interface OPENPGPKEYRecord {
     value: string;
 }
-export interface SOARecord extends ResourceRecordBase {
+export interface SOARecord {
     mname: string;
     rname: string;
     serial: number;
@@ -362,19 +359,19 @@ export interface SOARecord extends ResourceRecordBase {
     expire: number;
     minimum: number;
 }
-export interface SRVRecord extends ResourceRecordBase {
+export interface SRVRecord {
     priority: number;
     weight: number;
     port: number;
     target: string;
 }
-export interface TLSARecord extends ResourceRecordBase {
+export interface TLSARecord {
     cert_usage: 0 | 1 | 2 | 3;
     selector: 0 | 1;
     matching: 0 | 1 | 2;
     cert_data: string;
 }
-export interface TXTRecord extends ResourceRecordBase {
+export interface TXTRecord {
     value: string;
 }
 

@@ -29,9 +29,9 @@ export const getZoneFromFile = (file: string, zoneName?: string): PektinZoneData
             newRecords.push({
                 rr_type: PektinRRType.SOA,
                 name: replaceOrigin(zoneRecord.name, origin),
+                ttl: parseNum(zoneRecord.ttl, parsedFile.$ttl),
                 rr_set: [
                     {
-                        ttl: parseNum(zoneRecord.ttl, parsedFile.$ttl),
                         minimum: zoneRecord.minimum,
                         expire: zoneRecord.expire,
                         retry: zoneRecord.retry,
@@ -52,9 +52,9 @@ export const getZoneFromFile = (file: string, zoneName?: string): PektinZoneData
                             newRecords.push({
                                 rr_type: PektinRRType.A,
                                 name: replaceOrigin(zoneRecord.name, origin),
+                                ttl: parseNum(zoneRecord.ttl, parsedFile.$ttl),
                                 rr_set: [
                                     {
-                                        ttl: parseNum(zoneRecord.ttl, parsedFile.$ttl),
                                         value: zoneRecord.ip,
                                     },
                                 ],
@@ -64,9 +64,9 @@ export const getZoneFromFile = (file: string, zoneName?: string): PektinZoneData
                             newRecords.push({
                                 rr_type: PektinRRType.AAAA,
                                 name: replaceOrigin(zoneRecord.name, origin),
+                                ttl: parseNum(zoneRecord.ttl, parsedFile.$ttl),
                                 rr_set: [
                                     {
-                                        ttl: parseNum(zoneRecord.ttl, parsedFile.$ttl),
                                         value: zoneRecord.ip,
                                     },
                                 ],
@@ -76,9 +76,9 @@ export const getZoneFromFile = (file: string, zoneName?: string): PektinZoneData
                             newRecords.push({
                                 rr_type: PektinRRType.NS,
                                 name: replaceOrigin(zoneRecord.name, origin),
+                                ttl: parseNum(zoneRecord.ttl, parsedFile.$ttl),
                                 rr_set: [
                                     {
-                                        ttl: parseNum(zoneRecord.ttl, parsedFile.$ttl),
                                         value: zoneRecord.host.toLowerCase(),
                                     },
                                 ],
@@ -88,9 +88,9 @@ export const getZoneFromFile = (file: string, zoneName?: string): PektinZoneData
                             newRecords.push({
                                 rr_type: PektinRRType.CNAME,
                                 name: replaceOrigin(zoneRecord.name, origin),
+                                ttl: parseNum(zoneRecord.ttl, parsedFile.$ttl),
                                 rr_set: [
                                     {
-                                        ttl: parseNum(zoneRecord.ttl, parsedFile.$ttl),
                                         value: replaceOrigin(zoneRecord.alias, origin),
                                     },
                                 ],
@@ -100,9 +100,9 @@ export const getZoneFromFile = (file: string, zoneName?: string): PektinZoneData
                             newRecords.push({
                                 rr_type: PektinRRType.MX,
                                 name: replaceOrigin(zoneRecord.name, origin),
+                                ttl: parseNum(zoneRecord.ttl, parsedFile.$ttl),
                                 rr_set: [
                                     {
-                                        ttl: parseNum(zoneRecord.ttl, parsedFile.$ttl),
                                         preference: zoneRecord.preference,
                                         exchange: replaceOrigin(zoneRecord.host, origin),
                                     },
@@ -113,9 +113,9 @@ export const getZoneFromFile = (file: string, zoneName?: string): PektinZoneData
                             newRecords.push({
                                 rr_type: PektinRRType.TXT,
                                 name: replaceOrigin(zoneRecord.name, origin),
+                                ttl: parseNum(zoneRecord.ttl, parsedFile.$ttl),
                                 rr_set: [
                                     {
-                                        ttl: parseNum(zoneRecord.ttl, parsedFile.$ttl),
                                         value: zoneRecord.txt,
                                     },
                                 ],
@@ -125,9 +125,9 @@ export const getZoneFromFile = (file: string, zoneName?: string): PektinZoneData
                             newRecords.push({
                                 rr_type: PektinRRType.SRV,
                                 name: replaceOrigin(zoneRecord.name, origin),
+                                ttl: parseNum(zoneRecord.ttl, parsedFile.$ttl),
                                 rr_set: [
                                     {
-                                        ttl: parseNum(zoneRecord.ttl, parsedFile.$ttl),
                                         port: zoneRecord.port,
                                         priority: zoneRecord.priority,
                                         target: zoneRecord.target,
@@ -140,9 +140,9 @@ export const getZoneFromFile = (file: string, zoneName?: string): PektinZoneData
                             newRecords.push({
                                 rr_type: PektinRRType.CAA,
                                 name: replaceOrigin(zoneRecord.name, origin),
+                                ttl: parseNum(zoneRecord.ttl, parsedFile.$ttl),
                                 rr_set: [
                                     {
-                                        ttl: parseNum(zoneRecord.ttl, parsedFile.$ttl),
                                         issuer_critical: zoneRecord.flags,
                                         tag: zoneRecord.tag,
                                         value: zoneRecord.value,
@@ -154,9 +154,9 @@ export const getZoneFromFile = (file: string, zoneName?: string): PektinZoneData
                             newRecords.push({
                                 rr_type: PektinRRType.TLSA,
                                 name: replaceOrigin(zoneRecord.name, origin),
+                                ttl: parseNum(zoneRecord.ttl, parsedFile.$ttl),
                                 rr_set: [
                                     {
-                                        ttl: parseNum(zoneRecord.ttl, parsedFile.$ttl),
                                         cert_usage: zoneRecord.cert_usage,
                                         selector: zoneRecord.selector,
                                         matching: zoneRecord.matching,
