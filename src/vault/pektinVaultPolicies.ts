@@ -5,6 +5,10 @@ import { VaultPolicy } from "./types.js";
 export const pektinSignerPolicy: VaultPolicy = `
 path "pektin-transit/sign/{{identity.entity.metadata.domain}}/sha2-256" {
     capabilities = ["update"]
+}
+
+path "pektin-transit/keys/{{identity.entity.metadata.domain}}" {
+    capabilities = ["read"]
 }`;
 
 export const pektinServerAdminManagerPolicy: VaultPolicy = `
