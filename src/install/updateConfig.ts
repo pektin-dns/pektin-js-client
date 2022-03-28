@@ -1,6 +1,5 @@
 import { promises as fs } from "fs";
 import path from "path";
-import { chownRecursive, chown, chmod } from "./utils.js";
 import { unsealVault } from "../vault/vault.js";
 import { PC3 } from "../index.js";
 import { PektinConfig } from "@pektin/config/src/config-types.js";
@@ -15,6 +14,8 @@ import { declareFs } from "@pektin/declare-fs";
 config({ path: `/pektin-compose/secrets/.env` });
 
 export const updateConfig = async (dir: string = `/pektin-compose/`) => {
+    console.log(`Updating config`);
+
     if (process.env.UID === undefined || process.env.GID === undefined) {
         throw Error(
             `No UID and/or GID defined. Current is: UID: ` +
@@ -81,7 +82,11 @@ export const updateConfig = async (dir: string = `/pektin-compose/`) => {
         pektinConfig.reverseProxy.routing === `domain`;
     await declareFs(
         {
-            "start.sh": { $file: await genStartScript(pektinConfig), $owner: user, $perms: `700` },
+            "start.sh": {
+                $file: await genStartScript(pektinConfig),
+                $owner: user,
+                $perms: `700`,
+            },
             "stop.sh": { $file: await genStopScript(pektinConfig), $owner: user, $perms: `700` },
             "update.sh": {
                 $file: await genUpdateScript(pektinConfig),

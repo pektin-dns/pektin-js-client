@@ -26,7 +26,9 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-import chalk from "chalk";
+import c from "chalk";
+
+const chalk = new c.Instance({ level: 3 });
 
 import _ from "lodash";
 const defaultColors = {

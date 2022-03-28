@@ -21,7 +21,7 @@ import {
     listVaultUsers,
     updateKvValue,
 } from "./vault/vault.js";
-import { deAbsolute } from "./utils/index.js";
+import { deAbsolute, isOnlyLowercase } from "./utils/index.js";
 import { Client } from "./types.js";
 
 export const createPektinSigner = async (
@@ -36,9 +36,11 @@ export const createPektinSigner = async (
 
     const metadata = { domain: domainName };
 
-    createFullUserPass(endpoint, token, name, password, metadata, [`pektin-signer`]);
-
-    createSigningKey(endpoint, token, domainName);
+    await Promise.all([
+        createFullUserPass(endpoint, token, name, password, metadata, [`pektin-signer`]),
+        createSigningKey(endpoint, token, `${domainName}-ksk`),
+        createSigningKey(endpoint, token, `${domainName}-zsk`),
+    ]);
 };
 
 export const createPektinClient = async ({
@@ -56,7 +58,7 @@ export const createPektinClient = async ({
     confidantPassword: string;
     capabilities: ClientCapabilities;
 }) => {
-    if (clientName !== clientName.toLowerCase()) {
+    if (!isOnlyLowercase(clientName)) {
         throw Error(
             `Vault normaly silently mangles usernames to lowercase thus we will tell you right away that any clients name must be lowercase. See https://github.com/hashicorp/vault/issues/13647`
         );

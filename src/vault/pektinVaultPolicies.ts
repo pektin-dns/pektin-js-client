@@ -3,11 +3,19 @@ import { deAbsolute } from "../utils/index.js";
 import { VaultPolicy } from "./types.js";
 
 export const pektinSignerPolicy: VaultPolicy = `
-path "pektin-transit/sign/{{identity.entity.metadata.domain}}/sha2-256" {
+path "pektin-transit/sign/{{identity.entity.metadata.domain}}-zsk/sha2-256" {
     capabilities = ["update"]
 }
 
-path "pektin-transit/keys/{{identity.entity.metadata.domain}}" {
+path "pektin-transit/keys/{{identity.entity.metadata.domain}}-zsk" {
+    capabilities = ["read"]
+}
+
+path "pektin-transit/sign/{{identity.entity.metadata.domain}}-ksk/sha2-256" {
+    capabilities = ["update"]
+}
+
+path "pektin-transit/keys/{{identity.entity.metadata.domain}}-ksk" {
     capabilities = ["read"]
 }`;
 

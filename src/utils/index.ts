@@ -188,6 +188,10 @@ export const textToRRValue = (
     }
 };
 
+export const isOnlyLowercase = (input: string) => {
+    return input === input.toLowerCase();
+};
+
 export const shortenTime = (t: number) => {
     return parseInt(t.toFixed());
 };

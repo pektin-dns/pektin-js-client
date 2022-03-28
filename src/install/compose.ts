@@ -3,7 +3,6 @@ import path from "path";
 import {
     chownRecursive,
     chown,
-    chmod,
     randomString,
     requestPektinDomain,
     configToCertbotIni,
@@ -134,26 +133,20 @@ export const installPektinCompose = async (
     });
 
     // set the values in the .env file for provisioning them to the containers
-    const envFile = await genEnvValues(
-        {
-            vaultTokens,
-            R_PEKTIN_API_PASSWORD,
-            R_PEKTIN_SERVER_PASSWORD,
-            V_PEKTIN_API_PASSWORD,
-            pektinConfig,
-            recursorBasicAuthHashed,
-            ...(tempDomain && { tempDomain }),
-        },
-        dir
-    );
+    const envFile = await genEnvValues({
+        vaultTokens,
+        R_PEKTIN_API_PASSWORD,
+        R_PEKTIN_SERVER_PASSWORD,
+        V_PEKTIN_API_PASSWORD,
+        pektinConfig,
+        recursorBasicAuthHashed,
+        ...(tempDomain && { tempDomain }),
+    });
 
     const useTempDomain =
         pektinConfig.reverseProxy.tempZone.enabled &&
         traefikConfs.tempDomain &&
         pektinConfig.reverseProxy.routing === `domain`;
-
-    // change ownership of all created files to host user
-    // also chmod 700 all secrets except for redis ACL
 
     const user = `${process.env.UID}:${process.env.GID}`;
 
@@ -385,21 +378,18 @@ const createCspConnectSources = (c: PektinConfig, tempDomain?: TempDomain) => {
     return connectSources;
 };
 
-export const genEnvValues = async (
-    v: {
-        pektinConfig: PektinConfig;
-        R_PEKTIN_API_PASSWORD: string;
-        R_PEKTIN_SERVER_PASSWORD: string;
-        V_PEKTIN_API_PASSWORD: string;
-        vaultTokens: {
-            key: string;
-            rootToken: string;
-        };
-        recursorBasicAuthHashed: string;
-        tempDomain?: TempDomain;
-    },
-    dir: string
-) => {
+export const genEnvValues = async (v: {
+    pektinConfig: PektinConfig;
+    R_PEKTIN_API_PASSWORD: string;
+    R_PEKTIN_SERVER_PASSWORD: string;
+    V_PEKTIN_API_PASSWORD: string;
+    vaultTokens: {
+        key: string;
+        rootToken: string;
+    };
+    recursorBasicAuthHashed: string;
+    tempDomain?: TempDomain;
+}) => {
     const repls = [
         [`V_PEKTIN_API_PASSWORD`, v.V_PEKTIN_API_PASSWORD],
         [`R_PEKTIN_API_PASSWORD`, v.R_PEKTIN_API_PASSWORD],
@@ -429,6 +419,7 @@ export const genEnvValues = async (
 
 export const genStartScript = async (pektinConfig: PektinConfig) => {
     let file = `#!/bin/bash\n
+bash scripts/update-config.sh\n
 SCRIPTS_IMAGE_NAME=pektin/scripts
 SCRIPTS_CONTAINER_NAME=pektin-scripts
 ACTIVE_COMPOSE_FILES="${activeComposeFiles(pektinConfig)}"\n\n`;
@@ -436,11 +427,8 @@ ACTIVE_COMPOSE_FILES="${activeComposeFiles(pektinConfig)}"\n\n`;
     let composeCommand = `docker-compose --env-file secrets/.env`;
 
     composeCommand += `\${ACTIVE_COMPOSE_FILES}`;
-    composeCommand += ` up -d`;
-    const buildAny =
-        pektinConfig.build.ui.enabled ||
-        pektinConfig.build.api.enabled ||
-        pektinConfig.build.server.enabled;
+    composeCommand += ` up -d --remove-orphans`;
+    const buildAny = Object.values(pektinConfig.build).some((e) => e.enabled);
     composeCommand += buildAny ? ` --build` : ``;
 
     // create start script

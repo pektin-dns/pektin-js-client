@@ -6,10 +6,10 @@ import { ApiRecord, PektinRRType } from "../index.js";
 import { chmod, chown, createSingleScript } from "./utils.js";
 import { absoluteName, concatDomain } from "../index.js";
 import { getMainNameServers, getMainNode, getPektinEndpoint } from "../pureFunctions.js";
-import { Chalk } from "chalk";
+import Chalk from "chalk";
 import yaml from "yaml";
 
-const c = new Chalk({ level: 3 });
+const c = new Chalk.Instance({ level: 3 });
 
 export const pektinComposeFirstStart = async (
     dir = `/pektin-compose/`,

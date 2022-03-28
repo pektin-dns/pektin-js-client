@@ -14,7 +14,7 @@ const script = argv[2];
     console.log(`Running ${script}`);
 
     switch (script) {
-        case `compose-install`:
+        case `compose-install`: {
             await checkConfig(
                 `/pektin-compose/pektin-config.json`,
                 `node_modules/@pektin/config/pektin-config.schema.yml`,
@@ -23,23 +23,31 @@ const script = argv[2];
             );
             await installPektinCompose();
             break;
-        case `compose-start`:
+        }
+        case `compose-start`: {
             if (!process.env.V_KEY) throw Error(`Could not get key from .env file to unlock vault`);
             await unsealVault(`http://pektin-vault`, process.env.V_KEY);
             await checkConfig(
                 `/pektin-compose/pektin-config.json`,
                 `node_modules/@pektin/config/pektin-config.schema.yml`
             );
-            //await updateConfig();
+            await updateConfig();
             break;
-        case `compose-first-start`:
+        }
+        case `update-config`: {
+            await updateConfig();
+            break;
+        }
+        case `compose-first-start`: {
             await pektinComposeFirstStart();
             break;
-        case `k8s-install`:
+        }
+        case `k8s-install`: {
             await installK8s();
             await pektinComposeFirstStart(`/base/`, `k8s`);
             break;
-        case `k8s-create-secrets`:
+        }
+        case `k8s-create-secrets`: {
             await checkConfig(
                 `/base/pektin-config.yml`,
                 `node_modules/@pektin/config/pektin-config.schema.yml`,
@@ -48,7 +56,9 @@ const script = argv[2];
             );
             await createSecrets();
             break;
-        default:
+        }
+        default: {
             throw Error(`Invalid script: ${script}`);
+        }
     }
 })();

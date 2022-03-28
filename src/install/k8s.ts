@@ -1,14 +1,13 @@
 import yaml from "yaml";
 import { PC3 } from "../types.js";
 import { installVault } from "./install-vault.js";
-import { chownRecursive, configToCertbotIni, randomString, requestPektinDomain } from "./utils.js";
+import { chownRecursive, configToCertbotIni, randomString } from "./utils.js";
 import { promises as fs } from "fs";
 import path from "path";
 import { chmod } from "./utils.js";
 import { PektinConfig } from "@pektin/config/src/config-types";
 import { PektinSetupClient } from "./first-start.js";
-import { genTraefikConfs } from "../traefik/index.js";
-import { getMainNode } from "../pureFunctions.js";
+
 import { genBasicAuthHashed } from "./compose.js";
 
 export const installK8s = async (dir: string = `/base/`) => {
