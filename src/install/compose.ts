@@ -399,12 +399,21 @@ export const genEnvValues = async (v: {
         [`LETSENCRYPT_EMAIL`, v.pektinConfig.letsencrypt.letsencryptEmail],
         [`CSP_CONNECT_SRC`, createCspConnectSources(v.pektinConfig, v.tempDomain)],
         [`RECURSOR_AUTH`, v.recursorBasicAuthHashed],
+
         [`UI_BUILD_PATH`, v.pektinConfig.build.ui.path],
         [`API_BUILD_PATH`, v.pektinConfig.build.api.path],
         [`SERVER_BUILD_PATH`, v.pektinConfig.build.server.path],
         [`RECURSOR_BUILD_PATH`, v.pektinConfig.build.recursor.path],
         [`RIBSTON_BUILD_PATH`, v.pektinConfig.build.ribston.path],
         [`VAULT_BUILD_PATH`, v.pektinConfig.build.vault.path],
+
+        [`UI_DOCKERFILE`, v.pektinConfig.build.ui.dockerfile],
+        [`API_DOCKERFILE`, v.pektinConfig.build.api.dockerfile],
+        [`SERVER_DOCKERFILE`, v.pektinConfig.build.server.dockerfile],
+        [`RECURSOR_DOCKERFILE`, v.pektinConfig.build.recursor.dockerfile],
+        [`RIBSTON_DOCKERFILE`, v.pektinConfig.build.ribston.dockerfile],
+        [`VAULT_DOCKERFILE`, v.pektinConfig.build.vault.dockerfile],
+
         [`USE_POLICIES`, v.pektinConfig.usePolicies],
     ];
     let file = `# DO NOT EDIT THESE VARIABLES MANUALLY  \n`;
