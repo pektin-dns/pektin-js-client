@@ -224,7 +224,7 @@ export const createArbeiterConfig = async (
                 true
             );
             if (redisAclFile === undefined) {
-                throw new Error(`This should never happen: createArbeiterConfig`);
+                throw new Error(`This should never happen: createArbeiterConfig redisAclFile`);
             }
 
             const redisConf = await fs.readFile(
@@ -232,7 +232,10 @@ export const createArbeiterConfig = async (
                 { encoding: `utf8` }
             );
 
-            const repls = [[`R_PEKTIN_SERVER_PASSWORD`, R_PEKTIN_SERVER_PASSWORD]];
+            const repls = [
+                [`R_PEKTIN_SERVER_PASSWORD`, R_PEKTIN_SERVER_PASSWORD],
+                [`SERVER_LOGGING`, v.pektinConfig.services.server.logging],
+            ];
 
             const traefikConfs = genTraefikConfs({
                 pektinConfig: v.pektinConfig,
@@ -250,13 +253,13 @@ export const createArbeiterConfig = async (
             traefik.tcp.routers.pektin-server-dot.tls.domains[0].sans: "*.${SERVER_DOMAIN}"
             */
 
-            let file = `# DO NOT EDIT THESE VARIABLES MANUALLY \n`;
+            let envFile = `# DO NOT EDIT THESE VARIABLES MANUALLY \n`;
             repls.forEach((repl) => {
-                file = file += `${repl[0]}="${repl[1]}"\n`;
+                envFile = envFile += `${repl[0]}="${repl[1]}"\n`;
             });
-            file += `# Some commands for debugging\n`;
-            file += `# Logs into redis (then try 'KEYS *' for example to get all record keys):\n`;
-            file += `# bash -c 'docker exec -it $(docker ps --filter name=pektin-redis --format {{.ID}}) redis-cli --pass ${R_PEKTIN_SERVER_PASSWORD} --user r-pektin-server'`;
+            envFile += `# Some commands for debugging\n`;
+            envFile += `# Logs into redis (then try 'KEYS *' for example to get all record keys):\n`;
+            envFile += `# bash -c 'docker exec -it $(docker ps --filter name=pektin-redis --format {{.ID}}) redis-cli --pass ${R_PEKTIN_SERVER_PASSWORD} --user r-pektin-server'`;
             const composeCommand = `docker-compose --env-file secrets/.env -f pektin-compose/arbeiter/base.yml -f pektin-compose/traefik.yml`;
 
             const resetScript = `${composeCommand} down --remove-orphans\ndocker swarm leave --force\ndocker volume rm pektin-compose_db\nrm -rf update.sh start.sh stop.sh secrets/ `;
@@ -273,7 +276,7 @@ export const createArbeiterConfig = async (
                     "update.sh": `${composeCommand} pull\nsh start.sh`,
                     "reset.sh": resetScript,
                     secrets: {
-                        ".env": file,
+                        ".env": envFile,
                         redis: {
                             "redis.conf": {
                                 $file: redisConf.replace(
@@ -400,19 +403,21 @@ export const genEnvValues = async (v: {
         [`CSP_CONNECT_SRC`, createCspConnectSources(v.pektinConfig, v.tempDomain)],
         [`RECURSOR_AUTH`, v.recursorBasicAuthHashed],
 
-        [`UI_BUILD_PATH`, v.pektinConfig.build.ui.path],
-        [`API_BUILD_PATH`, v.pektinConfig.build.api.path],
-        [`SERVER_BUILD_PATH`, v.pektinConfig.build.server.path],
-        [`RECURSOR_BUILD_PATH`, v.pektinConfig.build.recursor.path],
-        [`RIBSTON_BUILD_PATH`, v.pektinConfig.build.ribston.path],
-        [`VAULT_BUILD_PATH`, v.pektinConfig.build.vault.path],
+        [`UI_BUILD_PATH`, v.pektinConfig.services.ui.build.path],
+        [`API_BUILD_PATH`, v.pektinConfig.services.api.build.path],
+        [`SERVER_BUILD_PATH`, v.pektinConfig.services.server.build.path],
+        [`RECURSOR_BUILD_PATH`, v.pektinConfig.services.recursor.build.path],
+        [`RIBSTON_BUILD_PATH`, v.pektinConfig.services.ribston.build.path],
+        [`VAULT_BUILD_PATH`, v.pektinConfig.services.vault.build.path],
 
-        [`UI_DOCKERFILE`, v.pektinConfig.build.ui.dockerfile],
-        [`API_DOCKERFILE`, v.pektinConfig.build.api.dockerfile],
-        [`SERVER_DOCKERFILE`, v.pektinConfig.build.server.dockerfile],
-        [`RECURSOR_DOCKERFILE`, v.pektinConfig.build.recursor.dockerfile],
-        [`RIBSTON_DOCKERFILE`, v.pektinConfig.build.ribston.dockerfile],
-        [`VAULT_DOCKERFILE`, v.pektinConfig.build.vault.dockerfile],
+        [`UI_DOCKERFILE`, v.pektinConfig.services.ui.build.dockerfile],
+        [`API_DOCKERFILE`, v.pektinConfig.services.api.build.dockerfile],
+        [`SERVER_DOCKERFILE`, v.pektinConfig.services.server.build.dockerfile],
+        [`RECURSOR_DOCKERFILE`, v.pektinConfig.services.recursor.build.dockerfile],
+        [`RIBSTON_DOCKERFILE`, v.pektinConfig.services.ribston.build.dockerfile],
+        [`VAULT_DOCKERFILE`, v.pektinConfig.services.vault.build.dockerfile],
+        [`API_LOGGING`, v.pektinConfig.services.api.logging],
+        [`SERVER_LOGGING`, v.pektinConfig.services.server.logging],
 
         [`USE_POLICIES`, v.pektinConfig.usePolicies],
     ];
@@ -437,7 +442,7 @@ ACTIVE_COMPOSE_FILES="${activeComposeFiles(pektinConfig)}"\n\n`;
 
     composeCommand += `\${ACTIVE_COMPOSE_FILES}`;
     composeCommand += ` up -d --remove-orphans`;
-    const buildAny = Object.values(pektinConfig.build).some((e) => e.enabled);
+    const buildAny = Object.values(pektinConfig.services).some((service) => service.build.enabled);
     composeCommand += buildAny ? ` --build` : ``;
 
     // create start script
@@ -483,21 +488,21 @@ export const activeComposeFiles = (pektinConfig: PektinConfig) => {
     if (pektinConfig.nodes.length > 1) {
         composeCommand += ` -f pektin-compose/gewerkschaft-config.yml`;
     }
-    if (pektinConfig.build.api.enabled) {
+    if (pektinConfig.services.api.build.enabled) {
         composeCommand += ` -f pektin-compose/from-source/api.yml`;
     }
-    if (pektinConfig.build.vault.enabled) {
+    if (pektinConfig.services.vault.build.enabled) {
         composeCommand += ` -f pektin-compose/from-source/vault.yml`;
     }
     if (pektinConfig.services.ui.enabled) {
         composeCommand += ` -f pektin-compose/services/ui.yml`;
-        if (pektinConfig.build.ui.enabled) {
+        if (pektinConfig.services.ui.build.enabled) {
             composeCommand += ` -f pektin-compose/from-source/ui.yml`;
         }
     }
     if (pektinConfig.services.ribston.enabled) {
         composeCommand += ` -f pektin-compose/services/ribston.yml`;
-        if (pektinConfig.build.ribston.enabled) {
+        if (pektinConfig.services.ribston.build.enabled) {
             composeCommand += ` -f pektin-compose/from-source/ribston.yml`;
         }
     }
@@ -507,12 +512,12 @@ export const activeComposeFiles = (pektinConfig: PektinConfig) => {
 
     if (pektinConfig.services.recursor.enabled) {
         composeCommand += ` -f pektin-compose/services/recursor.yml`;
-        if (pektinConfig.build.recursor.enabled) {
+        if (pektinConfig.services.recursor.build.enabled) {
             composeCommand += ` -f pektin-compose/from-source/recursor.yml`;
         }
     }
 
-    if (pektinConfig.build.server.enabled) {
+    if (pektinConfig.services.server.build.enabled) {
         composeCommand += ` -f pektin-compose/from-source/server.yml`;
     }
 

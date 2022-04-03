@@ -224,17 +224,6 @@ export const health = async (
     return res as HealthResponse;
 };
 
-// get api health status
-export const any = async (
-    apiEndpoint: string,
-    apiPath: string,
-    body: any,
-    throwErrors?: boolean
-): Promise<any> => {
-    const res = await pektinApiRequest(apiEndpoint, apiPath as ApiMethod, body, throwErrors);
-    return res as any;
-};
-
 // get all records for zones
 export const getZoneRecords = async (
     apiEndpoint: string,
@@ -244,6 +233,17 @@ export const getZoneRecords = async (
     const res = await pektinApiRequest(apiEndpoint, `get-zone-records`, body, throwErrors);
     if (throwErrors) return res as GetZoneRecordsResponseSuccess;
     return res as GetZoneRecordsResponse;
+};
+
+// execute any query
+export const any = async (
+    apiEndpoint: string,
+    apiPath: string,
+    body: any,
+    throwErrors?: boolean
+): Promise<any> => {
+    const res = await pektinApiRequest(apiEndpoint, apiPath as ApiMethod, body, throwErrors);
+    return res as any;
 };
 
 // send any request to the pektin api

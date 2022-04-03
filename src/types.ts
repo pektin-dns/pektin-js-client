@@ -214,7 +214,7 @@ export type ApiRequestBody =
     | ApiGetZoneRecordsRequestBody
     | ApiHealthRequestBody;
 
-export interface ApiRequestBodyBase {
+interface ApiRequestBodyBase {
     confidant_password: ConfidantPassword;
     client_username: ClientName;
 }

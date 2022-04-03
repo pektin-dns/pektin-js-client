@@ -2,6 +2,7 @@ import { PektinZoneData, PektinRRType } from "../../types.js";
 /*@ts-ignore*/
 import { PowerdnsClient } from "@firstdorsal/powerdns-api";
 import { isSupportedRecordType, textToRRValue } from "../../utils/index.js";
+
 export const getAllFromPdns = async (baseurl: string, apikey: string): Promise<PektinZoneData> => {
     const pdns = new PowerdnsClient(baseurl, apikey);
 
@@ -40,9 +41,11 @@ export interface PdnsResourceRecord {
     ttl: number;
     type: string;
 }
+
 export interface PdnsRecord {
     content: string;
 }
+
 export interface PdnsZonesReturn {
     account: string;
     dnssec: true;
