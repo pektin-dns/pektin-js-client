@@ -4,6 +4,7 @@ export interface Output {
     status: string;
     message: string;
 }
+
 export type Input =
     | GetInput
     | GetZoneRecordsInput
@@ -11,6 +12,7 @@ export type Input =
     | SetInput
     | SearchInput
     | HealthInput;
+
 export enum RequestType {
     Get = `get`,
     GetZoneRecords = `get-zone-records`,

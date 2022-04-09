@@ -6,6 +6,7 @@ import { allow, deny, getBodyForApiMethod } from "./utils.js";
 POLICY INFORMATION
 {
     "version": "1.0.0",
+    "use":"pektin-dns",
     "name": "acme",
     "class": "acme",
     "contact": "pektin@y.gy"
@@ -16,7 +17,7 @@ const input: Input = {} as Input;
 const output: Output = {
     status: `UNDECIDED`,
     message: `Policy didn't reach a decission`,
-} as Output;
+};
 
 /* Your code goes beneath this */
 

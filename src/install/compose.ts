@@ -224,7 +224,7 @@ export const createArbeiterConfig = async (
                 true
             );
             if (redisAclFile === undefined) {
-                throw new Error(`This should never happen: createArbeiterConfig redisAclFile`);
+                throw new Error(`This should never happen: createArbeiterConfig > redisAclFile`);
             }
 
             const redisConf = await fs.readFile(
