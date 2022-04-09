@@ -1,12 +1,15 @@
 import { PektinConfig } from "@pektin/config/src/config-types";
 import _ from "lodash";
 import yaml from "yaml";
-import { concatDomain, emailToASCII, toASCII } from "../index.js";
-import { getNodesNameservers } from "../pureFunctions.js";
-import { TempDomain } from "../types.js";
+import { concatDomain, emailToASCII, toASCII } from "../../index.js";
+import { getNodesNameservers } from "../../pureFunctions.js";
+import { TempDomain } from "../../types.js";
 import { genTempDomainConfig } from "./tempDomain.js";
 
 // TODO add traefik UI with auth
+
+//! TODO  ROUTING DOES NOT WORK host rules are mixed up!
+//! perimeter auth also does not create a middleware
 
 export const genTraefikConfs = ({
     pektinConfig,
@@ -14,19 +17,24 @@ export const genTraefikConfs = ({
     recursorAuth,
     tempDomain,
     proxyAuth,
+    perimeterAuthHashed,
 }: {
     readonly pektinConfig: PektinConfig;
     readonly node: PektinConfig[`nodes`][0];
     readonly recursorAuth?: string;
     readonly tempDomain?: TempDomain;
     readonly proxyAuth?: string;
+    readonly perimeterAuthHashed?: string;
 }) => {
     const nodeNameServers = getNodesNameservers(pektinConfig, node.name);
     if (!nodeNameServers) throw Error(`Could not get NS for node`);
     const serviceKeys = Object.keys(pektinConfig.services);
     const enabledServices = Object.values(pektinConfig.services).filter(
-        /*@ts-ignore*/
-        (s, i) => s.enabled !== false && s.hasOwnProperty(`domain`) && serviceKeys[i] !== `recursor`
+        (s, i /*@ts-ignore*/) =>
+            s.enabled !== false &&
+            s.hasOwnProperty(`domain`) &&
+            serviceKeys[i] !== `recursor` &&
+            serviceKeys[i] !== `server`
     );
 
     const dynamicConf = _.merge(
@@ -40,6 +48,7 @@ export const genTraefikConfs = ({
                       /*@ts-ignore*/
                       subDomain: s.subDomain,
                       pektinConfig,
+                      perimeterAuthHashed,
                   })
               )
             : []),
@@ -62,7 +71,7 @@ export const genTraefikConfs = ({
     const staticConf = _.merge(genStaticConf(pektinConfig));
 
     const yamlOptions: yaml.Options = { indent: 4, version: `1.1` };
-    const notice = `#THIS FILE IS GENERATED! DO NOT CHANGE IT UNLESS YOU KNOW WHAT YOU'RE DOING!\n`;
+    const notice = `#THIS FILE WAS GENERATED! DO NOT CHANGE IT UNLESS YOU KNOW WHAT YOU'RE DOING!\n`;
     return {
         dynamic: notice + yaml.stringify(dynamicConf, yamlOptions),
         static: notice + yaml.stringify(staticConf, yamlOptions),
@@ -115,7 +124,7 @@ export const serverConf = ({
             },
         },
         /*
-        as soon as traefik add dtls
+        as soon as traefik adds dtls
         udp: {
             routers: {
                 "pektin-server-udp": {
@@ -172,11 +181,13 @@ export const pektinServicesConf = ({
     domain,
     subDomain,
     pektinConfig,
+    perimeterAuthHashed,
 }: {
     service: string;
     domain: string;
     subDomain: string;
     pektinConfig: PektinConfig;
+    perimeterAuthHashed?: string;
 }) => {
     const rp = pektinConfig.reverseProxy;
 
@@ -211,6 +222,11 @@ export const pektinServicesConf = ({
                         }
                     })(),
                     service: `pektin-${service}`,
+                    /*@ts-ignore*/
+                    ...(pektinConfig.services[service].perimeterAuth &&
+                        perimeterAuthHashed && {
+                            middlewares: [`pektin-perimeter-auth`],
+                        }),
                     entrypoints: rp.tls ? `websecure` : `web`,
                 },
             },
@@ -219,6 +235,13 @@ export const pektinServicesConf = ({
                     loadbalancer: { servers: [{ url: `http://pektin-${service}` }] },
                 },
             },
+            /*@ts-ignore*/
+            ...(pektinConfig.services[service].perimeterAuth &&
+                perimeterAuthHashed && {
+                    middlewares: {
+                        [`pektin-perimeter-auth`]: { basicauth: { users: perimeterAuthHashed } },
+                    },
+                }),
         },
     };
 };

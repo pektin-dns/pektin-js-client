@@ -5,12 +5,29 @@ import { exec as execDefault } from "child_process";
 import fs from "fs/promises";
 import path from "path";
 import { PektinConfig } from "@pektin/config/src/config-types.js";
-import { PC3, TempDomain } from "../types.js";
+import { BasicAuthString, PC3, TempDomain } from "../types.js";
 import f from "cross-fetch";
 import c from "chalk";
 import { toASCII } from "../index.js";
 
 const exec = promisify(execDefault);
+
+export const genBasicAuthHashed = (username: string, password: string) => {
+    const hash = (a: string) =>
+        crypto.createHash(`sha1`).update(a, `utf8`).digest().toString(`base64`);
+    return `${username}:{SHA}${hash(password)}`;
+};
+
+export const genBasicAuthString = (username: string, password: string): BasicAuthString => {
+    const s = Buffer.from(`${username}:${password}`).toString(`base64`);
+    return `Basic ${s}`;
+};
+
+export const generatePerimeterAuth = (): [BasicAuthString, string] => {
+    const password = randomString(30);
+    const username = randomString(30);
+    return [genBasicAuthString(username, password), genBasicAuthHashed(username, password)];
+};
 
 export const randomString = (length = 100) => {
     return crypto.randomBytes(length).toString(`base64url`).replaceAll(`=`, ``);
@@ -85,6 +102,7 @@ export const createSingleScript = async (sourceFolder: string, node: PektinConfi
 // TODO fix ribston policies, check acme client in vault
 
 export const configToCertbotIni = (cc: PC3) => `dns_pektin_username = ${cc.username}
+dns_pektin_perimeter_auth = ${cc.perimeterAuth}
 dns_pektin_confidant_password = ${cc.confidantPassword}
 dns_pektin_api_endpoint = ${toASCII(cc.override?.pektinApiEndpoint)}
 `;

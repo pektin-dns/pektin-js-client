@@ -16,6 +16,7 @@ import {
     ApiResponseType,
     ApiSearchRequestBody,
     ApiSetRequestBody,
+    BasicAuthString,
     DeleteResponse,
     DeleteResponseSuccess,
     DomainName,
@@ -172,9 +173,17 @@ export const getPektinConfig = async (vaultEndpoint: string, vaultToken: string)
 export const get = async (
     apiEndpoint: string,
     body: ApiGetRequestBody,
+    perimeterAuth: BasicAuthString,
+
     throwErrors?: boolean
 ): Promise<GetResponse> => {
-    const res = await pektinApiRequest(apiEndpoint, `get`, body, throwErrors);
+    const res = await pektinApiRequest({
+        apiEndpoint,
+        method: `get`,
+        body,
+        throwErrors,
+        perimeterAuth,
+    });
     // TODO FIX TYPESCRIPT TYPES conditional types needed
     if (throwErrors) return res as GetResponseSuccess;
     return res as GetResponse;
@@ -184,9 +193,17 @@ export const get = async (
 export const set = async (
     apiEndpoint: string,
     body: ApiSetRequestBody,
+    perimeterAuth: BasicAuthString,
+
     throwErrors?: boolean
 ): Promise<SetResponse> => {
-    const res = await pektinApiRequest(apiEndpoint, `set`, body, throwErrors);
+    const res = await pektinApiRequest({
+        apiEndpoint,
+        method: `set`,
+        body,
+        throwErrors,
+        perimeterAuth,
+    });
     if (throwErrors) return res as SetResponseSuccess;
     return res as SetResponse;
 };
@@ -195,9 +212,17 @@ export const set = async (
 export const search = async (
     apiEndpoint: string,
     body: ApiSearchRequestBody,
+    perimeterAuth: BasicAuthString,
+
     throwErrors?: boolean
 ): Promise<SearchResponse> => {
-    const res = await pektinApiRequest(apiEndpoint, `search`, body, throwErrors);
+    const res = await pektinApiRequest({
+        apiEndpoint,
+        method: `search`,
+        body,
+        throwErrors,
+        perimeterAuth,
+    });
     if (throwErrors) return res as SearchResponseSuccess;
     return res as SearchResponse;
 };
@@ -206,9 +231,17 @@ export const search = async (
 export const deleteRecords = async (
     apiEndpoint: string,
     body: ApiDeleteRequestBody,
+    perimeterAuth: BasicAuthString,
+
     throwErrors?: boolean
 ): Promise<DeleteResponse> => {
-    const res = await pektinApiRequest(apiEndpoint, `delete`, body, throwErrors);
+    const res = await pektinApiRequest({
+        apiEndpoint,
+        method: `delete`,
+        body,
+        throwErrors,
+        perimeterAuth,
+    });
     if (throwErrors) return res as DeleteResponseSuccess;
     return res as DeleteResponse;
 };
@@ -217,9 +250,17 @@ export const deleteRecords = async (
 export const health = async (
     apiEndpoint: string,
     body: ApiHealthRequestBody,
+    perimeterAuth: BasicAuthString,
+
     throwErrors?: boolean
 ): Promise<HealthResponse> => {
-    const res = await pektinApiRequest(apiEndpoint, `health`, body, throwErrors);
+    const res = await pektinApiRequest({
+        apiEndpoint,
+        method: `health`,
+        body,
+        throwErrors,
+        perimeterAuth,
+    });
     if (throwErrors) return res as HealthResponseSuccess;
     return res as HealthResponse;
 };
@@ -228,9 +269,16 @@ export const health = async (
 export const getZoneRecords = async (
     apiEndpoint: string,
     body: ApiGetZoneRecordsRequestBody,
+    perimeterAuth: BasicAuthString,
     throwErrors?: boolean
 ): Promise<GetZoneRecordsResponse> => {
-    const res = await pektinApiRequest(apiEndpoint, `get-zone-records`, body, throwErrors);
+    const res = await pektinApiRequest({
+        apiEndpoint,
+        method: `get-zone-records`,
+        body,
+        throwErrors,
+        perimeterAuth,
+    });
     if (throwErrors) return res as GetZoneRecordsResponseSuccess;
     return res as GetZoneRecordsResponse;
 };
@@ -240,24 +288,41 @@ export const any = async (
     apiEndpoint: string,
     apiPath: string,
     body: any,
+    perimeterAuth: BasicAuthString,
     throwErrors?: boolean
 ): Promise<any> => {
-    const res = await pektinApiRequest(apiEndpoint, apiPath as ApiMethod, body, throwErrors);
+    const res = await pektinApiRequest({
+        apiEndpoint,
+        method: apiPath as ApiMethod,
+        body,
+        throwErrors,
+        perimeterAuth,
+    });
     return res as any;
 };
 
 // send any request to the pektin api
-export const pektinApiRequest = async (
-    apiEndpoint: string,
-    method: ApiMethod,
-    body: ApiRequestBody,
-    throwErrors = true
-): Promise<ApiResponseBody> => {
+export const pektinApiRequest = async ({
+    apiEndpoint,
+    method,
+    body,
+    perimeterAuth,
+    throwErrors = true,
+}: {
+    apiEndpoint: string;
+    method: ApiMethod;
+    body: ApiRequestBody;
+    perimeterAuth: BasicAuthString;
+    throwErrors?: boolean;
+}): Promise<ApiResponseBody> => {
     if (!apiEndpoint) throw Error(`Pektin API details weren't obtained yet`);
     const tStart = performance.now();
     const res = await f(`${apiEndpoint}/${method}`, {
         method: `POST`,
-        headers: { "content-type": `application/json` },
+        headers: {
+            "content-type": `application/json`,
+            ...(perimeterAuth && { Authorization: perimeterAuth }),
+        },
         body: JSON.stringify(body),
     }).catch((e: Error) => {
         throw Error(`Couldn't fetch: ` + e);

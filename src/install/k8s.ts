@@ -1,14 +1,19 @@
 import yaml from "yaml";
-import { PC3 } from "../types.js";
+import { BasicAuthString, PC3 } from "../types.js";
 import { installVault } from "./install-vault.js";
-import { chownRecursive, configToCertbotIni, randomString } from "./utils.js";
+import {
+    chownRecursive,
+    configToCertbotIni,
+    genBasicAuthHashed,
+    generatePerimeterAuth,
+    randomString,
+} from "./utils.js";
 import { promises as fs } from "fs";
 import path from "path";
 import { chmod } from "./utils.js";
 import { PektinConfig } from "@pektin/config/src/config-types";
 import { PektinSetupClient } from "./first-start.js";
 
-import { genBasicAuthHashed } from "./compose.js";
 import { declareFs } from "@pektin/declare-fs";
 
 export const installK8s = async (dir: string = `/base/`) => {
@@ -20,7 +25,7 @@ export const installK8s = async (dir: string = `/base/`) => {
                 process.env.GID
         );
     }
-    const secrets = yaml.parse(
+    const [secrets]: [K8sSecrets] = yaml.parse(
         await fs.readFile(path.join(dir, `secrets.yml`), {
             encoding: `utf-8`,
         })
@@ -34,10 +39,15 @@ export const installK8s = async (dir: string = `/base/`) => {
     const { pektinAdminConnectionConfig, vaultTokens, acmeClientConnectionConfig } =
         await installVault({
             pektinConfig,
-            secrets: secrets.secrets,
+            secrets: secrets,
             k8s: true,
             internalVaultUrl: `http://127.0.0.1:8227`,
         });
+
+    pektinAdminConnectionConfig.perimeterAuth = secrets.PERIMETER_AUTH as BasicAuthString;
+    if (typeof acmeClientConnectionConfig === `object`) {
+        acmeClientConnectionConfig.perimeterAuth = secrets.PERIMETER_AUTH as BasicAuthString;
+    }
 
     const user = `${process.env.UID}:${process.env.GID}`;
 
@@ -61,6 +71,7 @@ export const installK8s = async (dir: string = `/base/`) => {
     if (pektinConfig.nameservers?.length) {
         const pc = new PektinSetupClient({
             username: pektinAdminConnectionConfig.username,
+            perimeterAuth: secrets.PERIMETER_AUTH as BasicAuthString,
             /*@ts-ignore*/
             confidantPassword: pektinAdminConnectionConfig.confidantPassword,
             vaultEndpoint: `http://127.0.0.1:8200`,
@@ -86,7 +97,11 @@ export const createSecrets = async (dir: string = `/base/`) => {
         })
     );
 
+    const [PERIMETER_AUTH, PERIMETER_AUTH_HASHED] = generatePerimeterAuth();
+
     const secrets: K8sSecrets = {
+        PERIMETER_AUTH_HASHED,
+        PERIMETER_AUTH,
         R_PEKTIN_API_PASSWORD: randomString(),
         V_PEKTIN_API_PASSWORD: randomString(),
         R_PEKTIN_GEWERKSCHAFT_PASSWORD: randomString(),
@@ -151,6 +166,8 @@ export const createSecrets = async (dir: string = `/base/`) => {
 };
 
 export interface K8sSecrets {
+    PERIMETER_AUTH_HASHED: string;
+    PERIMETER_AUTH: string;
     nameserverSignerPasswords: {
         [name: string]: string;
     };

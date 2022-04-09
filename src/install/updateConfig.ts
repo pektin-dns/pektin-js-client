@@ -4,7 +4,7 @@ import { unsealVault } from "../vault/vault.js";
 import { PC3 } from "../index.js";
 import { PektinConfig } from "@pektin/config/src/config-types.js";
 import { config } from "dotenv";
-import { genTraefikConfs } from "../traefik/index.js";
+import { genTraefikConfs } from "./traefik/traefik.js";
 import { getMainNode } from "../pureFunctions.js";
 import { genStartScript, genStopScript, genUpdateScript } from "./compose.js";
 import { TempDomain } from "../types.js";

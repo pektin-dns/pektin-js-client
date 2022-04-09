@@ -30,6 +30,7 @@ import {
     PC3,
 } from "./index.js";
 import { any, crtFormatQuery, fetchProxy } from "./pureFunctions.js";
+import { BasicAuthString } from "./types.js";
 import { getVaultValue, vaultLoginUserpass } from "./vault/vault.js";
 
 export class PektinClient {
@@ -45,6 +46,7 @@ export class PektinClient {
     pektinApiEndpoint: string | null;
     pektinConfig: PektinConfig | null;
     internal: boolean;
+    perimeterAuth: BasicAuthString;
 
     constructor(pc3: PC3, throwErrors?: boolean) {
         if (pc3 === undefined) throw Error(`Missing connectionConfig`);
@@ -62,6 +64,7 @@ export class PektinClient {
         this.pektinConfig = pc3.override?.pektinConfig || null;
         this.throwErrors = throwErrors;
         this.internal = pc3.internal || false;
+        this.perimeterAuth = pc3.perimeterAuth;
     }
 
     init = async () => {
@@ -170,6 +173,7 @@ export class PektinClient {
                 client_username: this.username,
                 records,
             },
+            this.perimeterAuth,
             throwErrors
         );
     };
@@ -192,6 +196,7 @@ export class PektinClient {
                 confidant_password: this.confidantPassword,
                 client_username: this.username,
             },
+            this.perimeterAuth,
             throwErrors
         );
     };
@@ -216,6 +221,7 @@ export class PektinClient {
                 client_username: this.username,
                 ...value,
             },
+            this.perimeterAuth,
             throwErrors
         );
     };
@@ -239,6 +245,7 @@ export class PektinClient {
                 client_username: this.username,
                 records,
             },
+            this.perimeterAuth,
             throwErrors
         );
     };
@@ -265,6 +272,7 @@ export class PektinClient {
                 client_username: this.username,
                 globs,
             },
+            this.perimeterAuth,
             throwErrors
         );
     };
@@ -288,6 +296,7 @@ export class PektinClient {
                 client_username: this.username,
                 records,
             },
+            this.perimeterAuth,
             throwErrors
         );
     };
@@ -311,6 +320,7 @@ export class PektinClient {
                 client_username: this.username,
                 names: names.map(absoluteName),
             },
+            this.perimeterAuth,
             throwErrors
         );
     };

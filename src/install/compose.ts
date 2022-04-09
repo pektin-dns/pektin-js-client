@@ -6,6 +6,7 @@ import {
     randomString,
     requestPektinDomain,
     configToCertbotIni,
+    generatePerimeterAuth,
 } from "./utils.js";
 import crypto from "crypto";
 /*@ts-ignore*/
@@ -14,7 +15,7 @@ import crypto from "crypto";
 import { updateKvValue } from "../vault/vault.js";
 import { PektinConfig } from "@pektin/config/src/config-types.js";
 
-import { genTraefikConfs } from "../traefik/index.js";
+import { genTraefikConfs } from "./traefik/traefik.js";
 import { getMainNode } from "../pureFunctions.js";
 import { PC3, TempDomain } from "../types.js";
 import { concatDomain } from "../utils/index.js";
@@ -64,6 +65,7 @@ export const installPektinCompose = async (
               $$ |                                           
               \__|
     */
+    const [PERIMETER_AUTH, PERIMETER_AUTH_HASHED] = generatePerimeterAuth();
 
     const {
         vaultTokens,
@@ -85,6 +87,11 @@ export const installPektinCompose = async (
     $$ |  $$ |\$$$$$$$ |$$ |      \$$$$$$$ |      \$$$$$$$ |$$ |      $$ |   \$  /   \$$$$$$$\ 
     \__|  \__| \_______|\__|       \_______|       \_______|\__|      \__|    \_/     \_______|
     */
+
+    pektinAdminConnectionConfig.perimeterAuth = PERIMETER_AUTH;
+    if (typeof acmeClientConnectionConfig === `object`) {
+        acmeClientConnectionConfig.perimeterAuth = PERIMETER_AUTH;
+    }
 
     // init redis access control
     const R_PEKTIN_API_PASSWORD = randomString();
@@ -131,6 +138,7 @@ export const installPektinCompose = async (
         recursorAuth: recursorBasicAuthHashed,
         ...(tempDomain && { tempDomain }),
         proxyAuth: proxyBasicAuthHashed,
+        perimeterAuthHashed: PERIMETER_AUTH_HASHED,
     });
 
     // set the values in the .env file for provisioning them to the containers
@@ -188,17 +196,6 @@ export const installPektinCompose = async (
         },
         { method: `node`, basePath: dir }
     );
-};
-
-export const genBasicAuthHashed = (username: string, password: string) => {
-    const hash = (a: string) =>
-        crypto.createHash(`sha1`).update(a, `utf8`).digest().toString(`base64`);
-    return `${username}:{SHA}${hash(password)}`;
-};
-
-export const genBasicAuthString = (username: string, password: string) => {
-    const s = Buffer.from(`${username}:${password}`).toString(`base64`);
-    return `Basic ${s}`;
 };
 
 export const createArbeiterConfig = async (
@@ -346,9 +343,6 @@ export const genRedisPasswordHashes = async (
     repls.forEach((repl) => {
         file = file.replaceAll(RegExp(`${repl[0]}_SHA256$`, `gm`), `${hash(repl[1])}`);
     });
-    if (arbeiter) {
-        return file;
-    }
 
     return file;
     //crypto.create;

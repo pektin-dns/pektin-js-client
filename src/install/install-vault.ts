@@ -8,8 +8,7 @@ import {
     createPektinClient,
 } from "../auth.js";
 import { initVault, unsealVault, enableVaultCors, updateKvValue } from "../vault/vault.js";
-import { genBasicAuthHashed, genBasicAuthString } from "./compose.js";
-import { randomString } from "./utils.js";
+import { genBasicAuthHashed, genBasicAuthString, randomString } from "./utils.js";
 import { PektinConfig } from "@pektin/config/src/config-types";
 import { promises as fs } from "fs";
 import { K8sSecrets } from "./k8s.js";
@@ -136,7 +135,7 @@ export const installVault = async ({
         managerPassword: `m.${randomString()}`,
         confidantPassword: `c.${randomString()}`,
         vaultEndpoint,
-    };
+    } as PC3;
 
     const pektinAdminRibstonPolicy = await fs.readFile(
         path.join(policyFolder, `allow-everything.ribston.js`),
@@ -148,7 +147,7 @@ export const installVault = async ({
         token: vaultTokens.rootToken,
         clientName: pektinAdminConnectionConfig.username,
         managerPassword: pektinAdminConnectionConfig.managerPassword,
-        confidantPassword: pektinAdminConnectionConfig.confidantPassword,
+        confidantPassword: pektinAdminConnectionConfig.confidantPassword as string,
         capabilities: {
             allowAllSigningDomains: true,
             allAccess: true,
@@ -173,7 +172,7 @@ export const installVault = async ({
             override: {
                 pektinApiEndpoint: getPektinEndpoint(pektinConfig, `api`),
             },
-        };
+        } as PC3;
 
         const acmeClientRibstonPolicy = await fs.readFile(
             path.join(policyFolder, `acme.ribston.js`),

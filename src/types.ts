@@ -46,10 +46,13 @@ export type ConfidantPassword = `c.${string}`;
 
 export type ClientVaultAccountType = `confidant` | `manager`;
 
+export type BasicAuthString = `Basic ${string}`;
+
 // Pektin Client Connection Config
 export interface PC3 {
     vaultEndpoint?: string;
     username: string;
+    perimeterAuth: BasicAuthString;
     confidantPassword?: ConfidantPassword;
     managerPassword?: ManagerPassword;
     internal?: boolean;

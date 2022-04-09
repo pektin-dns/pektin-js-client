@@ -58,7 +58,7 @@
     },
     "dependencies": {
         "@firstdorsal/powerdns-api": "^1.11.0",
-        "@pektin/config": "^1.1.0",
+        "@pektin/config": "^1.1.1",
         "@pektin/declare-fs": "^2.2.1",
         "@pektin/dns-zonefile": "^0.3.1",
         "@pektin/global-registrar": "^1.0.13",

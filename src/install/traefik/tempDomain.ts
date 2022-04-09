@@ -1,8 +1,8 @@
 import { PektinConfig } from "@pektin/config/src/config-types";
 import _ from "lodash";
-import { concatDomain, TempDomain, toASCII } from "../index.js";
-import { getNodesNameservers } from "../pureFunctions.js";
-import { getNsList } from "./index.js";
+import { concatDomain, TempDomain, toASCII } from "../../index.js";
+import { getNodesNameservers } from "../../pureFunctions.js";
+import { getNsList } from "./traefik.js";
 
 export const genTempDomainConfig = ({
     pektinConfig,
