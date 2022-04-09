@@ -9,6 +9,7 @@ import { PektinConfig } from "@pektin/config/src/config-types";
 import { PektinSetupClient } from "./first-start.js";
 
 import { genBasicAuthHashed } from "./compose.js";
+import { declareFs } from "@pektin/declare-fs";
 
 export const installK8s = async (dir: string = `/base/`) => {
     if (process.env.UID === undefined || process.env.GID === undefined) {
@@ -38,28 +39,24 @@ export const installK8s = async (dir: string = `/base/`) => {
             internalVaultUrl: `http://127.0.0.1:8227`,
         });
 
-    await fs.mkdir(path.join(dir, `secrets`), { recursive: true });
-    await fs.writeFile(
-        path.join(dir, `secrets`, `server-admin.pc3.json`),
-        JSON.stringify(pektinAdminConnectionConfig)
-    );
-    await fs.writeFile(path.join(dir, `secrets`, `vault-tokens.json`), JSON.stringify(vaultTokens));
-    await fs.writeFile(
-        path.join(dir, `secrets`, `acme-client.pc3.json`),
-        JSON.stringify(acmeClientConnectionConfig)
-    );
-    await fs.writeFile(
-        path.join(dir, `secrets`, `certbot-acme-client.pc3.ini`),
-        configToCertbotIni(acmeClientConnectionConfig as PC3)
-    );
+    const user = `${process.env.UID}:${process.env.GID}`;
 
-    await chownRecursive(path.join(dir, `secrets`), process.env.UID, process.env.GID);
-
-    await chmod(path.join(dir, `secrets`), `700`);
-    await chmod(path.join(dir, `secrets`, `acme-client.pc3.json`), `600`);
-    await chmod(path.join(dir, `secrets`, `server-admin.pc3.json`), `600`);
-    await chmod(path.join(dir, `secrets`, `vault-tokens.json`), `600`);
-    await chmod(path.join(dir, `secrets`, `certbot-acme-client.pc3.ini`), `600`);
+    await declareFs(
+        {
+            $ownerR: user,
+            $filePermsR: `600`,
+            $folderPermsR: `700`,
+            secrets: {
+                "acme-client.pc3.json": JSON.stringify(acmeClientConnectionConfig),
+                "certbot-acme-client.pc3.ini": configToCertbotIni(
+                    acmeClientConnectionConfig as PC3
+                ),
+                "vault-tokens.json": JSON.stringify(vaultTokens),
+                "server-admin.pc3.json": JSON.stringify(pektinAdminConnectionConfig),
+            },
+        },
+        { method: `node`, basePath: dir }
+    );
 
     if (pektinConfig.nameservers?.length) {
         const pc = new PektinSetupClient({
@@ -94,6 +91,7 @@ export const createSecrets = async (dir: string = `/base/`) => {
         V_PEKTIN_API_PASSWORD: randomString(),
         R_PEKTIN_GEWERKSCHAFT_PASSWORD: randomString(),
         R_PEKTIN_SERVER_PASSWORD: randomString(),
+        V_PEKTIN_API_USER_NAME: `pektin-api-${randomString(10).toLowerCase()}`,
         nodes: {},
         nameserverSignerPasswords: {},
         adminClientInfo: {
@@ -158,6 +156,7 @@ export interface K8sSecrets {
     };
     R_PEKTIN_API_PASSWORD: string;
     V_PEKTIN_API_PASSWORD: string;
+    V_PEKTIN_API_USER_NAME: string;
     R_PEKTIN_GEWERKSCHAFT_PASSWORD: string;
     R_PEKTIN_SERVER_PASSWORD: string;
     adminClientInfo: {

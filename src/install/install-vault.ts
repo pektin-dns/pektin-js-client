@@ -107,8 +107,15 @@ export const installVault = async ({
         throw Error(`Trying to install vault for k8s but missing necessary api password`);
     }
     const V_PEKTIN_API_PASSWORD = secrets?.V_PEKTIN_API_PASSWORD ?? randomString();
+    const V_PEKTIN_API_USER_NAME =
+        secrets?.V_PEKTIN_API_USER_NAME ?? `pektin-api-${randomString(10).toLowerCase()}`;
 
-    createPektinApiAccount(internalVaultUrl, vaultTokens.rootToken, V_PEKTIN_API_PASSWORD);
+    createPektinApiAccount(
+        internalVaultUrl,
+        vaultTokens.rootToken,
+        V_PEKTIN_API_PASSWORD,
+        V_PEKTIN_API_USER_NAME
+    );
 
     let vaultEndpoint = getPektinEndpoint(pektinConfig, `vault`);
 
@@ -254,5 +261,6 @@ export const installVault = async ({
         proxyBasicAuthHashed,
         V_PEKTIN_API_PASSWORD,
         acmeClientConnectionConfig,
+        V_PEKTIN_API_USER_NAME,
     };
 };

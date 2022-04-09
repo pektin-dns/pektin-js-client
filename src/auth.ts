@@ -115,8 +115,13 @@ export const createPektinClientConfidant = async (
     await createVaultPolicy(endpoint, token, confidantName, pektinConfidantPolicy(capabilities));
 };
 
-export const createPektinApiAccount = async (endpoint: string, token: string, password: string) => {
-    createFullUserPass(endpoint, token, `pektin-api`, password, {}, [`pektin-api`]);
+export const createPektinApiAccount = async (
+    endpoint: string,
+    token: string,
+    password: string,
+    apiUserName: string
+) => {
+    createFullUserPass(endpoint, token, apiUserName, password, {}, [`pektin-api`]);
 };
 
 export const createPektinAuthVaultPolicies = async (endpoint: string, token: string) => {

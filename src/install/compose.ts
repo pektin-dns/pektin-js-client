@@ -72,6 +72,7 @@ export const installPektinCompose = async (
         V_PEKTIN_API_PASSWORD,
         pektinAdminConnectionConfig,
         acmeClientConnectionConfig,
+        V_PEKTIN_API_USER_NAME,
     } = await installVault({ pektinConfig });
 
     /*
@@ -138,6 +139,7 @@ export const installPektinCompose = async (
         R_PEKTIN_API_PASSWORD,
         R_PEKTIN_SERVER_PASSWORD,
         V_PEKTIN_API_PASSWORD,
+        V_PEKTIN_API_USER_NAME,
         pektinConfig,
         recursorBasicAuthHashed,
         ...(tempDomain && { tempDomain }),
@@ -386,6 +388,7 @@ export const genEnvValues = async (v: {
     R_PEKTIN_API_PASSWORD: string;
     R_PEKTIN_SERVER_PASSWORD: string;
     V_PEKTIN_API_PASSWORD: string;
+    V_PEKTIN_API_USER_NAME: string;
     vaultTokens: {
         key: string;
         rootToken: string;
@@ -395,6 +398,7 @@ export const genEnvValues = async (v: {
 }) => {
     const repls = [
         [`V_PEKTIN_API_PASSWORD`, v.V_PEKTIN_API_PASSWORD],
+        [`V_PEKTIN_API_USER_NAME`, v.V_PEKTIN_API_USER_NAME],
         [`R_PEKTIN_API_PASSWORD`, v.R_PEKTIN_API_PASSWORD],
         [`R_PEKTIN_SERVER_PASSWORD`, v.R_PEKTIN_SERVER_PASSWORD],
         [`V_KEY`, v.vaultTokens.key],
