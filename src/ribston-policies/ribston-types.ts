@@ -22,8 +22,6 @@ export enum RequestType {
     Health = `health`,
 }
 
-// TODO fix naming for get-zone get-zone-records as it is incosistent
-
 export interface BaseInput {
     readonly ip: string;
     readonly utc_millis: number;

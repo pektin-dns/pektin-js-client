@@ -6,8 +6,6 @@ import { getNodesNameservers } from "../../pureFunctions.js";
 import { TempDomain } from "../../types.js";
 import { genTempDomainConfig } from "./tempDomain.js";
 
-// TODO add traefik UI with auth
-
 export const genTraefikConfs = ({
     pektinConfig,
     node,

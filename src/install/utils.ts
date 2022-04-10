@@ -104,8 +104,6 @@ export const createSingleScript = async (sourceFolder: string, node: PektinConfi
     return `${content}history -d -1 || true`;
 };
 
-// TODO fix ribston policies, check acme client in vault
-
 export const configToCertbotIni = (cc: PC3) => `dns_pektin_username = ${cc.username}
 dns_pektin_perimeter_auth = ${cc.perimeterAuth}
 dns_pektin_confidant_password = ${cc.confidantPassword}

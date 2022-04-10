@@ -184,7 +184,6 @@ export const get = async (
         throwErrors,
         perimeterAuth,
     });
-    // TODO FIX TYPESCRIPT TYPES conditional types needed
     if (throwErrors) return res as GetResponseSuccess;
     return res as GetResponse;
 };

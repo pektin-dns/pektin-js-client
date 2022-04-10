@@ -16,7 +16,7 @@ import { updateKvValue } from "../vault/vault.js";
 import { PektinConfig } from "@pektin/config/src/config-types.js";
 
 import { genTraefikConfs } from "./traefik/traefik.js";
-import { getMainNode } from "../pureFunctions.js";
+import { getMainNode, getPektinEndpoint } from "../pureFunctions.js";
 import { PC3, TempDomain } from "../types.js";
 import { concatDomain } from "../utils/index.js";
 import { toASCII } from "../utils/puny.js";
@@ -142,6 +142,8 @@ export const installPektinCompose = async (
         perimeterAuthHashed: PERIMETER_AUTH_HASHED,
     });
 
+    const externalVaultUrl = getPektinEndpoint(pektinConfig, `vault`);
+
     // set the values in the .env file for provisioning them to the containers
     const envFile = await genEnvValues({
         vaultTokens,
@@ -153,6 +155,7 @@ export const installPektinCompose = async (
         PERIMETER_AUTH_HASHED,
         perimeterUsername,
         perimeterPassword,
+        externalVaultUrl,
         pektinConfig,
         recursorBasicAuthHashed,
         ...(tempDomain && { tempDomain }),
@@ -392,6 +395,7 @@ export const genEnvValues = async (v: {
     PERIMETER_AUTH_HASHED: string;
     perimeterUsername: string;
     perimeterPassword: string;
+    externalVaultUrl: string;
     vaultTokens: {
         key: string;
         rootToken: string;
@@ -404,6 +408,7 @@ export const genEnvValues = async (v: {
         [`PERIMETER_AUTH_HASHED`, v.PERIMETER_AUTH_HASHED],
         [`PERIMETER_USERNAME`, v.perimeterUsername],
         [`PERIMETER_PASSWORD`, v.perimeterPassword],
+        [`VAULT_API_ADDR`, v.externalVaultUrl],
 
         [`V_PEKTIN_API_PASSWORD`, v.V_PEKTIN_API_PASSWORD],
         [`V_PEKTIN_API_USER_NAME`, v.V_PEKTIN_API_USER_NAME],
