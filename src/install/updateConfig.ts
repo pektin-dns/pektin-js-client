@@ -54,7 +54,6 @@ export const updateConfig = async (dir: string = `/pektin-compose/`) => {
     // HARD DRIVE RELATED
 
     const recursorBasicAuthHashed = await pc.getAuth(`recursor`, true);
-
     const proxyBasicAuthHashed = await pc.getAuth(`proxy`, true);
 
     const tempDomain = (await pc.getPektinKv(`tempDomain`)) as unknown as TempDomain;
@@ -68,6 +67,7 @@ export const updateConfig = async (dir: string = `/pektin-compose/`) => {
         recursorAuth: recursorBasicAuthHashed,
         tempDomain,
         proxyAuth: proxyBasicAuthHashed,
+        perimeterAuthHashed: process.env.PERIMETER_AUTH_HASHED,
     });
 
     // impl compose.compose-scripts

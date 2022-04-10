@@ -216,7 +216,6 @@ export const createFullUserPass = async (
     });
 };
 
-// TODO
 export const deleteClient = async (endpoint: string, token: string, client: Client) => {
     const deleteRequests = [];
     if (client.confidant) {

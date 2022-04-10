@@ -65,7 +65,8 @@ export const installPektinCompose = async (
               $$ |                                           
               \__|
     */
-    const [PERIMETER_AUTH, PERIMETER_AUTH_HASHED] = generatePerimeterAuth();
+    const [PERIMETER_AUTH, PERIMETER_AUTH_HASHED, perimeterUsername, perimeterPassword] =
+        generatePerimeterAuth();
 
     const {
         vaultTokens,
@@ -148,6 +149,10 @@ export const installPektinCompose = async (
         R_PEKTIN_SERVER_PASSWORD,
         V_PEKTIN_API_PASSWORD,
         V_PEKTIN_API_USER_NAME,
+        PERIMETER_AUTH,
+        PERIMETER_AUTH_HASHED,
+        perimeterUsername,
+        perimeterPassword,
         pektinConfig,
         recursorBasicAuthHashed,
         ...(tempDomain && { tempDomain }),
@@ -383,6 +388,10 @@ export const genEnvValues = async (v: {
     R_PEKTIN_SERVER_PASSWORD: string;
     V_PEKTIN_API_PASSWORD: string;
     V_PEKTIN_API_USER_NAME: string;
+    PERIMETER_AUTH: string;
+    PERIMETER_AUTH_HASHED: string;
+    perimeterUsername: string;
+    perimeterPassword: string;
     vaultTokens: {
         key: string;
         rootToken: string;
@@ -391,6 +400,11 @@ export const genEnvValues = async (v: {
     tempDomain?: TempDomain;
 }) => {
     const repls = [
+        [`PERIMETER_AUTH`, v.PERIMETER_AUTH],
+        [`PERIMETER_AUTH_HASHED`, v.PERIMETER_AUTH_HASHED],
+        [`PERIMETER_USERNAME`, v.perimeterUsername],
+        [`PERIMETER_PASSWORD`, v.perimeterPassword],
+
         [`V_PEKTIN_API_PASSWORD`, v.V_PEKTIN_API_PASSWORD],
         [`V_PEKTIN_API_USER_NAME`, v.V_PEKTIN_API_USER_NAME],
         [`R_PEKTIN_API_PASSWORD`, v.R_PEKTIN_API_PASSWORD],

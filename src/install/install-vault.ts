@@ -27,6 +27,7 @@ export const installVault = async ({
     k8s?: boolean;
 }) => {
     const policyFolder = `dist/policies`;
+    const opaPolicyFolder = `src/opa-policies`;
     await isReady(internalVaultUrl);
     // init vault
     const vaultTokens = await initVault(internalVaultUrl);
@@ -141,6 +142,10 @@ export const installVault = async ({
         path.join(policyFolder, `allow-everything.ribston.js`),
         `utf-8`
     );
+    const pektinAdminOpaPolicy = await fs.readFile(
+        path.join(opaPolicyFolder, `allow-everything.rego`),
+        `utf-8`
+    );
 
     await createPektinClient({
         endpoint: internalVaultUrl,
@@ -153,7 +158,7 @@ export const installVault = async ({
             allAccess: true,
             allowFullUserManagement: true,
             ribstonPolicy: pektinAdminRibstonPolicy,
-            opaPolicy: ``, // TODO add OPA policies
+            opaPolicy: pektinAdminOpaPolicy,
         },
     });
 
@@ -178,6 +183,12 @@ export const installVault = async ({
             path.join(policyFolder, `acme.ribston.js`),
             `utf-8`
         );
+
+        const acmeClientOpaPolicy = await fs.readFile(
+            path.join(opaPolicyFolder, `acme.rego`),
+            `utf-8`
+        );
+
         await createPektinClient({
             endpoint: internalVaultUrl,
             token: vaultTokens.rootToken,
@@ -186,7 +197,7 @@ export const installVault = async ({
             capabilities: {
                 ribstonPolicy: acmeClientRibstonPolicy,
                 allowAllSigningDomains: true,
-                opaPolicy: ``, // TODO add OPA policies
+                opaPolicy: acmeClientOpaPolicy,
             },
         });
     }

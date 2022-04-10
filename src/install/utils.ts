@@ -23,10 +23,15 @@ export const genBasicAuthString = (username: string, password: string): BasicAut
     return `Basic ${s}`;
 };
 
-export const generatePerimeterAuth = (): [BasicAuthString, string] => {
+export const generatePerimeterAuth = (): [BasicAuthString, string, string, string] => {
     const password = randomString(30);
     const username = randomString(30);
-    return [genBasicAuthString(username, password), genBasicAuthHashed(username, password)];
+    return [
+        genBasicAuthString(username, password),
+        genBasicAuthHashed(username, password),
+        username,
+        password,
+    ];
 };
 
 export const randomString = (length = 100) => {

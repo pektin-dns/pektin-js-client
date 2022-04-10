@@ -8,9 +8,6 @@ import { genTempDomainConfig } from "./tempDomain.js";
 
 // TODO add traefik UI with auth
 
-//! TODO  ROUTING DOES NOT WORK host rules are mixed up!
-//! perimeter auth also does not create a middleware
-
 export const genTraefikConfs = ({
     pektinConfig,
     node,
@@ -28,29 +25,32 @@ export const genTraefikConfs = ({
 }) => {
     const nodeNameServers = getNodesNameservers(pektinConfig, node.name);
     if (!nodeNameServers) throw Error(`Could not get NS for node`);
-    const serviceKeys = Object.keys(pektinConfig.services);
-    const enabledServices = Object.values(pektinConfig.services).filter(
-        (s, i /*@ts-ignore*/) =>
-            s.enabled !== false &&
-            s.hasOwnProperty(`domain`) &&
-            serviceKeys[i] !== `recursor` &&
-            serviceKeys[i] !== `server`
-    );
 
     const dynamicConf = _.merge(
         serverConf({ nodeNameServers, pektinConfig }),
         ...(node.main
-            ? enabledServices.map((s, i) =>
-                  pektinServicesConf({
-                      service: Object.keys(pektinConfig.services)[i],
+            ? Object.values(pektinConfig.services).flatMap((s, i) => {
+                  if (
                       /*@ts-ignore*/
-                      domain: s.domain,
-                      /*@ts-ignore*/
-                      subDomain: s.subDomain,
-                      pektinConfig,
-                      perimeterAuthHashed,
-                  })
-              )
+                      s.enabled !== false &&
+                      s.hasOwnProperty(`domain`) &&
+                      Object.keys(pektinConfig.services)[i] !== `recursor` &&
+                      Object.keys(pektinConfig.services)[i] !== `server`
+                  ) {
+                      return [
+                          pektinServicesConf({
+                              service: Object.keys(pektinConfig.services)[i],
+                              /*@ts-ignore*/
+                              domain: s.domain,
+                              /*@ts-ignore*/
+                              subDomain: s.subDomain,
+                              pektinConfig,
+                              perimeterAuthHashed,
+                          }),
+                      ];
+                  }
+                  return [];
+              })
             : []),
         ...(node.main
             ? pektinConfig.reverseProxy.external.services
@@ -199,6 +199,7 @@ export const pektinServicesConf = ({
               domains: [{ main: domain, sans: [`*.${domain}`] }],
           }
         : false;
+
     return {
         http: {
             routers: {
@@ -239,7 +240,7 @@ export const pektinServicesConf = ({
             ...(pektinConfig.services[service].perimeterAuth &&
                 perimeterAuthHashed && {
                     middlewares: {
-                        [`pektin-perimeter-auth`]: { basicauth: { users: perimeterAuthHashed } },
+                        "pektin-perimeter-auth": { basicauth: { users: perimeterAuthHashed } },
                     },
                 }),
         },
