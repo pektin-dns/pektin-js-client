@@ -25,7 +25,7 @@ export const installK8s = async (dir: string = `/base/`) => {
                 process.env.GID
         );
     }
-    const [secrets]: [K8sSecrets] = yaml.parse(
+    const { secrets }: { secrets: K8sSecrets } = yaml.parse(
         await fs.readFile(path.join(dir, `secrets.yml`), {
             encoding: `utf-8`,
         })
