@@ -22,7 +22,30 @@ path "pektin-transit/keys/{{identity.entity.metadata.domain}}-ksk" {
 export const pektinServerAdminManagerPolicy: VaultPolicy = `
 path "auth/userpass/*" {
     capabilities = ["create", "read", "update", "delete", "list"]
-}`;
+}
+path "pektin-kv/*" {
+    capabilities = ["create", "read", "update", "delete", "list"]
+}
+path "pektin-transit/*" {
+    capabilities = ["create", "read", "update", "delete", "list"]
+}
+path "identity/*" {
+    capabilities = ["create", "read", "update", "delete", "list"]
+}
+path "sys/auth" {
+    capabilities = ["create", "read", "update", "delete", "list"]
+}
+path "pektin-signer-passwords/*" {
+    capabilities = ["create", "read", "update", "delete", "list"]
+}
+path "pektin-signer-passwords-1/*" {
+    capabilities = ["create", "read", "update", "delete", "list"]
+}
+path "pektin-signer-passwords-2/*" {
+    capabilities = ["create", "read", "update", "delete", "list"]
+}
+
+`;
 
 export const pektinConfidantPolicy = (capabilities: ClientCapabilities): VaultPolicy => {
     let policy = ``;
@@ -56,11 +79,24 @@ path "pektin-kv/data/proxy-auth" {
         policy += `
 path "pektin-signer-passwords-1/data/*" {
     capabilities = ["read"]
-}`;
+}
+
+path "pektin-transit/keys/*" {
+    capabilities = ["read"]
+}
+`;
     } else if (capabilities.allowedSigningDomains) {
         capabilities.allowedSigningDomains.map((domain) => {
             policy += `
 path "pektin-signer-passwords-1/data/${deAbsolute(domain)}" {
+    capabilities = ["read"]
+}`;
+            policy += `
+path "pektin-transit/keys/${deAbsolute(domain)}-zsk" {
+    capabilities = ["read"]
+}
+
+path "pektin-transit/keys/${deAbsolute(domain)}-ksk" {
     capabilities = ["read"]
 }`;
         });

@@ -3,7 +3,6 @@ import path from "path";
 import {
     chownRecursive,
     chown,
-    randomString,
     requestPektinDomain,
     configToCertbotIni,
     generatePerimeterAuth,
@@ -18,7 +17,7 @@ import { PektinConfig } from "@pektin/config/src/config-types.js";
 import { genTraefikConfs } from "./traefik/traefik.js";
 import { getMainNode, getPektinEndpoint } from "../pureFunctions.js";
 import { PC3, TempDomain } from "../types.js";
-import { concatDomain } from "../utils/index.js";
+import { concatDomain, randomString } from "../utils/index.js";
 import { toASCII } from "../utils/puny.js";
 import { installVault } from "./install-vault.js";
 import { declareFs } from "@pektin/declare-fs";

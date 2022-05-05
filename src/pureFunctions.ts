@@ -2,7 +2,7 @@ import { PektinConfig } from "@pektin/config/src/config-types";
 import { absoluteName, beautifyJSON, concatDomain, ResourceRecord, shortenTime } from "./index.js";
 import c from "chalk";
 import _ from "lodash";
-
+import crypto from "crypto";
 import f from "cross-fetch";
 import {
     ApiDeleteRequestBody,
@@ -31,7 +31,102 @@ import {
     SetResponse,
     SetResponseSuccess,
 } from "./types.js";
-import { getVaultValue } from "./vault/vault.js";
+import { getPubVaultKeys, getVaultValue } from "./vault/vault.js";
+import { toASCII } from "./utils/puny.js";
+import { deAbsolute } from "./utils/index.js";
+
+export const getPublicDnssecData = async ({
+    endpoint,
+    token,
+    domainName,
+}: {
+    endpoint: string;
+    token: string;
+    domainName: string;
+}) => {
+    let pubKey = await getPubVaultKeys(endpoint, token, deAbsolute(toASCII(domainName)), `zsk`);
+    pubKey = pubKey[`1`].public_key;
+
+    const rawKey = pubKey
+        .replace(`-----BEGIN PUBLIC KEY-----\n`, ``)
+        .replace(`-----END PUBLIC KEY-----`, ``)
+        .replace(/\n/g, ``);
+    const binPubKey = Buffer.from(rawKey, `base64`);
+    const pubKeyDns = binPubKey.slice(27).toString(`base64`); // i have no idea why this works
+
+    const ds = calculateDs({
+        ownerName: domainName,
+        publicKey: pubKeyDns,
+    });
+
+    return {
+        pubKeyPEM: pubKey,
+        pubKeyDns,
+        algorithm: 13,
+        flag: 257,
+        digests: {
+            sha256: crypto.createHash(`sha256`).update(ds).digest(`hex`),
+            sha384: crypto.createHash(`sha384`).update(ds).digest(`hex`),
+            sha512: crypto.createHash(`sha512`).update(ds).digest(`hex`),
+        },
+        keyTag: calculateKeyTag(pubKeyDns),
+    };
+};
+
+export const calculateDs = ({
+    ownerName,
+    publicKey,
+    algorithm = 13,
+}: {
+    ownerName: string;
+    publicKey: string;
+    algorithm?: number;
+}) => {
+    ownerName = toASCII(absoluteName(ownerName));
+
+    const ownerNameBinary = toDnsName(ownerName);
+
+    const flags = new Uint8Array([1, 1]);
+    const protocol = new Uint8Array([3]); // has to always be 3
+    const algorithmBin = new Uint8Array([algorithm]); // 13/ECDSA_P256_SHA256
+    const publicKeyBinary = Buffer.from(publicKey, `base64`);
+
+    const ds = Buffer.from([
+        ...ownerNameBinary,
+        ...flags,
+        ...protocol,
+        ...algorithmBin,
+        ...publicKeyBinary,
+    ]);
+
+    return ds;
+};
+
+export const toDnsName = (name: string) => {
+    const parts = name.split(`.`);
+    let p: number[] = [];
+    parts.forEach((label) => {
+        p = [...p, label.length, ...new Uint8Array(Buffer.from(label))];
+    });
+    return p;
+};
+
+export const calculateKeyTag = (pubKey: string, algorithm = 13) => {
+    const key = [
+        ...new Uint8Array([1, 1]),
+        ...new Uint8Array([3]),
+        ...new Uint8Array([algorithm]),
+        ...Buffer.from(pubKey, `base64`),
+    ];
+
+    let ac = 0;
+    for (let i = 0; i < key.length; i++) {
+        ac += i & 1 ? key[i] : key[i] << 8;
+    }
+
+    ac += ac >> 16;
+    return ac & 0xffff;
+};
 
 export const replaceNameInRrSet = (
     rr_set: ResourceRecord[],
@@ -418,7 +513,13 @@ export const err = ({
             `${beautifyJSON({ obj: body, deserializeError, answer: text })}\n`;
     }
 
-    throw new Error(e);
+    if (window === undefined) throw new Error(e);
+    throw new Error(
+        e.replaceAll(
+            /[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g,
+            ``
+        )
+    );
     /*
     if (typeof window === `undefined`) {
         console.log(e);

@@ -36,3 +36,7 @@ console.log(await pc.getDomains());
 # яндекс.рф
 
 TODO mark position in output when serde returns something like `at line 1 column 357`
+
+pektin.club 3600 DNSKEY 257 3 ECDSAP256SHA256 8KGSgDJjmg2DafFiTtBjs7f/wUg158qtEsJ0EcwrN+bSZcP2cYfTaqkRTsDV3ArlUAKOJ19tLdVypoLXLZjHWQ==
+
+ns1.pektin.club 3600 RRSIG AAAA ECDSAP256SHA256 2 60 20220509215921 20220504215921 35187 pektin.club mlkM/TEtj04JZbaW77Dw4nNiIkiHYm5Lcy/okLejb1jz1Qj4r4AnWYQCnSsutPmpq2xGR56cb7vY71q9GSS/+A==

@@ -382,7 +382,6 @@ export interface TXTRecord {
 export enum PektinRRType {
     A = `A`,
     AAAA = `AAAA`,
-
     CAA = `CAA`,
     CNAME = `CNAME`,
     MX = `MX`,

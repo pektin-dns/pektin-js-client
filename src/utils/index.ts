@@ -11,6 +11,16 @@ import {
 } from "../index.js";
 import { colorizeJson, ColorizeOptions } from "./colorize-json.js";
 import f from "cross-fetch";
+import crypto from "crypto";
+
+export const randomString = (length = 100) => {
+    return crypto
+        .randomBytes(length)
+        .toString(`base64`)
+        .replaceAll(`=`, ``)
+        .replaceAll(`+`, `-`)
+        .replaceAll(`/`, `_`);
+};
 
 const defaultColorizeOptions: ColorizeOptions = {
     colors: {

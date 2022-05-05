@@ -8,12 +8,13 @@ import {
     createPektinClient,
 } from "../auth.js";
 import { initVault, unsealVault, enableVaultCors, updateKvValue } from "../vault/vault.js";
-import { genBasicAuthHashed, genBasicAuthString, randomString } from "./utils.js";
+import { genBasicAuthHashed, genBasicAuthString } from "./utils.js";
 import { PektinConfig } from "@pektin/config/src/config-types";
 import { promises as fs } from "fs";
 import { K8sSecrets } from "./k8s.js";
 import { PC3 } from "../types.js";
 import path from "path";
+import { randomString } from "../utils/index.js";
 
 export const installVault = async ({
     pektinConfig,

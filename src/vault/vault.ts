@@ -308,8 +308,23 @@ export const updateKvValue = async (
     }
 };
 
-export const createSigningKey = async (endpoint: string, token: string, domainName: string) => {
-    await f(`${endpoint}/v1/pektin-transit/keys/${domainName}`, {
+export const deleteKvValue = async (
+    endpoint: string,
+    token: string,
+    key: string,
+    kvEngine: string
+) => {
+    const res = await f(`${endpoint}/v1/${kvEngine}/metadata/${key}`, {
+        method: `DELETE`,
+        headers: {
+            "X-Vault-Token": token,
+        },
+    });
+    return res.status;
+};
+
+export const createSigningKey = async (endpoint: string, token: string, keyName: string) => {
+    return await f(`${endpoint}/v1/pektin-transit/keys/${keyName}`, {
         method: `POST`,
         headers: {
             "X-Vault-Token": token,
@@ -318,9 +333,33 @@ export const createSigningKey = async (endpoint: string, token: string, domainNa
     });
 };
 
+export const allowKeyDeletion = async (endpoint: string, token: string, keyName: string) => {
+    return await f(`${endpoint}/v1/pektin-transit/keys/${keyName}/config`, {
+        method: `POST`,
+        headers: {
+            "X-Vault-Token": token,
+        },
+        body: JSON.stringify({ deletion_allowed: true }),
+    });
+};
+
+export const deleteSigningKey = async (endpoint: string, token: string, keyName: string) => {
+    return await f(`${endpoint}/v1/pektin-transit/keys/${keyName}`, {
+        method: `DELETE`,
+        headers: {
+            "X-Vault-Token": token,
+        },
+    });
+};
+
 // get keys for a domain with vault metadata
-export const getPubVaultKeys = async (endpoint: string, token: string, domainName: string) => {
-    const getPubKeyRes = await f(`${endpoint}/v1/pektin-transit/keys/${domainName}`, {
+export const getPubVaultKeys = async (
+    endpoint: string,
+    token: string,
+    domainName: string,
+    keyType: `ksk` | `zsk`
+) => {
+    const getPubKeyRes = await f(`${endpoint}/v1/pektin-transit/keys/${domainName}-${keyType}`, {
         method: `GET`,
         headers: {
             "X-Vault-Token": token,

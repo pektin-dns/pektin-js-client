@@ -7,11 +7,14 @@ import {
 } from "./vault/pektinVaultPolicies.js";
 import { VaultAuthEngine, VaultSecretEngine } from "./vault/types.js";
 import {
+    allowKeyDeletion,
     createEntity,
     createEntityAlias,
     createSigningKey,
     createUserPassAccount,
     createVaultPolicy,
+    deleteKvValue,
+    deleteSigningKey,
     deleteUserPass,
     deleteVaultPolicy,
     enableAuthMethod,
@@ -36,10 +39,26 @@ export const createPektinSigner = async (
 
     const metadata = { domain: domainName };
 
-    await Promise.all([
+    return await Promise.all([
         createFullUserPass(endpoint, token, name, password, metadata, [`pektin-signer`]),
         createSigningKey(endpoint, token, `${domainName}-ksk`),
         createSigningKey(endpoint, token, `${domainName}-zsk`),
+    ]);
+};
+
+export const deletePektinSigner = async (endpoint: string, token: string, domainName: string) => {
+    domainName = toASCII(deAbsolute(domainName));
+
+    const name = `pektin-signer-${domainName}`;
+    await Promise.all([
+        allowKeyDeletion(endpoint, token, `${domainName}-zsk`),
+        allowKeyDeletion(endpoint, token, `${domainName}-ksk`),
+    ]);
+    return await Promise.all([
+        deleteUserPass(endpoint, token, name),
+        deleteSigningKey(endpoint, token, `${domainName}-zsk`),
+        deleteSigningKey(endpoint, token, `${domainName}-ksk`),
+        deletePektinSharedPassword(endpoint, token, `signer`, domainName),
     ]);
 };
 
@@ -152,20 +171,29 @@ export const createPektinVaultEngines = async (
     }
 };
 
+export const deletePektinSharedPassword = async (
+    endpoint: string,
+    token: string,
+    type: `signer`,
+    domainName: DomainName
+) => {
+    domainName = toASCII(deAbsolute(domainName));
+    return await Promise.all([
+        await deleteKvValue(endpoint, token, domainName, `pektin-${type}-passwords`),
+        await deleteKvValue(endpoint, token, domainName, `pektin-${type}-passwords-1`),
+        await deleteKvValue(endpoint, token, domainName, `pektin-${type}-passwords-2`),
+    ]);
+};
+
 export const updatePektinSharedPasswords = async (
     endpoint: string,
     token: string,
     type: `signer`,
     password: string,
-    authName: DomainName
+    domainName: DomainName
 ) => {
-    await updateKvValue(
-        endpoint,
-        token,
-        deAbsolute(authName),
-        { password },
-        `pektin-${type}-passwords`
-    );
+    domainName = toASCII(deAbsolute(domainName));
+    await updateKvValue(endpoint, token, domainName, { password }, `pektin-${type}-passwords`);
 
     for (let i = 1; i < 3; i++) {
         if (password.length % 2 !== 0) throw new Error(`Password must have an even length`);
@@ -176,7 +204,7 @@ export const updatePektinSharedPasswords = async (
         await updateKvValue(
             endpoint,
             token,
-            deAbsolute(authName),
+            domainName,
             { password: passwordHalf },
             `pektin-${type}-passwords-${i}`
         );

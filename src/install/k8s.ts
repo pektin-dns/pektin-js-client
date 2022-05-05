@@ -6,7 +6,6 @@ import {
     configToCertbotIni,
     genBasicAuthHashed,
     generatePerimeterAuth,
-    randomString,
 } from "./utils.js";
 import { promises as fs } from "fs";
 import path from "path";
@@ -15,6 +14,7 @@ import { PektinConfig } from "@pektin/config/src/config-types";
 import { PektinSetupClient } from "./first-start.js";
 
 import { declareFs } from "@pektin/declare-fs";
+import { randomString } from "../utils/index.js";
 
 export const installK8s = async (dir: string = `/base/`) => {
     if (process.env.UID === undefined || process.env.GID === undefined) {

@@ -9,6 +9,7 @@ import { BasicAuthString, PC3, TempDomain } from "../types.js";
 import f from "cross-fetch";
 import c from "chalk";
 import { toASCII } from "../index.js";
+import { randomString } from "../utils/index.js";
 
 const exec = promisify(execDefault);
 
@@ -32,10 +33,6 @@ export const generatePerimeterAuth = (): [BasicAuthString, string, string, strin
         username,
         password,
     ];
-};
-
-export const randomString = (length = 100) => {
-    return crypto.randomBytes(length).toString(`base64url`).replaceAll(`=`, ``);
 };
 
 export const chmod = async (path: string, perms: string) => {

@@ -5,6 +5,7 @@ import { config } from "dotenv";
 import { ApiRecordSOA, PektinRRType } from "../types.js";
 import { listVaultUsers } from "../vault/vault.js";
 import { createPektinClient, deleteClient, getPektinClients } from "../auth.js";
+import { calculateKeyTag } from "../pureFunctions.js";
 
 config({ path: `/home/paul/Documents/powerdns-api/.env` });
 
@@ -20,6 +21,14 @@ const acmeClientConfig = await fs.readFile(`../pektin-compose/secrets/acme-clien
 
 const pc = new PektinClient(JSON.parse(serverAdminConfig));
 await pc.init();
+
+//console.log(await pc.getEverything());
+
+console.log(await pc.deletePektinSigner(`abc.de.`));
+
+//console.log(await pc.getPublicDnssecData(`pektin.club.`));
+
+/*
 if (pc.vaultEndpoint && pc.managerToken) {
     //await createPektinClient({ endpoint: pc.vaultEndpoint, token: pc.managerToken });
     const clients = await getPektinClients(pc.vaultEndpoint, pc.managerToken);

@@ -28,9 +28,13 @@ import {
     RecordIdentifier,
     Glob,
     PC3,
+    createPektinSigner,
+    updatePektinSharedPasswords,
+    deletePektinSigner,
 } from "./index.js";
-import { any, crtFormatQuery, fetchProxy } from "./pureFunctions.js";
+import { any, crtFormatQuery, fetchProxy, getPublicDnssecData } from "./pureFunctions.js";
 import { BasicAuthString } from "./types.js";
+import { randomString } from "./utils/index.js";
 import { getVaultValue, vaultLoginUserpass } from "./vault/vault.js";
 
 export class PektinClient {
@@ -71,6 +75,35 @@ export class PektinClient {
         if (this.confidantPassword) await this.getVaultToken(`confidant`);
         if (this.managerPassword) await this.getVaultToken(`manager`);
         await this.getPektinConfig();
+    };
+
+    createPektinSigner = async (domainName: string) => {
+        await this.init();
+        if (this.managerToken === null) throw Error(`Missing manager token`);
+        if (!this.vaultEndpoint) throw Error(`Missing vault endpoint`);
+        const domainSignerPassword = randomString();
+        return await Promise.all([
+            createPektinSigner(
+                this.vaultEndpoint,
+                this.managerToken,
+                domainName,
+                domainSignerPassword
+            ),
+            updatePektinSharedPasswords(
+                this.vaultEndpoint,
+                this.managerToken,
+                `signer`,
+                domainSignerPassword,
+                domainName
+            ),
+        ]);
+    };
+
+    deletePektinSigner = async (domainName: string) => {
+        await this.init();
+        if (this.managerToken === null) throw Error(`Missing manager token`);
+        if (!this.vaultEndpoint) throw Error(`Missing vault endpoint`);
+        return await deletePektinSigner(this.vaultEndpoint, this.managerToken, domainName);
     };
 
     // gets the pektin config from vault
@@ -147,11 +180,13 @@ export class PektinClient {
             throw Error(`clientType must be either 'manager' or 'confidant'`);
         }
 
-        this[`${clientType}Token` as `confidantToken` | `managerToken`] = await vaultLoginUserpass({
+        const res = await vaultLoginUserpass({
             vaultEndpoint: this.vaultEndpoint,
             username: `pektin-client-${this.username}-${clientType}`,
             password: this[`${clientType}Password`] as string,
         });
+        this[`${clientType}Token` as `confidantToken` | `managerToken`] = res;
+        return res;
     };
 
     // get records from the api/redis based on their key
@@ -546,6 +581,20 @@ export class PektinClient {
             }
         }
         return j as Crt[];
+    };
+
+    getPublicDnssecData = async (domainName: string) => {
+        if (!this.vaultEndpoint) {
+            throw Error(`Missing vaultEndpoint`);
+        }
+        if (!this.confidantToken) {
+            throw Error(`Client cannot use this function because it requires a confidantPassword`);
+        }
+        return await getPublicDnssecData({
+            endpoint: this.vaultEndpoint,
+            token: this.confidantToken,
+            domainName,
+        });
     };
 }
 
