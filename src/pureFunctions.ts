@@ -26,6 +26,7 @@ import {
     GetZoneRecordsResponseSuccess,
     HealthResponse,
     HealthResponseSuccess,
+    PublicDnssecData,
     SearchResponse,
     SearchResponseSuccess,
     SetResponse,
@@ -43,7 +44,7 @@ export const getPublicDnssecData = async ({
     endpoint: string;
     token: string;
     domainName: string;
-}) => {
+}): Promise<PublicDnssecData> => {
     let pubKey = await getPubVaultKeys(endpoint, token, deAbsolute(toASCII(domainName)), `zsk`);
     pubKey = pubKey[`1`].public_key;
 

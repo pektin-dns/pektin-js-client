@@ -393,3 +393,16 @@ export enum PektinRRType {
     TXT = `TXT`,
 }
 /* eslint-enable no-unused-vars */
+
+export interface PublicDnssecData {
+    pubKeyPEM: string;
+    pubKeyDns: string;
+    algorithm: number;
+    flag: number;
+    digests: {
+        sha256: string;
+        sha384: string;
+        sha512: string;
+    };
+    keyTag: number;
+}
