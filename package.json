@@ -77,7 +77,7 @@
         "upgrade-pektin": "yarn upgrade --latest @pektin/config @pektin/global-registrar @pektin/declare-fs",
         "convert-deno": "bash scripts/convert-deno.sh",
         "bundle-policies": "bash scripts/bundle-policies.sh",
-        "compile-cjs": "tsc -p tsconfig-common.json",
+        "compile-cjs": "tsc --downlevelIteration -p tsconfig-common.json",
         "test-watch": "bash scripts/chalk-for-jest.sh && NODE_OPTIONS=--experimental-vm-modules jest --runInBand --watch ./dist/js/",
         "test": "yarn build && bash scripts/chalk-for-jest.sh && NODE_OPTIONS=--experimental-vm-modules jest --runInBand ./dist/js/"
     }
