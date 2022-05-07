@@ -85,9 +85,12 @@ Vault key and root token can be found here: ${c.bold.cyan(
         setupType === `compose` ? `./secrets/.env` : `./secrets/vault-tokens.json`
     )}
 
-🌳 ${c.bold(`Recursor`)}: ${c.bold.cyan(getPektinEndpoint(pektinConfig, `recursor`))}
-The recursor basic auth username and password can be found in Vault at\n${c.bold.cyan(
-        `${getPektinEndpoint(pektinConfig, `vault`)}/ui/vault/secrets/pektin-kv/show/recursor-auth`
+🌳 ${c.bold(`Trinitrotoluol`)}: ${c.bold.cyan(getPektinEndpoint(pektinConfig, `trinitrotoluol`))}
+The trinitrotoluol basic auth username and password can be found in Vault at\n${c.bold.cyan(
+        `${getPektinEndpoint(
+            pektinConfig,
+            `vault`
+        )}/ui/vault/secrets/pektin-kv/show/trinitrotoluol-auth`
     )}
 `;
 };

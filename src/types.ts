@@ -23,7 +23,7 @@ export interface ClientCapabilities {
     allowedSigningDomains?: string[];
     allowAllSigningDomains?: boolean;
     allowFullUserManagement?: boolean;
-    recursorAccess?: boolean;
+    trinitrotoluolAccess?: boolean;
     proxyAccess?: boolean;
     configAccess?: boolean;
     allAccess?: boolean;
@@ -398,6 +398,10 @@ export interface PublicDnssecData {
     pubKeyPEM: string;
     pubKeyDns: string;
     algorithm: number;
+    coordinates: {
+        x: number;
+        y: number;
+    };
     flag: number;
     digests: {
         sha256: string;

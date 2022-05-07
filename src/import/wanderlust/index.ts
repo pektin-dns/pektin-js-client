@@ -10,8 +10,8 @@ export const importByZoneWalking = async (
     limit = 10
 ): Promise<PektinZoneData> => {
     const t = new Toluol(
-        await pc.getPektinEndpoint(`recursor`),
-        await pc.getAuth(`recursor`),
+        await pc.getPektinEndpoint(`trinitrotoluol`),
+        await pc.getAuth(`trinitrotoluol`),
         toluol
     );
     const out: PektinZoneData = {};

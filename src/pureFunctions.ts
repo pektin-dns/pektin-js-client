@@ -48,14 +48,9 @@ export const getPublicDnssecData = async ({
     let pubKey = await getPubVaultKeys(endpoint, token, deAbsolute(toASCII(domainName)), `zsk`);
     pubKey = pubKey[`1`].public_key;
 
-    const rawKey = pubKey
-        .replace(`-----BEGIN PUBLIC KEY-----\n`, ``)
-        .replace(`-----END PUBLIC KEY-----`, ``)
-        .replace(/\n/g, ``);
-    const binPubKey = Buffer.from(rawKey, `base64`);
-    const pubKeyDns = binPubKey.slice(27).toString(`base64`); // i have no idea why this works
+    const pubKeyDns = pemToPublicDnsKey(pubKey);
 
-    const ds = calculateDs({
+    const ds = calculateDelegateSigner({
         ownerName: domainName,
         publicKey: pubKeyDns,
     });
@@ -63,6 +58,7 @@ export const getPublicDnssecData = async ({
     return {
         pubKeyPEM: pubKey,
         pubKeyDns,
+        coordinates: getCoordinatesFromPublicDnsKey(pubKeyDns),
         algorithm: 13,
         flag: 257,
         digests: {
@@ -74,7 +70,47 @@ export const getPublicDnssecData = async ({
     };
 };
 
-export const calculateDs = ({
+export const getCoordinatesFromPublicDnsKey = (pubKeyDns: string) => {
+    const bin = Buffer.from(pubKeyDns, `base64`);
+    const x = bin.subarray(0, 32);
+    const y = bin.subarray(32);
+    return {
+        x: bitStringToInteger(x),
+        y: bitStringToInteger(y),
+    };
+};
+
+export const bitStringToInteger = (bitString: Buffer): number => {
+    // https://csrc.nist.gov/csrc/media/publications/fips/186/3/archive/2009-06-25/documents/fips_186-3.pdf
+    let num = 0;
+    for (let i = 1; i <= bitString.length; i++) {
+        const b = bitString[i - 1];
+        num += b * Math.pow(2, bitString.length - i);
+    }
+    return num;
+};
+
+export const pemToPublicDnsKey = (pem: string): string => {
+    const removedHeadersAndNewLines = pem
+        .replace(`-----BEGIN PUBLIC KEY-----\n`, ``)
+        .replace(`-----END PUBLIC KEY-----`, ``)
+        .replace(/\n/g, ``);
+    const binKey = Buffer.from(removedHeadersAndNewLines, `base64`);
+    const dnsKey = binKey.slice(27).toString(`base64`);
+    // trim of the first 27 bytes so that only the raw coordinates remain
+    // (the last 64 bit; 32 bit for the x coordinate and 32 bit for the y coordinate)
+    // in the bytes before there is the information about the algorithm and the curve
+    return dnsKey;
+};
+
+export const publicDnsKeyToPem = (dnsKey: string): string => {
+    const num13Prefix = `MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE`;
+    return `-----BEGIN PUBLIC KEY-----
+${num13Prefix}${dnsKey}
+-----END PUBLIC KEY-----`;
+};
+
+export const calculateDelegateSigner = ({
     ownerName,
     publicKey,
     algorithm = 13,
@@ -89,7 +125,7 @@ export const calculateDs = ({
 
     const flags = new Uint8Array([1, 1]);
     const protocol = new Uint8Array([3]); // has to always be 3
-    const algorithmBin = new Uint8Array([algorithm]); // 13/ECDSA_P256_SHA256
+    const algorithmBin = new Uint8Array([algorithm]); // 13/ECDSA_P256_SHA256 15/ED25519
     const publicKeyBinary = Buffer.from(publicKey, `base64`);
 
     const ds = Buffer.from([
@@ -125,7 +161,7 @@ export const calculateKeyTag = (pubKey: string, algorithm = 13) => {
         ac += i & 1 ? key[i] : key[i] << 8;
     }
 
-    ac += ac >> 16;
+    ac += (ac >> 16) & 0xffff;
     return ac & 0xffff;
 };
 
@@ -183,7 +219,7 @@ export const clampTTL = (ttl: number | string) => {
 };
 
 export const getEmojiForServiceName = (name: string) => {
-    const map = { api: `🤖`, ui: `💻`, vault: `🔐`, recursor: `🌳` };
+    const map = { api: `🤖`, ui: `💻`, vault: `🔐`, trinitrotoluol: `🌳` };
     /*@ts-ignore*/
     return map[name];
 };
@@ -210,14 +246,14 @@ export const isNameServer = (pektinConfig: PektinConfig, domain: string) => {
 // get the pektin endpoints from the pektin config
 export const getPektinEndpoint = (
     c: PektinConfig,
-    endpointType: `api` | `vault` | `ui` | `recursor` | `proxy`,
+    endpointType: `api` | `vault` | `ui` | `trinitrotoluol` | `proxy`,
     useInternal = false
 ): string => {
     if (useInternal) {
         if (endpointType === `api`) return `http://pektin-api`;
         if (endpointType === `vault`) return `http://pektin-vault`;
         if (endpointType === `ui`) return `http://pektin-ui`;
-        if (endpointType === `recursor`) return `http://pektin-recursor`;
+        if (endpointType === `trinitrotoluol`) return `http://pektin-trinitrotoluol`;
     }
     let domain = ``;
 
@@ -242,7 +278,7 @@ export const getPektinEndpoint = (
 export const getAuth = async (
     vaultEndpoint: string,
     vaultToken: string,
-    service: `recursor` | `proxy`,
+    service: `trinitrotoluol` | `proxy`,
     hashed = false
 ) => {
     const res = await getVaultValue(vaultEndpoint, vaultToken, `${service}-auth`, `pektin-kv`);

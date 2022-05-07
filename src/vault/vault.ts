@@ -323,13 +323,18 @@ export const deleteKvValue = async (
     return res.status;
 };
 
-export const createSigningKey = async (endpoint: string, token: string, keyName: string) => {
+export const createSigningKey = async (
+    endpoint: string,
+    token: string,
+    keyName: string,
+    keyType: `ecdsa-p256` | `ed25519` = `ecdsa-p256`
+) => {
     return await f(`${endpoint}/v1/pektin-transit/keys/${keyName}`, {
         method: `POST`,
         headers: {
             "X-Vault-Token": token,
         },
-        body: JSON.stringify({ type: `ecdsa-p256` }),
+        body: JSON.stringify({ type: keyType }),
     });
 };
 

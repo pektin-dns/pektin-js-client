@@ -204,42 +204,45 @@ export const installVault = async ({
     }
 
     if (k8s) {
-        if (pektinConfig.services.recursor.enabled) {
-            if (!secrets?.recursorAuth?.password || !secrets?.recursorAuth?.username) {
+        if (pektinConfig.services.trinitrotoluol.enabled) {
+            if (!secrets?.trinitrotoluolAuth?.password || !secrets?.trinitrotoluolAuth?.username) {
                 throw Error(
-                    `Trying to install vault for k8s but missing necessary recursorAuth info`
+                    `Trying to install vault for k8s but missing necessary trinitrotoluolAuth info`
                 );
             }
         }
         if (pektinConfig.reverseProxy.external.enabled) {
             if (!secrets?.proxyAuth?.password || !secrets?.proxyAuth?.username) {
                 throw Error(
-                    `Trying to install vault for k8s but missing necessary recursorAuth info`
+                    `Trying to install vault for k8s but missing necessary trinitrotoluolAuth info`
                 );
             }
         }
     }
 
-    // create basic auth for recursor
-    const RECURSOR_USER = secrets?.recursorAuth?.username ?? randomString(20);
-    const RECURSOR_PASSWORD = secrets?.recursorAuth?.password ?? randomString();
-    const recursorBasicAuthHashed = genBasicAuthHashed(RECURSOR_USER, RECURSOR_PASSWORD);
+    // create basic auth for trinitrotoluol
+    const TRINITROTOLUOL_USER = secrets?.trinitrotoluolAuth?.username ?? randomString(20);
+    const TRINITROTOLUOL_PASSWORD = secrets?.trinitrotoluolAuth?.password ?? randomString();
+    const trinitrotoluolBasicAuthHashed = genBasicAuthHashed(
+        TRINITROTOLUOL_USER,
+        TRINITROTOLUOL_PASSWORD
+    );
 
-    // create basic auth for recursor
+    // create basic auth for trinitrotoluol
     const PROXY_USER = secrets?.proxyAuth?.username ?? randomString(20);
     const PROXY_PASSWORD = secrets?.proxyAuth?.password ?? randomString();
     const proxyBasicAuthHashed = genBasicAuthHashed(PROXY_USER, PROXY_PASSWORD);
 
-    // set recursor basic auth string on vault
+    // set trinitrotoluol basic auth string on vault
     await updateKvValue(
         internalVaultUrl,
         vaultTokens.rootToken,
-        `recursor-auth`,
+        `trinitrotoluol-auth`,
         {
-            basicAuth: genBasicAuthString(RECURSOR_USER, RECURSOR_PASSWORD),
-            hashedAuth: recursorBasicAuthHashed,
-            user: RECURSOR_USER,
-            password: RECURSOR_PASSWORD,
+            basicAuth: genBasicAuthString(TRINITROTOLUOL_USER, TRINITROTOLUOL_PASSWORD),
+            hashedAuth: trinitrotoluolBasicAuthHashed,
+            user: TRINITROTOLUOL_USER,
+            password: TRINITROTOLUOL_PASSWORD,
         },
         `pektin-kv`
     );
@@ -268,7 +271,7 @@ export const installVault = async ({
     return {
         pektinAdminConnectionConfig,
         vaultTokens,
-        recursorBasicAuthHashed,
+        trinitrotoluolBasicAuthHashed,
         proxyBasicAuthHashed,
         V_PEKTIN_API_PASSWORD,
         acmeClientConnectionConfig,

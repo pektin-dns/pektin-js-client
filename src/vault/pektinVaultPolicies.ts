@@ -62,9 +62,9 @@ path "pektin-kv/data/pektin-config" {
 }`;
         }
 
-        if (capabilities.recursorAccess) {
+        if (capabilities.trinitrotoluolAccess) {
             policy += `
-path "pektin-kv/data/recursor-auth" {
+path "pektin-kv/data/trinitrotoluol-auth" {
     capabilities = ["read"]
 }`;
         }

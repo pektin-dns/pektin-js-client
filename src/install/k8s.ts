@@ -115,7 +115,7 @@ export const createSecrets = async (dir: string = `/base/`) => {
             manager: `m.${randomString()}`,
         },
         acmeClientInfo: { confidant: `c.${randomString()}`, username: `acme-${randomString(10)}` },
-        recursorAuth: { username: randomString(20), password: randomString() },
+        trinitrotoluolAuth: { username: randomString(20), password: randomString() },
         proxyAuth: { username: randomString(20), password: randomString() },
     } as K8sSecrets;
 
@@ -127,9 +127,9 @@ export const createSecrets = async (dir: string = `/base/`) => {
         secrets.nameserverSignerPasswords[ns.domain] = randomString();
     });
 
-    secrets.recursorAuth.basicAuth = genBasicAuthHashed(
-        secrets.recursorAuth.username,
-        secrets.recursorAuth.password
+    secrets.trinitrotoluolAuth.basicAuth = genBasicAuthHashed(
+        secrets.trinitrotoluolAuth.username,
+        secrets.trinitrotoluolAuth.password
     );
     secrets.proxyAuth.basicAuth = genBasicAuthHashed(
         secrets.proxyAuth.username,
@@ -141,9 +141,9 @@ export const createSecrets = async (dir: string = `/base/`) => {
     const traefikConfs = genTraefikConfs({
         pektinConfig,
         node: getMainNode(pektinConfig),
-        recursorAuth: genBasicAuthHashed(
-            secrets.recursorAuth?.username as string,
-            secrets.recursorAuth?.password as string
+        trinitrotoluolAuth: genBasicAuthHashed(
+            secrets.trinitrotoluolAuth?.username as string,
+            secrets.trinitrotoluolAuth?.password as string
         ),
         ...(tempDomain && { tempDomain }),
         proxyAuth: genBasicAuthHashed(
@@ -185,7 +185,7 @@ export interface K8sSecrets {
         confidant: string;
         username: string;
     };
-    recursorAuth: {
+    trinitrotoluolAuth: {
         username: string;
         password: string;
         basicAuth: string;
