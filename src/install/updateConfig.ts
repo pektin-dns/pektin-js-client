@@ -53,7 +53,7 @@ export const updateConfig = async (dir: string = `/pektin-compose/`) => {
 
     // HARD DRIVE RELATED
 
-    const trinitrotoluolBasicAuthHashed = await pc.getAuth(`trinitrotoluol`, true);
+    const tntBasicAuthHashed = await pc.getAuth(`tnt`, true);
     const proxyBasicAuthHashed = await pc.getAuth(`proxy`, true);
 
     const tempDomain = (await pc.getPektinKv(`tempDomain`)) as unknown as TempDomain;
@@ -64,7 +64,7 @@ export const updateConfig = async (dir: string = `/pektin-compose/`) => {
     const traefikConfs = genTraefikConfs({
         pektinConfig,
         node: getMainNode(pektinConfig),
-        trinitrotoluolAuth: trinitrotoluolBasicAuthHashed,
+        tntAuth: tntBasicAuthHashed,
         tempDomain,
         proxyAuth: proxyBasicAuthHashed,
         perimeterAuthHashed: process.env.PERIMETER_AUTH_HASHED,

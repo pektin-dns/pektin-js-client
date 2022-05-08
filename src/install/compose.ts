@@ -69,7 +69,7 @@ export const installPektinCompose = async (
 
     const {
         vaultTokens,
-        trinitrotoluolBasicAuthHashed,
+        tntBasicAuthHashed,
         proxyBasicAuthHashed,
         V_PEKTIN_API_PASSWORD,
         pektinAdminConnectionConfig,
@@ -135,7 +135,7 @@ export const installPektinCompose = async (
     const traefikConfs = genTraefikConfs({
         pektinConfig,
         node: getMainNode(pektinConfig),
-        trinitrotoluolAuth: trinitrotoluolBasicAuthHashed,
+        tntAuth: tntBasicAuthHashed,
         ...(tempDomain && { tempDomain }),
         proxyAuth: proxyBasicAuthHashed,
         perimeterAuthHashed: PERIMETER_AUTH_HASHED,
@@ -156,7 +156,7 @@ export const installPektinCompose = async (
         perimeterPassword,
         externalVaultUrl,
         pektinConfig,
-        trinitrotoluolBasicAuthHashed,
+        tntBasicAuthHashed,
         ...(tempDomain && { tempDomain }),
     });
 
@@ -399,7 +399,7 @@ export const genEnvValues = async (v: {
         key: string;
         rootToken: string;
     };
-    trinitrotoluolBasicAuthHashed: string;
+    tntBasicAuthHashed: string;
     tempDomain?: TempDomain;
 }) => {
     const repls = [
@@ -417,19 +417,19 @@ export const genEnvValues = async (v: {
         [`V_ROOT_TOKEN`, v.vaultTokens.rootToken],
         [`LETSENCRYPT_EMAIL`, v.pektinConfig.letsencrypt.letsencryptEmail],
         [`CSP_CONNECT_SRC`, createCspConnectSources(v.pektinConfig, v.tempDomain)],
-        [`TRINITROTOLUOL_AUTH`, v.trinitrotoluolBasicAuthHashed],
+        [`TNT_AUTH`, v.tntBasicAuthHashed],
 
         [`UI_BUILD_PATH`, v.pektinConfig.services.ui.build.path],
         [`API_BUILD_PATH`, v.pektinConfig.services.api.build.path],
         [`SERVER_BUILD_PATH`, v.pektinConfig.services.server.build.path],
-        [`TRINITROTOLUOL_BUILD_PATH`, v.pektinConfig.services.trinitrotoluol.build.path],
+        [`TNT_BUILD_PATH`, v.pektinConfig.services.tnt.build.path],
         [`RIBSTON_BUILD_PATH`, v.pektinConfig.services.ribston.build.path],
         [`VAULT_BUILD_PATH`, v.pektinConfig.services.vault.build.path],
 
         [`UI_DOCKERFILE`, v.pektinConfig.services.ui.build.dockerfile],
         [`API_DOCKERFILE`, v.pektinConfig.services.api.build.dockerfile],
         [`SERVER_DOCKERFILE`, v.pektinConfig.services.server.build.dockerfile],
-        [`TRINITROTOLUOL_DOCKERFILE`, v.pektinConfig.services.trinitrotoluol.build.dockerfile],
+        [`TNT_DOCKERFILE`, v.pektinConfig.services.tnt.build.dockerfile],
         [`RIBSTON_DOCKERFILE`, v.pektinConfig.services.ribston.build.dockerfile],
         [`VAULT_DOCKERFILE`, v.pektinConfig.services.vault.build.dockerfile],
         [`API_LOGGING`, v.pektinConfig.services.api.logging],
@@ -526,10 +526,10 @@ export const activeComposeFiles = (pektinConfig: PektinConfig) => {
         composeCommand += ` -f pektin-compose/services/opa.yml`;
     }
 
-    if (pektinConfig.services.trinitrotoluol.enabled) {
-        composeCommand += ` -f pektin-compose/services/trinitrotoluol.yml`;
-        if (pektinConfig.services.trinitrotoluol.build.enabled) {
-            composeCommand += ` -f pektin-compose/from-source/trinitrotoluol.yml`;
+    if (pektinConfig.services.tnt.enabled) {
+        composeCommand += ` -f pektin-compose/services/tnt.yml`;
+        if (pektinConfig.services.tnt.build.enabled) {
+            composeCommand += ` -f pektin-compose/from-source/tnt.yml`;
         }
     }
 

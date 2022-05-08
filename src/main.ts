@@ -42,7 +42,7 @@ export class PektinClient {
     username: ClientName;
     confidantPassword?: ConfidantPassword;
     managerPassword?: ManagerPassword;
-    trinitrotoluolAuth?: string;
+    tntAuth?: string;
     proxyAuth?: string;
     throwErrors?: boolean;
     confidantToken: string | null;
@@ -130,8 +130,8 @@ export class PektinClient {
         return this.pektinConfig;
     };
 
-    // gets the auth info for the trinitrotoluol returns it and sets it on the object
-    getAuth = async (service: `trinitrotoluol` | `proxy`, hashed = false) => {
+    // gets the auth info for the tnt returns it and sets it on the object
+    getAuth = async (service: `tnt` | `proxy`, hashed = false) => {
         if (!this.vaultEndpoint) {
             throw Error(
                 `Tried to execute an action that requires the vault endpoint without it being supplied`
@@ -359,7 +359,7 @@ export class PektinClient {
             throwErrors
         );
     };
-    getPektinEndpoint = async (type: `api` | `vault` | `ui` | `trinitrotoluol`) => {
+    getPektinEndpoint = async (type: `api` | `vault` | `ui` | `tnt`) => {
         if (!this.pektinConfig) await this.getPektinConfig();
         if (!this.pektinConfig) throw Error(`Couldn't obtain pektin-config`);
         return getPektinEndpoint(this.pektinConfig, type, this.internal);

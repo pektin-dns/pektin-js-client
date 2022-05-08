@@ -146,7 +146,7 @@ genTraefikConfs({
     pektinConfig: c,
     node: c.nodes[0],
     tempDomain: requestPektinDomain(),
-    trinitrotoluolAuth: `shahuhuiwqdr`,
+    tntAuth: `shahuhuiwqdr`,
 }); //?
 */
 //await pc.duplicateZone(`y.gy`, `k.xx`, true);

@@ -219,7 +219,7 @@ export const clampTTL = (ttl: number | string) => {
 };
 
 export const getEmojiForServiceName = (name: string) => {
-    const map = { api: `🤖`, ui: `💻`, vault: `🔐`, trinitrotoluol: `🌳` };
+    const map = { api: `🤖`, ui: `💻`, vault: `🔐`, tnt: `🌳` };
     /*@ts-ignore*/
     return map[name];
 };
@@ -246,14 +246,14 @@ export const isNameServer = (pektinConfig: PektinConfig, domain: string) => {
 // get the pektin endpoints from the pektin config
 export const getPektinEndpoint = (
     c: PektinConfig,
-    endpointType: `api` | `vault` | `ui` | `trinitrotoluol` | `proxy`,
+    endpointType: `api` | `vault` | `ui` | `tnt` | `proxy`,
     useInternal = false
 ): string => {
     if (useInternal) {
         if (endpointType === `api`) return `http://pektin-api`;
         if (endpointType === `vault`) return `http://pektin-vault`;
         if (endpointType === `ui`) return `http://pektin-ui`;
-        if (endpointType === `trinitrotoluol`) return `http://pektin-trinitrotoluol`;
+        if (endpointType === `tnt`) return `http://pektin-tnt`;
     }
     let domain = ``;
 
@@ -278,7 +278,7 @@ export const getPektinEndpoint = (
 export const getAuth = async (
     vaultEndpoint: string,
     vaultToken: string,
-    service: `trinitrotoluol` | `proxy`,
+    service: `tnt` | `proxy`,
     hashed = false
 ) => {
     const res = await getVaultValue(vaultEndpoint, vaultToken, `${service}-auth`, `pektin-kv`);

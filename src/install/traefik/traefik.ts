@@ -9,14 +9,14 @@ import { genTempDomainConfig } from "./tempDomain.js";
 export const genTraefikConfs = ({
     pektinConfig,
     node,
-    trinitrotoluolAuth,
+    tntAuth,
     tempDomain,
     proxyAuth,
     perimeterAuthHashed,
 }: {
     readonly pektinConfig: PektinConfig;
     readonly node: PektinConfig[`nodes`][0];
-    readonly trinitrotoluolAuth?: string;
+    readonly tntAuth?: string;
     readonly tempDomain?: TempDomain;
     readonly proxyAuth?: string;
     readonly perimeterAuthHashed?: string;
@@ -32,7 +32,7 @@ export const genTraefikConfs = ({
                       /*@ts-ignore*/
                       s.enabled !== false &&
                       s.hasOwnProperty(`domain`) &&
-                      Object.keys(pektinConfig.services)[i] !== `trinitrotoluol` &&
+                      Object.keys(pektinConfig.services)[i] !== `tnt` &&
                       Object.keys(pektinConfig.services)[i] !== `server`
                   ) {
                       return [
@@ -58,10 +58,10 @@ export const genTraefikConfs = ({
         tlsConfig(pektinConfig),
         node.main && pektinConfig.reverseProxy.traefikUi.enabled && traefikUiConf(pektinConfig),
         pektinConfig.reverseProxy.tls ? redirectHttps() : {},
-        node.main && trinitrotoluolAuth
-            ? trinitrotoluolConf({
+        node.main && tntAuth
+            ? tntConf({
                   pektinConfig,
-                  trinitrotoluolAuth,
+                  tntAuth,
               })
             : {}
     );
@@ -80,7 +80,7 @@ export const genTraefikConfs = ({
                     genTempDomainConfig({
                         pektinConfig,
                         node,
-                        trinitrotoluolAuth,
+                        tntAuth,
                         tempDomain,
                     }),
                     yamlOptions
@@ -379,20 +379,17 @@ export const traefikUiConf = (pektinConfig: PektinConfig) => {
     };
 };
 
-export const trinitrotoluolConf = ({
+export const tntConf = ({
     pektinConfig,
-    trinitrotoluolAuth,
+    tntAuth,
 }: {
     pektinConfig: PektinConfig;
-    trinitrotoluolAuth: string;
+    tntAuth: string;
 }) => {
     const rp = pektinConfig.reverseProxy;
-    const domain = toASCII(pektinConfig.services.trinitrotoluol.domain);
+    const domain = toASCII(pektinConfig.services.tnt.domain);
     const fullDomain = toASCII(
-        concatDomain(
-            pektinConfig.services.trinitrotoluol.domain,
-            pektinConfig.services.trinitrotoluol.subDomain
-        )
+        concatDomain(pektinConfig.services.tnt.domain, pektinConfig.services.tnt.subDomain)
     );
     const tls = rp.tls
         ? {
@@ -408,7 +405,7 @@ export const trinitrotoluolConf = ({
     return {
         http: {
             routers: {
-                "pektin-trinitrotoluol": {
+                "pektin-tnt": {
                     ...(tls && { tls }),
                     rule: (() => {
                         if (rp.routing === `domain`) {
@@ -427,13 +424,13 @@ export const trinitrotoluolConf = ({
                             )}\`) && Path(\`/dns-query\`)`;
                         }
                     })(),
-                    service: `pektin-trinitrotoluol`,
+                    service: `pektin-tnt`,
                     entrypoints: rp.tls ? `websecure` : `web`,
-                    middlewares: [`pektin-trinitrotoluol-cors`, `pektin-trinitrotoluol-auth`],
+                    middlewares: [`pektin-tnt-cors`, `pektin-tnt-auth`],
                 },
             },
             middlewares: {
-                "pektin-trinitrotoluol-cors": {
+                "pektin-tnt-cors": {
                     headers: {
                         accessControlAllowMethods: `GET,OPTIONS,POST`,
                         accessControlAllowOriginList: `*`,
@@ -441,14 +438,14 @@ export const trinitrotoluolConf = ({
                         accessControlMaxAge: 86400,
                     },
                 },
-                "pektin-trinitrotoluol-auth": { basicauth: { users: trinitrotoluolAuth } },
+                "pektin-tnt-auth": { basicauth: { users: tntAuth } },
             },
             services: {
-                "pektin-trinitrotoluol": {
+                "pektin-tnt": {
                     loadBalancer: {
                         servers: [
                             {
-                                url: `h2c://pektin-trinitrotoluol`,
+                                url: `h2c://pektin-tnt`,
                             },
                         ],
                     },

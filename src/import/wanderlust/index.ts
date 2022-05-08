@@ -9,11 +9,7 @@ export const importByZoneWalking = async (
     toluol: ToluolModule,
     limit = 10
 ): Promise<PektinZoneData> => {
-    const t = new Toluol(
-        await pc.getPektinEndpoint(`trinitrotoluol`),
-        await pc.getAuth(`trinitrotoluol`),
-        toluol
-    );
+    const t = new Toluol(await pc.getPektinEndpoint(`tnt`), await pc.getAuth(`tnt`), toluol);
     const out: PektinZoneData = {};
     for (let i = 0; i < domains.length; i++) {
         const domain = domains[i];

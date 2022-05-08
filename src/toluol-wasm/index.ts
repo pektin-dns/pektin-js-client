@@ -4,28 +4,23 @@ import { absoluteName, deAbsolute, isSupportedRecordType, textToRRValue } from "
 import { ToluolModule, ToluolResponse } from "./types.js";
 
 export class Toluol {
-    trinitrotoluol: string;
-    trinitrotoluolAuth: string;
+    tnt: string;
+    tntAuth: string;
     toluol: ToluolModule;
     reactState: any;
-    constructor(
-        trinitrotoluol: string,
-        trinitrotoluolAuth: string,
-        toluol: ToluolModule,
-        reactState?: any
-    ) {
-        this.trinitrotoluol = trinitrotoluol;
-        this.trinitrotoluolAuth = trinitrotoluolAuth;
+    constructor(tnt: string, tntAuth: string, toluol: ToluolModule, reactState?: any) {
+        this.tnt = tnt;
+        this.tntAuth = tntAuth;
         this.toluol = toluol;
         this.reactState = reactState;
         this.toluol.init_panic_hook();
     }
 
     post = async (q: Uint8Array) => {
-        const res = await f(`${this.trinitrotoluol}/dns-query`, {
+        const res = await f(`${this.tnt}/dns-query`, {
             headers: {
                 "content-type": `application/dns-message`,
-                Authorization: this.trinitrotoluolAuth || ``,
+                Authorization: this.tntAuth || ``,
             },
             credentials: `omit`,
             method: `POST`,
@@ -37,10 +32,10 @@ export class Toluol {
     get = async (q: Uint8Array) => {
         const s = Buffer.from(q).toString(`base64`).replace(/\+/g, `-`).replace(/\//g, `_`);
 
-        const res = await f(`${this.trinitrotoluol}/dns-query?dns=${s.replace(/=/g, ``)}`, {
+        const res = await f(`${this.tnt}/dns-query?dns=${s.replace(/=/g, ``)}`, {
             headers: {
                 accept: `application/dns-message`,
-                Authorization: this.trinitrotoluolAuth || ``,
+                Authorization: this.tntAuth || ``,
             },
             credentials: `omit`,
         });

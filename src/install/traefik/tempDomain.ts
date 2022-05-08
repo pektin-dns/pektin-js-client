@@ -7,12 +7,12 @@ import { getNsList } from "./traefik.js";
 export const genTempDomainConfig = ({
     pektinConfig,
     node,
-    trinitrotoluolAuth,
+    tntAuth,
     tempDomain,
 }: {
     readonly pektinConfig: PektinConfig;
     readonly node: PektinConfig[`nodes`][0];
-    readonly trinitrotoluolAuth?: string;
+    readonly tntAuth?: string;
     readonly tempDomain: TempDomain;
 }) => {
     const nodeNameServers = getNodesNameservers(pektinConfig, node.name);
@@ -40,8 +40,8 @@ export const genTempDomainConfig = ({
                   .filter((s) => s.enabled)
                   .map((proxy) => genTempProxyConf({ ...proxy, pektinConfig }))
             : []),
-        node.main && trinitrotoluolAuth
-            ? genTempTrinitrotoluolConf({
+        node.main && tntAuth
+            ? genTempTntConf({
                   pektinConfig,
                   tempDomain,
               })
@@ -121,7 +121,7 @@ export const genTempServerConf = ({
     };
 };
 
-export const genTempTrinitrotoluolConf = ({
+export const genTempTntConf = ({
     pektinConfig,
     tempDomain,
 }: {
@@ -150,20 +150,20 @@ export const genTempTrinitrotoluolConf = ({
     return {
         http: {
             routers: {
-                "pektin-temp-trinitrotoluol": {
+                "pektin-temp-tnt": {
                     ...(tls && { tls }),
                     rule: (() => {
                         if (rp.routing === `domain`) {
                             return `Host(\`${toASCII(
                                 concatDomain(
                                     concatDomain(tempDomain.zoneDomain, tempDomain.domain),
-                                    pektinConfig.services.trinitrotoluol.subDomain
+                                    pektinConfig.services.tnt.subDomain
                                 )
                             )}\`) && Path(\`/dns-query\`)`;
                         }
                     })(),
                     entrypoints: rp.tls ? `websecure` : `web`,
-                    middlewares: [`pektin-trinitrotoluol-cors`, `pektin-trinitrotoluol-auth`],
+                    middlewares: [`pektin-tnt-cors`, `pektin-tnt-auth`],
                 },
             },
         },
