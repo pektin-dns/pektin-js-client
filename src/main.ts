@@ -189,7 +189,7 @@ export class PektinClient {
         return res;
     };
 
-    // get records from the api/redis based on their key
+    // get records from the api/db based on their key
     get = async (records: RecordIdentifier[], throwErrors = this.throwErrors) => {
         if (!this.pektinApiEndpoint) {
             await this.getPektinConfig();
@@ -261,7 +261,7 @@ export class PektinClient {
         );
     };
 
-    // set records via the api in redis
+    // set records via the api in db
     set = async (records: ApiRecord[], throwErrors = this.throwErrors) => {
         if (!this.pektinApiEndpoint) {
             await this.getPektinConfig();
@@ -285,7 +285,7 @@ export class PektinClient {
         );
     };
 
-    // search for records in redis by providing a glob search string
+    // search for records in db by providing a glob search string
     search = async (globs: Glob[], throwErrors = this.throwErrors) => {
         if (!this.pektinApiEndpoint) {
             await this.getPektinConfig();

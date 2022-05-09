@@ -93,12 +93,12 @@ export const installPektinCompose = async (
         acmeClientConnectionConfig.perimeterAuth = PERIMETER_AUTH;
     }
 
-    // init redis access control
+    // init db access control
     const R_PEKTIN_API_PASSWORD = randomString();
     const R_PEKTIN_SERVER_PASSWORD = randomString();
     const R_PEKTIN_GEWERKSCHAFT_PASSWORD = randomString();
 
-    const redisPasswords = [
+    const dbPasswords = [
         [`R_PEKTIN_API_PASSWORD`, R_PEKTIN_API_PASSWORD],
         [`R_PEKTIN_SERVER_PASSWORD`, R_PEKTIN_SERVER_PASSWORD],
         [`R_PEKTIN_GEWERKSCHAFT_PASSWORD`, R_PEKTIN_GEWERKSCHAFT_PASSWORD],
@@ -130,7 +130,7 @@ export const installPektinCompose = async (
         await chown(path.join(dir, `swarm.sh`), process.env.UID, process.env.GID);
     }
 
-    const redisPasswordHashes = await genRedisPasswordHashes(redisPasswords, pektinConfig, dir);
+    const dbPasswordHashes = await genDbPasswordHashes(dbPasswords, pektinConfig, dir);
 
     const traefikConfs = genTraefikConfs({
         pektinConfig,
@@ -188,8 +188,8 @@ export const installPektinCompose = async (
                 "server-admin.pc3.json": {
                     $file: JSON.stringify(pektinAdminConnectionConfig),
                 },
-                redis: {
-                    "users.acl": { $file: redisPasswordHashes, $perms: `644` },
+                db: {
+                    "users.acl": { $file: dbPasswordHashes, $perms: `644` },
                 },
                 letsencrypt: {},
                 traefik: {
@@ -218,23 +218,23 @@ export const createArbeiterConfig = async (
 
         if (!node.main) {
             await fs
-                .mkdir(path.join(dir, `arbeiter`, node.name, `secrets`, `redis`), {
+                .mkdir(path.join(dir, `arbeiter`, node.name, `secrets`, `db`), {
                     recursive: true,
                 })
                 .catch(() => {});
             const R_PEKTIN_SERVER_PASSWORD = randomString();
-            const redisAclFile = await genRedisPasswordHashes(
+            const dbAclFile = await genDbPasswordHashes(
                 [[`R_PEKTIN_SERVER_PASSWORD`, R_PEKTIN_SERVER_PASSWORD]],
                 v.pektinConfig,
                 dir,
                 true
             );
-            if (redisAclFile === undefined) {
-                throw new Error(`This should never happen: createArbeiterConfig > redisAclFile`);
+            if (dbAclFile === undefined) {
+                throw new Error(`This should never happen: createArbeiterConfig > dbAclFile`);
             }
 
-            const redisConf = await fs.readFile(
-                path.join(dir, `config`, `redis`, `arbeiter`, `redis.conf`),
+            const dbConf = await fs.readFile(
+                path.join(dir, `config`, `db`, `arbeiter`, `db.conf`),
                 { encoding: `utf8` }
             );
 
@@ -264,8 +264,8 @@ export const createArbeiterConfig = async (
                 envFile = envFile += `${repl[0]}="${repl[1]}"\n`;
             });
             envFile += `# Some commands for debugging\n`;
-            envFile += `# Logs into redis (then try 'KEYS *' for example to get all record keys):\n`;
-            envFile += `# bash -c 'docker exec -it $(docker ps --filter name=pektin-redis --format {{.ID}}) redis-cli --pass ${R_PEKTIN_SERVER_PASSWORD} --user r-pektin-server'`;
+            envFile += `# Logs into db (then try 'KEYS *' for example to get all record keys):\n`;
+            envFile += `# bash -c 'docker exec -it $(docker ps --filter name=pektin-db --format {{.ID}}) db-cli --pass ${R_PEKTIN_SERVER_PASSWORD} --user r-pektin-server'`;
             const composeCommand = `docker-compose --env-file secrets/.env -f pektin-compose/arbeiter/base.yml -f pektin-compose/traefik.yml`;
 
             const resetScript = `${composeCommand} down --remove-orphans\ndocker swarm leave --force\ndocker volume rm pektin-compose_db\nrm -rf update.sh start.sh stop.sh secrets/ `;
@@ -283,15 +283,15 @@ export const createArbeiterConfig = async (
                     "reset.sh": resetScript,
                     secrets: {
                         ".env": envFile,
-                        redis: {
-                            "redis.conf": {
-                                $file: redisConf.replace(
+                        db: {
+                            "db.conf": {
+                                $file: dbConf.replace(
                                     `#MASTERAUTH`,
                                     v.R_PEKTIN_GEWERKSCHAFT_PASSWORD
                                 ),
                                 $perms: `644`,
                             },
-                            "users.acl": { $file: redisAclFile, $perms: `644` },
+                            "users.acl": { $file: dbAclFile, $perms: `644` },
                         },
                         traefik: {
                             "static.yml": traefikConfs.static,
@@ -324,7 +324,7 @@ export const createSwarmScript = async (pektinConfig: PektinConfig) => {
     return swarmScript;
 };
 
-export const genRedisPasswordHashes = async (
+export const genDbPasswordHashes = async (
     repls: string[][],
     pektinConfig: PektinConfig,
     dir: string,
@@ -332,12 +332,12 @@ export const genRedisPasswordHashes = async (
 ) => {
     let readPath;
     if (arbeiter) {
-        readPath = path.join(dir, `config`, `redis`, `arbeiter`, `users.template.acl`);
+        readPath = path.join(dir, `config`, `db`, `arbeiter`, `users.template.acl`);
     } else {
         readPath =
             pektinConfig.nodes.length > 1
-                ? path.join(dir, `config`, `redis`, `direktor`, `users.template.acl`)
-                : path.join(dir, `config`, `redis`, `users.template.acl`);
+                ? path.join(dir, `config`, `db`, `direktor`, `users.template.acl`)
+                : path.join(dir, `config`, `db`, `users.template.acl`);
     }
     let file = await fs.readFile(readPath, {
         encoding: `utf-8`,
@@ -442,8 +442,8 @@ export const genEnvValues = async (v: {
         file = file += `${repl[0]}="${repl[1]}"\n`;
     });
     file += `# Some commands for debugging\n`;
-    file += `# Logs into redis (then try 'KEYS *' for example to get all record keys):\n`;
-    file += `# bash -c 'docker exec -it $(docker ps --filter name=pektin-redis --format {{.ID}}) redis-cli --pass ${v.R_PEKTIN_API_PASSWORD} --user r-pektin-api'`;
+    file += `# Logs into db (then try 'KEYS *' for example to get all record keys):\n`;
+    file += `# bash -c 'docker exec -it $(docker ps --filter name=pektin-db --format {{.ID}}) db-cli --pass ${v.R_PEKTIN_API_PASSWORD} --user r-pektin-api'`;
     return file;
 };
 

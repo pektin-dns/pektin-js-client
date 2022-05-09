@@ -301,7 +301,7 @@ export const getNodesNameservers = (
 export const getPektinConfig = async (vaultEndpoint: string, vaultToken: string) =>
     (await getVaultValue(vaultEndpoint, vaultToken, `pektin-config`, `pektin-kv`)) as PektinConfig;
 
-// get records from the api/redis based on their key
+// get records from the api/db based on their key
 export const get = async (
     apiEndpoint: string,
     body: ApiGetRequestBody,
@@ -320,7 +320,7 @@ export const get = async (
     return res as GetResponse;
 };
 
-// set records via the api in redis
+// set records via the api in db
 export const set = async (
     apiEndpoint: string,
     body: ApiSetRequestBody,
@@ -339,7 +339,7 @@ export const set = async (
     return res as SetResponse;
 };
 
-// search for records in redis by providing a glob search string
+// search for records in db by providing a glob search string
 export const search = async (
     apiEndpoint: string,
     body: ApiSearchRequestBody,
@@ -550,7 +550,13 @@ export const err = ({
             `${beautifyJSON({ obj: body, deserializeError, answer: text })}\n`;
     }
 
+    try {
+        window;
+    } catch (error) {
+        throw new Error(e);
+    }
     if (window === undefined) throw new Error(e);
+
     throw new Error(
         e.replaceAll(
             /[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g,
