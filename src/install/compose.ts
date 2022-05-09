@@ -265,7 +265,7 @@ export const createArbeiterConfig = async (
             });
             envFile += `# Some commands for debugging\n`;
             envFile += `# Logs into db (then try 'KEYS *' for example to get all record keys):\n`;
-            envFile += `# bash -c 'docker exec -it $(docker ps --filter name=pektin-db --format {{.ID}}) db-cli --pass ${DB_PEKTIN_SERVER_PASSWORD} --user db-pektin-server'`;
+            envFile += `# bash -c 'docker exec -it $(docker ps --filter name=pektin-db --format {{.ID}}) keydb-cli --pass ${DB_PEKTIN_SERVER_PASSWORD} --user db-pektin-server'`;
             const composeCommand = `docker-compose --env-file secrets/.env -f pektin-compose/arbeiter/base.yml -f pektin-compose/traefik.yml`;
 
             const resetScript = `${composeCommand} down --remove-orphans\ndocker swarm leave --force\ndocker volume rm pektin-compose_db\nrm -rf update.sh start.sh stop.sh secrets/ `;
@@ -443,7 +443,7 @@ export const genEnvValues = async (v: {
     });
     file += `# Some commands for debugging\n`;
     file += `# Logs into db (then try 'KEYS *' for example to get all record keys):\n`;
-    file += `# bash -c 'docker exec -it $(docker ps --filter name=pektin-db --format {{.ID}}) db-cli --pass ${v.DB_PEKTIN_API_PASSWORD} --user db-pektin-api'`;
+    file += `# bash -c 'docker exec -it $(docker ps --filter name=pektin-db --format {{.ID}}) keydb-cli --pass ${v.DB_PEKTIN_API_PASSWORD} --user db-pektin-api'`;
     return file;
 };
 
