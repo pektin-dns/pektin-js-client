@@ -94,14 +94,14 @@ export const installPektinCompose = async (
     }
 
     // init db access control
-    const R_PEKTIN_API_PASSWORD = randomString();
-    const R_PEKTIN_SERVER_PASSWORD = randomString();
-    const R_PEKTIN_GEWERKSCHAFT_PASSWORD = randomString();
+    const DB_PEKTIN_API_PASSWORD = randomString();
+    const DB_PEKTIN_SERVER_PASSWORD = randomString();
+    const DB_PEKTIN_GEWERKSCHAFT_PASSWORD = randomString();
 
     const dbPasswords = [
-        [`R_PEKTIN_API_PASSWORD`, R_PEKTIN_API_PASSWORD],
-        [`R_PEKTIN_SERVER_PASSWORD`, R_PEKTIN_SERVER_PASSWORD],
-        [`R_PEKTIN_GEWERKSCHAFT_PASSWORD`, R_PEKTIN_GEWERKSCHAFT_PASSWORD],
+        [`DB_PEKTIN_API_PASSWORD`, DB_PEKTIN_API_PASSWORD],
+        [`DB_PEKTIN_SERVER_PASSWORD`, DB_PEKTIN_SERVER_PASSWORD],
+        [`DB_PEKTIN_GEWERKSCHAFT_PASSWORD`, DB_PEKTIN_GEWERKSCHAFT_PASSWORD],
     ];
 
     const tempDomain = await requestPektinDomain(pektinConfig);
@@ -116,7 +116,7 @@ export const installPektinCompose = async (
 
     if (pektinConfig.nodes.length > 1) {
         await createArbeiterConfig(
-            { R_PEKTIN_GEWERKSCHAFT_PASSWORD, pektinConfig, ...(tempDomain && { tempDomain }) },
+            { DB_PEKTIN_GEWERKSCHAFT_PASSWORD, pektinConfig, ...(tempDomain && { tempDomain }) },
             dir
         );
         const swarmScript = await createSwarmScript(pektinConfig);
@@ -146,8 +146,8 @@ export const installPektinCompose = async (
     // set the values in the .env file for provisioning them to the containers
     const envFile = await genEnvValues({
         vaultTokens,
-        R_PEKTIN_API_PASSWORD,
-        R_PEKTIN_SERVER_PASSWORD,
+        DB_PEKTIN_API_PASSWORD,
+        DB_PEKTIN_SERVER_PASSWORD,
         V_PEKTIN_API_PASSWORD,
         V_PEKTIN_API_USER_NAME,
         PERIMETER_AUTH,
@@ -208,7 +208,7 @@ export const installPektinCompose = async (
 export const createArbeiterConfig = async (
     v: {
         pektinConfig: PektinConfig;
-        R_PEKTIN_GEWERKSCHAFT_PASSWORD: string;
+        DB_PEKTIN_GEWERKSCHAFT_PASSWORD: string;
         tempDomain?: TempDomain;
     },
     dir: string
@@ -222,9 +222,9 @@ export const createArbeiterConfig = async (
                     recursive: true,
                 })
                 .catch(() => {});
-            const R_PEKTIN_SERVER_PASSWORD = randomString();
+            const DB_PEKTIN_SERVER_PASSWORD = randomString();
             const dbAclFile = await genDbPasswordHashes(
-                [[`R_PEKTIN_SERVER_PASSWORD`, R_PEKTIN_SERVER_PASSWORD]],
+                [[`DB_PEKTIN_SERVER_PASSWORD`, DB_PEKTIN_SERVER_PASSWORD]],
                 v.pektinConfig,
                 dir,
                 true
@@ -239,7 +239,7 @@ export const createArbeiterConfig = async (
             );
 
             const repls = [
-                [`R_PEKTIN_SERVER_PASSWORD`, R_PEKTIN_SERVER_PASSWORD],
+                [`DB_PEKTIN_SERVER_PASSWORD`, DB_PEKTIN_SERVER_PASSWORD],
                 [`SERVER_LOGGING`, v.pektinConfig.services.server.logging],
             ];
 
@@ -265,7 +265,7 @@ export const createArbeiterConfig = async (
             });
             envFile += `# Some commands for debugging\n`;
             envFile += `# Logs into db (then try 'KEYS *' for example to get all record keys):\n`;
-            envFile += `# bash -c 'docker exec -it $(docker ps --filter name=pektin-db --format {{.ID}}) db-cli --pass ${R_PEKTIN_SERVER_PASSWORD} --user r-pektin-server'`;
+            envFile += `# bash -c 'docker exec -it $(docker ps --filter name=pektin-db --format {{.ID}}) db-cli --pass ${DB_PEKTIN_SERVER_PASSWORD} --user db-pektin-server'`;
             const composeCommand = `docker-compose --env-file secrets/.env -f pektin-compose/arbeiter/base.yml -f pektin-compose/traefik.yml`;
 
             const resetScript = `${composeCommand} down --remove-orphans\ndocker swarm leave --force\ndocker volume rm pektin-compose_db\nrm -rf update.sh start.sh stop.sh secrets/ `;
@@ -287,7 +287,7 @@ export const createArbeiterConfig = async (
                             "db.conf": {
                                 $file: dbConf.replace(
                                     `#MASTERAUTH`,
-                                    v.R_PEKTIN_GEWERKSCHAFT_PASSWORD
+                                    v.DB_PEKTIN_GEWERKSCHAFT_PASSWORD
                                 ),
                                 $perms: `644`,
                             },
@@ -386,8 +386,8 @@ const createCspConnectSources = (c: PektinConfig, tempDomain?: TempDomain) => {
 
 export const genEnvValues = async (v: {
     pektinConfig: PektinConfig;
-    R_PEKTIN_API_PASSWORD: string;
-    R_PEKTIN_SERVER_PASSWORD: string;
+    DB_PEKTIN_API_PASSWORD: string;
+    DB_PEKTIN_SERVER_PASSWORD: string;
     V_PEKTIN_API_PASSWORD: string;
     V_PEKTIN_API_USER_NAME: string;
     PERIMETER_AUTH: string;
@@ -411,8 +411,8 @@ export const genEnvValues = async (v: {
 
         [`V_PEKTIN_API_PASSWORD`, v.V_PEKTIN_API_PASSWORD],
         [`V_PEKTIN_API_USER_NAME`, v.V_PEKTIN_API_USER_NAME],
-        [`R_PEKTIN_API_PASSWORD`, v.R_PEKTIN_API_PASSWORD],
-        [`R_PEKTIN_SERVER_PASSWORD`, v.R_PEKTIN_SERVER_PASSWORD],
+        [`DB_PEKTIN_API_PASSWORD`, v.DB_PEKTIN_API_PASSWORD],
+        [`DB_PEKTIN_SERVER_PASSWORD`, v.DB_PEKTIN_SERVER_PASSWORD],
         [`V_KEY`, v.vaultTokens.key],
         [`V_ROOT_TOKEN`, v.vaultTokens.rootToken],
         [`LETSENCRYPT_EMAIL`, v.pektinConfig.letsencrypt.letsencryptEmail],
@@ -443,7 +443,7 @@ export const genEnvValues = async (v: {
     });
     file += `# Some commands for debugging\n`;
     file += `# Logs into db (then try 'KEYS *' for example to get all record keys):\n`;
-    file += `# bash -c 'docker exec -it $(docker ps --filter name=pektin-db --format {{.ID}}) db-cli --pass ${v.R_PEKTIN_API_PASSWORD} --user r-pektin-api'`;
+    file += `# bash -c 'docker exec -it $(docker ps --filter name=pektin-db --format {{.ID}}) db-cli --pass ${v.DB_PEKTIN_API_PASSWORD} --user db-pektin-api'`;
     return file;
 };
 

@@ -102,10 +102,10 @@ export const createSecrets = async (dir: string = `/base/`) => {
     const secrets: K8sSecrets = {
         PERIMETER_AUTH_HASHED,
         PERIMETER_AUTH,
-        R_PEKTIN_API_PASSWORD: randomString(),
+        DB_PEKTIN_API_PASSWORD: randomString(),
         V_PEKTIN_API_PASSWORD: randomString(),
-        R_PEKTIN_GEWERKSCHAFT_PASSWORD: randomString(),
-        R_PEKTIN_SERVER_PASSWORD: randomString(),
+        DB_PEKTIN_GEWERKSCHAFT_PASSWORD: randomString(),
+        DB_PEKTIN_SERVER_PASSWORD: randomString(),
         V_PEKTIN_API_USER_NAME: `pektin-api-${randomString(10).toLowerCase()}`,
         nodes: {},
         nameserverSignerPasswords: {},
@@ -120,7 +120,7 @@ export const createSecrets = async (dir: string = `/base/`) => {
     } as K8sSecrets;
 
     pektinConfig.nodes.forEach((node) => {
-        secrets.nodes[node.name] = { R_PEKTIN_SERVER_PASSWORD: randomString() };
+        secrets.nodes[node.name] = { DB_PEKTIN_SERVER_PASSWORD: randomString() };
     });
     pektinConfig.nameservers.forEach((ns) => {
         /*@ts-ignore*/
@@ -171,11 +171,11 @@ export interface K8sSecrets {
     nameserverSignerPasswords: {
         [name: string]: string;
     };
-    R_PEKTIN_API_PASSWORD: string;
+    DB_PEKTIN_API_PASSWORD: string;
     V_PEKTIN_API_PASSWORD: string;
     V_PEKTIN_API_USER_NAME: string;
-    R_PEKTIN_GEWERKSCHAFT_PASSWORD: string;
-    R_PEKTIN_SERVER_PASSWORD: string;
+    DB_PEKTIN_GEWERKSCHAFT_PASSWORD: string;
+    DB_PEKTIN_SERVER_PASSWORD: string;
     adminClientInfo: {
         confidant: string;
         manager: string;
@@ -197,7 +197,7 @@ export interface K8sSecrets {
     };
     nodes: {
         [nodeNames: string]: {
-            R_PEKTIN_SERVER_PASSWORD: string;
+            DB_PEKTIN_SERVER_PASSWORD: string;
         };
     };
 }
