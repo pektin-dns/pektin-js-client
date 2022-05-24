@@ -93,6 +93,8 @@ export const createSingleScript = async (sourceFolder: string, node: PektinConfi
     if (node?.setup?.root?.disableSystemdResolved) {
         content += `sudo sh scripts/systems/${node.setup.system}/disable-systemd-resolved.sh; `;
     }
+    content += `chmod 666 secrets/db/db.conf;`;
+    content += `chmod 666 secrets/db/users.acl;`;
     if (node?.setup?.setup) {
         content += `bash setup.sh; `;
     }
