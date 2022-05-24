@@ -82,6 +82,7 @@ export const createSingleScript = async (sourceFolder: string, node: PektinConfi
 
         content += `echo -ne "${contents
             .replaceAll(`\n`, `\\n`)
+            .replaceAll(`$`, `\\$`)
             .replaceAll(`"`, `\\"`)
             .replaceAll(`\``, `\\\``)}" > ${path.join(`.`, filePath)};`;
     }
