@@ -1,5 +1,24 @@
 import { DnsRecordType, DnssecAlgorithmType } from "../types.js";
 
+export interface TntQuery {
+    name: string;
+    rr_type: string;
+    server: string;
+    port?: number;
+    connection_type?: TntQueryConnectionType;
+    fetch_dnssec?: boolean;
+}
+
+export enum TntQueryConnectionType {
+    udp = `udp`,
+    tcp = `tcp`,
+    tls = `tls`,
+    httpGet = `http-get`,
+    httpPost = `http-post`,
+    httpsGet = `https-get`,
+    httpsPost = `https-post`,
+}
+
 export interface TntAnswer {
     owner: {
         labels: string[];
@@ -23,6 +42,12 @@ export interface TntAnswer {
                 labels: string[];
             };
             signature: Uint8Array;
+        };
+        NSEC: {
+            next_domain_name: {
+                labels: string[];
+            };
+            types: string[];
         };
     };
 }

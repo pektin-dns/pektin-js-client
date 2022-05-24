@@ -123,8 +123,8 @@ export const calculateDelegateSigner = ({
 
     const ownerNameBinary = toDnsName(ownerName);
 
-    const flags = new Uint8Array([1, 1]);
-    const protocol = new Uint8Array([3]); // has to always be 3
+    const flags = new Uint8Array([1, 1]); //  256 is ZSK, and 257 is KSK.
+    const protocol = new Uint8Array([3]); // has to be 3
     const algorithmBin = new Uint8Array([algorithm]); // 13/ECDSA_P256_SHA256 15/ED25519
     const publicKeyBinary = Buffer.from(publicKey, `base64`);
 

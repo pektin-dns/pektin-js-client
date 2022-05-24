@@ -1,5 +1,5 @@
 export {};
-/*
+
 import { PektinClient } from "../main.js";
 import { promises as fs } from "fs";
 
@@ -10,6 +10,7 @@ import { createPektinClient, deleteClient, getPektinClients } from "../auth.js";
 import { bitStringToInteger, calculateKeyTag } from "../pureFunctions.js";
 
 import crypto from "crypto";
+import { beautifyJSON } from "../utils/index.js";
 
 config({ path: `/home/paul/Documents/powerdns-api/.env` });
 
@@ -30,14 +31,16 @@ await pc.init();
 
 //console.log(await pc.deletePektinSigner(`abc.de.`));
 
-console.log(await pc.getPublicDnssecData(`pektin.club.`));
+//console.log(await pc.getPublicDnssecData(`pektin.club.`));
 
 const pem = `-----BEGIN PUBLIC KEY-----
 MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE
 96hv0yAGRMBEEyliSj+9pIorFRGnIgd4E0ra9NNhza
 J9Ypg6fzHdiawUYehRQ/qBtof/1NnHtITmP1F3fNqLnw==
 -----END PUBLIC KEY-----`;
-*/
+
+console.log(JSON.stringify(await pc.walkZone(`y.gy.`, 100, `8.8.8.8`), null, 2));
+
 /*
 
 -----BEGIN PUBLIC KEY-----

@@ -33,7 +33,9 @@ import {
     deletePektinSigner,
 } from "./index.js";
 import { any, crtFormatQuery, fetchProxy, getPublicDnssecData } from "./pureFunctions.js";
-import { BasicAuthString } from "./types.js";
+import { queryTnt } from "./trinitrotoluol/tnt.js";
+import { TntQuery } from "./trinitrotoluol/types.js";
+import { BasicAuthString, supportedPektinRrTypes } from "./types.js";
 import { randomString } from "./utils/index.js";
 import { getVaultValue, vaultLoginUserpass } from "./vault/vault.js";
 
@@ -596,6 +598,52 @@ export class PektinClient {
             domainName,
         });
     };
-}
 
-// TODO coloring only shows special characters in browser
+    queryTnt = async (query: TntQuery) => {
+        if (this.tntAuth === undefined) {
+            await this.getAuth(`tnt`);
+            if (this.tntAuth === undefined) {
+                throw Error(`Couldn't obtain tntAuth`);
+            }
+        }
+        return queryTnt(await this.getPektinEndpoint(`tnt`), this.tntAuth, query);
+    };
+
+    walkZone = async (domain: string, limit: number, nameserver: string, slowdown = 50) => {
+        const firstName = absoluteName(domain);
+        let currentName = firstName;
+        let querries = [];
+        // initial walk
+        for (let i = 0; i < limit; i++) {
+            const currentNameRes = await this.queryTnt({
+                name: currentName,
+                rr_type: `NSEC`,
+                server: nameserver,
+            });
+            const NSEC = currentNameRes[0]?.rdata?.NSEC;
+            if (NSEC === undefined) throw Error(JSON.stringify(currentNameRes[0], null, 2));
+
+            const nextName = absoluteName(NSEC.next_domain_name.labels.join(`.`));
+            for (let ii = 0; ii < NSEC.types.length; ii++) {
+                const type = NSEC.types[ii];
+                if (supportedPektinRrTypes.includes(type)) {
+                    querries.push(
+                        await this.queryTnt({
+                            name: currentName,
+                            rr_type: type,
+                            server: nameserver,
+                        })
+                    );
+                }
+            }
+
+            if (nextName === firstName) {
+                break;
+            }
+            currentName = nextName;
+            await new Promise((resolve) => setTimeout(resolve, slowdown));
+        }
+
+        return querries;
+    };
+}

@@ -9,7 +9,7 @@ module.exports = {
         ecmaVersion: `latest`,
         sourceType: `module`,
     },
-    plugins: [`@typescript-eslint`, `jsdoc`, `import`],
+    plugins: [`@typescript-eslint`, `import`],
     rules: {
         quotes: [`error`, `backtick`],
         "no-unused-vars": [`warn`],

@@ -409,19 +409,13 @@ export const tntConf = ({
                     ...(tls && { tls }),
                     rule: (() => {
                         if (rp.routing === `domain`) {
-                            return `Host(\`${fullDomain}\`) && Path(\`/dns-query\`)`;
+                            return `Host(\`${fullDomain}\`)`;
                         }
                         if (rp.routing === `local`) {
-                            return `Host(\`${concatDomain(
-                                `localhost`,
-                                fullDomain
-                            )}\`) && Path(\`/dns-query\`)`;
+                            return `Host(\`${concatDomain(`localhost`, fullDomain)}\`)`;
                         }
                         if (rp.routing === `minikube`) {
-                            return `Host(\`${concatDomain(
-                                `minikube`,
-                                fullDomain
-                            )}\`) && Path(\`/dns-query\`)`;
+                            return `Host(\`${concatDomain(`minikube`, fullDomain)}\`)`;
                         }
                     })(),
                     service: `pektin-tnt`,
@@ -432,20 +426,24 @@ export const tntConf = ({
             middlewares: {
                 "pektin-tnt-cors": {
                     headers: {
-                        accessControlAllowMethods: `GET,OPTIONS,POST`,
+                        accessControlAllowMethods: `OPTIONS,POST`,
                         accessControlAllowOriginList: `*`,
                         accessControlAllowHeaders: `authorization,content-type`,
                         accessControlMaxAge: 86400,
                     },
                 },
-                "pektin-tnt-auth": { basicauth: { users: tntAuth } },
+                "pektin-tnt-auth": {
+                    basicauth: {
+                        users: tntAuth,
+                    },
+                },
             },
             services: {
                 "pektin-tnt": {
-                    loadBalancer: {
+                    loadbalancer: {
                         servers: [
                             {
-                                url: `h2c://pektin-tnt`,
+                                url: `http://pektin-tnt`,
                             },
                         ],
                     },
