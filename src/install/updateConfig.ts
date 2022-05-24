@@ -56,7 +56,7 @@ export const updateConfig = async (dir: string = `/pektin-compose/`) => {
     const tntBasicAuthHashed = await pc.getAuth(`tnt`, true);
     const proxyBasicAuthHashed = await pc.getAuth(`proxy`, true);
 
-    const tempDomain = (await pc.getPektinKv(`tempDomain`)) as unknown as TempDomain;
+    const tempDomain = (await pc.getPektinKv(`tempDomain`)).tempDomain as unknown as TempDomain;
 
     // impl compose.secrets.traefik.dynamic-config
     // through complete regeneration
@@ -65,7 +65,7 @@ export const updateConfig = async (dir: string = `/pektin-compose/`) => {
         pektinConfig,
         node: getMainNode(pektinConfig),
         tntAuth: tntBasicAuthHashed,
-        tempDomain,
+        ...(tempDomain && { tempDomain }),
         proxyAuth: proxyBasicAuthHashed,
         perimeterAuthHashed: process.env.PERIMETER_AUTH_HASHED,
     });
