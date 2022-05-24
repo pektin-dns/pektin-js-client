@@ -132,6 +132,11 @@ export const requestPektinDomain = async (config: PektinConfig): Promise<TempDom
         }
         const domain = j.data.newZoneName;
 
+        if (typeof domain !== `string`) {
+            err();
+            return false;
+        }
+
         return { domain, zoneDomain: tempDomainProvider };
     } catch (error) {
         err();
