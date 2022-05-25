@@ -312,7 +312,7 @@ export const createSwarmScript = async (pektinConfig: PektinConfig) => {
     const mainNode = getMainNode(pektinConfig);
     const advertiseAddress =
         mainNode.ips?.[0] || mainNode.legacyIps?.[0]
-            ? `--advertise-addr ${mainNode.ips?.[0] ?? mainNode.legacyIps?.[0]}`
+            ? `--advertise-addr ${mainNode.legacyIps?.[0] ?? mainNode.legacyIps?.[0]}`
             : ``;
 
     let swarmScript = `docker swarm init ${advertiseAddress}\n`;
