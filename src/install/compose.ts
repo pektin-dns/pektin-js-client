@@ -266,7 +266,7 @@ export const createArbeiterConfig = async (
             envFile += `# Some commands for debugging\n`;
             envFile += `# Logs into db (then try 'KEYS *' for example to get all record keys):\n`;
             envFile += `# bash -c 'docker exec -it $(docker ps --filter name=pektin-db --format {{.ID}}) keydb-cli --pass ${DB_PEKTIN_SERVER_PASSWORD} --user db-pektin-server'`;
-            const composeCommand = `docker-compose --env-file secrets/.env -f pektin-compose/arbeiter/base.yml -f pektin-compose/traefik.yml`;
+            const composeCommand = `docker compose --env-file secrets/.env -f pektin-compose/arbeiter/base.yml -f pektin-compose/traefik.yml`;
 
             const resetScript = `${composeCommand} down --remove-orphans\ndocker swarm leave --force\ndocker volume rm pektin-compose_db\nrm -rf update.sh start.sh stop.sh secrets/ `;
 
@@ -454,7 +454,7 @@ SCRIPTS_IMAGE_NAME=pektin/scripts
 SCRIPTS_CONTAINER_NAME=pektin-scripts
 ACTIVE_COMPOSE_FILES="${activeComposeFiles(pektinConfig)}"\n\n`;
     // create pektin compose command with different options
-    let composeCommand = `docker-compose --env-file secrets/.env`;
+    let composeCommand = `docker compose --env-file secrets/.env`;
 
     composeCommand += `\${ACTIVE_COMPOSE_FILES}`;
     composeCommand += ` up -d --remove-orphans`;
@@ -478,7 +478,7 @@ docker run --env UID=$(id -u) --env GID=$(id -g) --env FORCE_COLOR=3 --name \${S
 
 export const genStopScript = async (pektinConfig: PektinConfig) => {
     let file = `#!/bin/bash\n`;
-    let composeCommand = `docker-compose --env-file secrets/.env`;
+    let composeCommand = `docker compose --env-file secrets/.env`;
     composeCommand += activeComposeFiles(pektinConfig);
     composeCommand += ` down`;
     file += composeCommand;
@@ -488,7 +488,7 @@ export const genStopScript = async (pektinConfig: PektinConfig) => {
 
 export const genUpdateScript = async (pektinConfig: PektinConfig) => {
     let file = `#!/bin/bash\n`;
-    let composeCommand = `docker-compose --env-file secrets/.env`;
+    let composeCommand = `docker compose --env-file secrets/.env`;
     composeCommand += activeComposeFiles(pektinConfig);
 
     composeCommand += ` pull`;
