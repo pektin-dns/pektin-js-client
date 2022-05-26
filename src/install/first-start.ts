@@ -156,9 +156,12 @@ export class PektinSetupClient extends PektinClient {
 
     private createNameserverDNS = async (pektinConfig: PektinConfig) => {
         const records: ApiRecord[] = [];
+        const ns_rr_set: { value: string }[] = [];
+        let mainDomain = ``;
         this.createServiceSoaIfDifferentDomain(pektinConfig, records);
         pektinConfig.nameservers.forEach((ns) => {
             if (ns.main) {
+                mainDomain = absoluteName(ns.domain);
                 records.push({
                     name: absoluteName(ns.domain),
                     rr_type: PektinRRType.SOA,
@@ -175,22 +178,12 @@ export class PektinSetupClient extends PektinClient {
                         },
                     ],
                 });
-
-                const rr_set: { value: string }[] = [];
-                pektinConfig.nameservers.forEach((ns2) => {
-                    if (ns2.domain === ns.domain) {
-                        rr_set.push({
-                            value: absoluteName(concatDomain(ns.domain, ns.subDomain)),
-                        });
-                    }
-                });
-                records.push({
-                    name: absoluteName(ns.domain),
-                    rr_type: PektinRRType.NS,
-                    rr_set,
-                    ttl: 60,
-                });
             }
+
+            ns_rr_set.push({
+                value: absoluteName(concatDomain(ns.domain, ns.subDomain)),
+            });
+
             const currentNode = pektinConfig.nodes.filter((node) => node.name === ns.node)[0];
 
             if (currentNode.ips) {
@@ -213,6 +206,12 @@ export class PektinSetupClient extends PektinClient {
                     })),
                 });
             }
+        });
+        records.push({
+            name: mainDomain,
+            rr_type: PektinRRType.NS,
+            rr_set: ns_rr_set,
+            ttl: 60,
         });
         return await this.set(records);
     };

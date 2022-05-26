@@ -291,7 +291,10 @@ export const createArbeiterConfig = async (
                                 ),
                                 $perms: `644`,
                             },
-                            "users.acl": { $file: dbAclFile, $perms: `644` },
+                            "users.acl": {
+                                $file: dbAclFile,
+                                $perms: `644`,
+                            },
                         },
                         traefik: {
                             "static.yml": traefikConfs.static,
@@ -302,7 +305,10 @@ export const createArbeiterConfig = async (
                         },
                     },
                 },
-                { basePath: path.join(dir, `arbeiter`, node.name), method: `node` }
+                {
+                    basePath: path.join(dir, `arbeiter`, node.name),
+                    method: `node`,
+                }
             );
         }
     }
@@ -310,9 +316,16 @@ export const createArbeiterConfig = async (
 
 export const createSwarmScript = async (pektinConfig: PektinConfig) => {
     const mainNode = getMainNode(pektinConfig);
+
+    if (!mainNode.legacyIps?.[0]) {
+        throw new Error(
+            `No legacy IPs found for main node. Due to https://github.com/moby/moby/issues/43643, this is required for swarm to work.`
+        );
+    }
+
     const advertiseAddress =
         mainNode.ips?.[0] || mainNode.legacyIps?.[0]
-            ? `--advertise-addr ${mainNode.legacyIps?.[0] ?? mainNode.legacyIps?.[0]}`
+            ? `--advertise-addr ${mainNode.legacyIps?.[0] ?? mainNode.ips?.[0]}` // TODO replace this again with ipv6 address once docker swarms connections get fixed for ipv6 networks; see: https://github.com/moby/moby/issues/43643
             : ``;
 
     let swarmScript = `docker swarm init ${advertiseAddress}\n`;
