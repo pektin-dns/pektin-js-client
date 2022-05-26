@@ -231,14 +231,26 @@ export const pektinServicesConf = ({
             },
             services: {
                 [`pektin-${service}`]: {
-                    loadbalancer: { servers: [{ url: `http://pektin-${service}` }] },
+                    loadbalancer: {
+                        servers: [
+                            {
+                                url: `http://pektin-${service}${
+                                    service === `jaeger` ? `:16686` : ``
+                                }`,
+                            },
+                        ],
+                    },
                 },
             },
             /*@ts-ignore*/
             ...(pektinConfig.services[service].perimeterAuth &&
                 perimeterAuthHashed && {
                     middlewares: {
-                        "pektin-perimeter-auth": { basicauth: { users: perimeterAuthHashed } },
+                        "pektin-perimeter-auth": {
+                            basicauth: {
+                                users: perimeterAuthHashed,
+                            },
+                        },
                     },
                 }),
         },
