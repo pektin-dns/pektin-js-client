@@ -606,10 +606,10 @@
     lodash "^4.17.21"
     yaml "^1.10.2"
 
-"@pektin/config@^1.1.9":
-  version "1.1.9"
-  resolved "https://registry.yarnpkg.com/@pektin/config/-/config-1.1.9.tgz#ae93618c5e4b8362ec828f51b91fb6cfcb931cc4"
-  integrity sha512-36OBpA0S9tnBHTN615HFCJkEDZb3ZYTC/8Mc/KKEWD2A/aB7SSj2fnHoao1TziUDXmV1RFsW6XRjqXD205NDdA==
+"@pektin/config@^1.1.10":
+  version "1.1.10"
+  resolved "https://registry.yarnpkg.com/@pektin/config/-/config-1.1.10.tgz#2829ab288355fa0c9ef2b8bb3ff70c8c53bc2a29"
+  integrity sha512-pCmKZB7uSV3Ob4icpbbszMv4Fki5F/y19+5faaE+UybE8ylM7G2+s7qe2uztdb6eDZPhbLhDK8AxRn1Sj3NKlA==
   dependencies:
     "@pektin/client" "^1.1.32"
     ajv "^8.9.0"

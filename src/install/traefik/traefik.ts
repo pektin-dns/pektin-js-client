@@ -251,15 +251,7 @@ export const pektinServicesConf = ({
             },
             services: {
                 [`pektin-${service}`]: {
-                    loadbalancer: {
-                        servers: [
-                            {
-                                url: `http://pektin-${service}${
-                                    service === `jaeger` ? `:16686` : ``
-                                }`,
-                            },
-                        ],
-                    },
+                    loadbalancer: { servers: [{ url: `http://pektin-${service}` }] },
                 },
             },
             /*@ts-ignore*/
