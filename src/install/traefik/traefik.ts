@@ -101,7 +101,10 @@ export const serverConf = ({
         ? {
               certResolver: `default`,
               domains: nodeNameServers.map((ns) => {
-                  return { main: toASCII(ns.domain), sans: [`*.${toASCII(ns.domain)}`] };
+                  return {
+                      main: toASCII(ns.domain),
+                      sans: [`*.${toASCII(ns.domain)}`],
+                  };
               }),
           }
         : false;
@@ -117,7 +120,13 @@ export const serverConf = ({
             },
             services: {
                 "pektin-server-tcp": {
-                    loadbalancer: { servers: [{ address: `pektin-server:53` }] },
+                    loadbalancer: {
+                        servers: [
+                            {
+                                address: `pektin-server:53`,
+                            },
+                        ],
+                    },
                 },
             },
         },
@@ -167,7 +176,13 @@ export const serverConf = ({
             },
             services: {
                 "pektin-server-http": {
-                    loadbalancer: { servers: [{ url: `http://pektin-server` }] },
+                    loadbalancer: {
+                        servers: [
+                            {
+                                url: `http://pektin-server`,
+                            },
+                        ],
+                    },
                 },
             },
         },
@@ -194,7 +209,12 @@ export const pektinServicesConf = ({
     const tls = rp.tls
         ? {
               certResolver: `default`,
-              domains: [{ main: domain, sans: [`*.${domain}`] }],
+              domains: [
+                  {
+                      main: domain,
+                      sans: [`*.${domain}`],
+                  },
+              ],
           }
         : false;
 
@@ -278,7 +298,12 @@ export const proxyConf = ({
     const tls = rp.tls
         ? {
               certResolver: `default`,
-              domains: [{ main: internalDomain, sans: [`*.${internalDomain}`] }],
+              domains: [
+                  {
+                      main: internalDomain,
+                      sans: [`*.${internalDomain}`],
+                  },
+              ],
           }
         : false;
     return {
@@ -340,7 +365,11 @@ export const proxyConf = ({
                         accessControlMaxAge: 86400,
                     },
                 },
-                "pektin-proxy-auth": { basicauth: { users: proxyAuth } },
+                "pektin-proxy-auth": {
+                    basicauth: {
+                        users: proxyAuth,
+                    },
+                },
             },
         },
     };

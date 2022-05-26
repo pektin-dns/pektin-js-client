@@ -150,13 +150,8 @@ export const installPektinCompose = async (
         DB_PEKTIN_SERVER_PASSWORD,
         V_PEKTIN_API_PASSWORD,
         V_PEKTIN_API_USER_NAME,
-        PERIMETER_AUTH,
-        PERIMETER_AUTH_HASHED,
-        perimeterUsername,
-        perimeterPassword,
         externalVaultUrl,
         pektinConfig,
-        tntBasicAuthHashed,
         ...(tempDomain && { tempDomain }),
     });
 
@@ -403,34 +398,27 @@ export const genEnvValues = async (v: {
     DB_PEKTIN_SERVER_PASSWORD: string;
     V_PEKTIN_API_PASSWORD: string;
     V_PEKTIN_API_USER_NAME: string;
-    PERIMETER_AUTH: string;
-    PERIMETER_AUTH_HASHED: string;
-    perimeterUsername: string;
-    perimeterPassword: string;
     externalVaultUrl: string;
     vaultTokens: {
         key: string;
         rootToken: string;
     };
-    tntBasicAuthHashed: string;
     tempDomain?: TempDomain;
 }) => {
     const repls = [
-        [`PERIMETER_AUTH`, v.PERIMETER_AUTH],
-        [`PERIMETER_AUTH_HASHED`, v.PERIMETER_AUTH_HASHED],
-        [`PERIMETER_USERNAME`, v.perimeterUsername],
-        [`PERIMETER_PASSWORD`, v.perimeterPassword],
         [`VAULT_API_ADDR`, v.externalVaultUrl],
 
         [`V_PEKTIN_API_PASSWORD`, v.V_PEKTIN_API_PASSWORD],
         [`V_PEKTIN_API_USER_NAME`, v.V_PEKTIN_API_USER_NAME],
         [`DB_PEKTIN_API_PASSWORD`, v.DB_PEKTIN_API_PASSWORD],
         [`DB_PEKTIN_SERVER_PASSWORD`, v.DB_PEKTIN_SERVER_PASSWORD],
+
         [`V_KEY`, v.vaultTokens.key],
         [`V_ROOT_TOKEN`, v.vaultTokens.rootToken],
+
         [`LETSENCRYPT_EMAIL`, v.pektinConfig.letsencrypt.letsencryptEmail],
+
         [`CSP_CONNECT_SRC`, createCspConnectSources(v.pektinConfig, v.tempDomain)],
-        [`TNT_AUTH`, v.tntBasicAuthHashed],
 
         [`UI_BUILD_PATH`, v.pektinConfig.services.ui.build.path],
         [`API_BUILD_PATH`, v.pektinConfig.services.api.build.path],
@@ -445,6 +433,7 @@ export const genEnvValues = async (v: {
         [`TNT_DOCKERFILE`, v.pektinConfig.services.tnt.build.dockerfile],
         [`RIBSTON_DOCKERFILE`, v.pektinConfig.services.ribston.build.dockerfile],
         [`VAULT_DOCKERFILE`, v.pektinConfig.services.vault.build.dockerfile],
+
         [`API_LOGGING`, v.pektinConfig.services.api.logging],
         [`SERVER_LOGGING`, v.pektinConfig.services.server.logging],
 
