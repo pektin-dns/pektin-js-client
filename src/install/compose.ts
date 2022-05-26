@@ -538,6 +538,9 @@ export const activeComposeFiles = (pektinConfig: PektinConfig) => {
     if (pektinConfig.services.opa.enabled) {
         composeCommand += ` -f pektin-compose/services/opa.yml`;
     }
+    if (pektinConfig.services.jaeger.enabled) {
+        composeCommand += ` -f pektin-compose/services/jaeger.yml`;
+    }
 
     if (pektinConfig.services.tnt.enabled) {
         composeCommand += ` -f pektin-compose/services/tnt.yml`;
