@@ -64,8 +64,7 @@ export const installPektinCompose = async (
               $$ |                                           
               \__|
     */
-    const [PERIMETER_AUTH, PERIMETER_AUTH_HASHED, perimeterUsername, perimeterPassword] =
-        generatePerimeterAuth();
+    const [PERIMETER_AUTH, PERIMETER_AUTH_HASHED] = generatePerimeterAuth();
 
     const {
         vaultTokens,
@@ -195,6 +194,7 @@ export const installPektinCompose = async (
                     "static.yml": traefikConfs.static,
                 },
             },
+            "overrides.yml": { $fileNoOverwrite: `version: "3.7"` },
         },
         { method: `node`, basePath: dir }
     );
@@ -501,34 +501,48 @@ export const genUpdateScript = async (pektinConfig: PektinConfig) => {
 };
 
 export const activeComposeFiles = (pektinConfig: PektinConfig) => {
-    let composeCommand = ` -f pektin-compose/pektin.yml`;
+    let composeCommand = ` -f pektin-compose/pektin.yml -f overrides.yml`;
 
     if (pektinConfig.nodes.length > 1) {
         composeCommand += ` -f pektin-compose/gewerkschaft-config.yml`;
     }
+
     if (pektinConfig.services.api.build.enabled) {
         composeCommand += ` -f pektin-compose/from-source/api.yml`;
     }
+
     if (pektinConfig.services.vault.build.enabled) {
         composeCommand += ` -f pektin-compose/from-source/vault.yml`;
     }
+
     if (pektinConfig.services.ui.enabled) {
         composeCommand += ` -f pektin-compose/services/ui.yml`;
         if (pektinConfig.services.ui.build.enabled) {
             composeCommand += ` -f pektin-compose/from-source/ui.yml`;
         }
     }
+
     if (pektinConfig.services.ribston.enabled) {
         composeCommand += ` -f pektin-compose/services/ribston.yml`;
         if (pektinConfig.services.ribston.build.enabled) {
             composeCommand += ` -f pektin-compose/from-source/ribston.yml`;
         }
     }
+
     if (pektinConfig.services.opa.enabled) {
         composeCommand += ` -f pektin-compose/services/opa.yml`;
     }
+
     if (pektinConfig.services.jaeger.enabled) {
         composeCommand += ` -f pektin-compose/services/jaeger.yml`;
+    }
+
+    if (pektinConfig.services.prometheus.enabled) {
+        composeCommand += ` -f pektin-compose/services/prom.yml`;
+    }
+
+    if (pektinConfig.services.grafana.enabled) {
+        composeCommand += ` -f pektin-compose/services/grafana.yml`;
     }
 
     if (pektinConfig.services.tnt.enabled) {
