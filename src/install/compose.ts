@@ -175,8 +175,11 @@ export const installPektinCompose = async (
                     "acme-client.pc3.json": {
                         $file: JSON.stringify(acmeClientConnectionConfig),
                     },
-                    "certbot-acme-client.pc3.ini": {
+                    "certbot-acme-client-external.pc3.ini": {
                         $file: configToCertbotIni(acmeClientConnectionConfig as PC3),
+                    },
+                    "certbot-acme-client-internal.pc3.ini": {
+                        $file: configToCertbotIni(acmeClientConnectionConfig as PC3, true),
                     },
                 }),
                 "server-admin.pc3.json": {

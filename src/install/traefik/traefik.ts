@@ -515,6 +515,14 @@ export const genStaticConf = (pektinConfig: PektinConfig) => {
             network: `rp`,
         },
         log: { level: `DEBUG` },
+        metrics: {
+            prometheus: {},
+        },
+        tracing: {
+            jaeger: {
+                localAgentHostPort: `pektin-jaeger:6831`,
+            },
+        },
         providers: {
             docker: { exposedbydefault: false },
             file: { directory: `/traefik/dynamic/`, watch: true },

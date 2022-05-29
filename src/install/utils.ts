@@ -104,10 +104,14 @@ export const createSingleScript = async (sourceFolder: string, node: PektinConfi
     return `${content}history -d -1 || true`;
 };
 
-export const configToCertbotIni = (cc: PC3) => `dns_pektin_username = ${cc.username}
+export const configToCertbotIni = (cc: PC3, internal = false) => `dns_pektin_username = ${
+    cc.username
+}
 dns_pektin_perimeter_auth = ${cc.perimeterAuth}
 dns_pektin_confidant_password = ${cc.confidantPassword}
-dns_pektin_api_endpoint = ${toASCII(cc.override?.pektinApiEndpoint)}
+dns_pektin_api_endpoint = ${
+    internal ? `http://pektin-api` : toASCII(cc.override?.pektinApiEndpoint)
+}
 `;
 
 export const requestPektinDomain = async (config: PektinConfig): Promise<TempDomain | false> => {
