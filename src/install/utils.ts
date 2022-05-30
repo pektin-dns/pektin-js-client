@@ -9,7 +9,8 @@ import { BasicAuthString, PC3, TempDomain } from "../types.js";
 import f from "cross-fetch";
 import c from "chalk";
 import { toASCII } from "../index.js";
-import { randomString } from "../utils/index.js";
+import { deAbsolute, randomString } from "../utils/index.js";
+import { getMainNameServers } from "../pureFunctions.js";
 
 const exec = promisify(execDefault);
 
@@ -113,6 +114,24 @@ dns_pektin_api_endpoint = ${
     internal ? `http://pektin-api` : toASCII(cc.override?.pektinApiEndpoint)
 }
 `;
+
+export const genCertsScript = (pektinConfig: PektinConfig, internal = false) => {
+    const mainNameServers = getMainNameServers(pektinConfig);
+    const domain = deAbsolute(mainNameServers[0].domain);
+    return `docker run${
+        internal ? ` --network pektin-compose_api` : ``
+    } -it --rm --name pektin-certbot \\
+    -v "$(pwd)/letsencrypt/:/etc/letsencrypt" \\
+    -v "$(pwd)/certbot-acme-client${
+        internal ? `-internal` : `-external`
+    }.pc3.ini:/certbot-acme-client.pc3.ini" \\
+    pektin/certbot certonly -a dns-pektin \\
+    -d '${domain},*.${domain}' \\
+    --agree-tos \\
+    --no-eff-email \\
+    -m ${pektinConfig.letsencrypt.letsencryptEmail} \\
+    --dns-pektin-credentials /certbot-acme-client.pc3.ini`;
+};
 
 export const requestPektinDomain = async (config: PektinConfig): Promise<TempDomain | false> => {
     const tempDomainProvider = config.reverseProxy.tempZone.provider;

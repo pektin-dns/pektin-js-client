@@ -6,6 +6,7 @@ import {
     requestPektinDomain,
     configToCertbotIni,
     generatePerimeterAuth,
+    genCertsScript,
 } from "./utils.js";
 import crypto from "crypto";
 /*@ts-ignore*/
@@ -172,14 +173,18 @@ export const installPektinCompose = async (
             secrets: {
                 ".env": envFile,
                 ...(acmeClientConnectionConfig && {
-                    "acme-client.pc3.json": {
-                        $file: JSON.stringify(acmeClientConnectionConfig),
-                    },
-                    "certbot-acme-client-external.pc3.ini": {
-                        $file: configToCertbotIni(acmeClientConnectionConfig as PC3),
-                    },
-                    "certbot-acme-client-internal.pc3.ini": {
-                        $file: configToCertbotIni(acmeClientConnectionConfig as PC3, true),
+                    certs: {
+                        "acme-client.pc3.json": JSON.stringify(acmeClientConnectionConfig),
+                        "certbot-acme-client-external.pc3.ini": configToCertbotIni(
+                            acmeClientConnectionConfig as PC3
+                        ),
+                        "certbot-acme-client-internal.pc3.ini": configToCertbotIni(
+                            acmeClientConnectionConfig as PC3,
+                            true
+                        ),
+                        "generate-certs-internal.sh": genCertsScript(pektinConfig, true),
+                        "generate-certs-external.sh": genCertsScript(pektinConfig),
+                        letsencrypt: {},
                     },
                 }),
                 "server-admin.pc3.json": {
@@ -188,7 +193,6 @@ export const installPektinCompose = async (
                 db: {
                     "users.acl": { $file: dbPasswordHashes, $perms: `644` },
                 },
-                letsencrypt: {},
                 traefik: {
                     dynamic: {
                         "default.yml": traefikConfs.dynamic,
