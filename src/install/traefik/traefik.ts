@@ -251,7 +251,13 @@ export const pektinServicesConf = ({
             },
             services: {
                 [`pektin-${service}`]: {
-                    loadbalancer: { servers: [{ url: `http://pektin-${service}` }] },
+                    loadbalancer: {
+                        servers: [
+                            {
+                                url: `http://pektin-${service}`,
+                            },
+                        ],
+                    },
                 },
             },
             /*@ts-ignore*/
@@ -379,7 +385,12 @@ export const traefikUiConf = (pektinConfig: PektinConfig) => {
     const tls = rp.tls
         ? {
               certResolver: `default`,
-              domains: [{ main: domain, sans: [`*.${domain}`] }],
+              domains: [
+                  {
+                      main: domain,
+                      sans: [`*.${domain}`],
+                  },
+              ],
           }
         : false;
     return {
@@ -514,7 +525,9 @@ export const genStaticConf = (pektinConfig: PektinConfig) => {
         docker: {
             network: `rp`,
         },
-        log: { level: `DEBUG` },
+        log: {
+            level: `DEBUG`,
+        },
         metrics: {
             prometheus: {},
         },
@@ -524,15 +537,33 @@ export const genStaticConf = (pektinConfig: PektinConfig) => {
             },
         },
         providers: {
-            docker: { exposedbydefault: false },
-            file: { directory: `/traefik/dynamic/`, watch: true },
+            docker: {
+                exposedbydefault: false,
+            },
+            file: {
+                directory: `/traefik/dynamic/`,
+                watch: true,
+            },
         },
-        ...(pektinConfig.reverseProxy.tls && { experimental: { http3: true } }),
+        ...(pektinConfig.reverseProxy.tls && {
+            experimental: {
+                http3: true,
+            },
+        }),
         entryPoints: {
-            "pektin-server-tcp": { address: `:853/tcp` },
+            "pektin-server-tcp": {
+                address: `:853/tcp`,
+            },
             // "pektin-server-udp": { address: `:853/udp` },
-            web: { address: `:80/tcp` },
-            ...(pektinConfig.reverseProxy.tls && { websecure: { address: `:443`, http3: {} } }),
+            web: {
+                address: `:80/tcp`,
+            },
+            ...(pektinConfig.reverseProxy.tls && {
+                websecure: {
+                    address: `:443`,
+                    http3: {},
+                },
+            }),
         },
         ...(pektinConfig.reverseProxy.tls && {
             certificatesresolvers: {

@@ -28,15 +28,13 @@ import {
     RecordIdentifier,
     Glob,
     PC3,
-    createPektinSigner,
-    updatePektinSharedPasswords,
-    deletePektinSigner,
+    createDomainDnsKeys,
+    deleteDomainDnsKeys,
 } from "./index.js";
 import { any, crtFormatQuery, fetchProxy, getPublicDnssecData } from "./pureFunctions.js";
 import { queryTnt } from "./trinitrotoluol/tnt.js";
 import { TntQuery } from "./trinitrotoluol/types.js";
 import { BasicAuthString, supportedPektinRrTypes } from "./types.js";
-import { randomString } from "./utils/index.js";
 import { getVaultValue, vaultLoginUserpass } from "./vault/vault.js";
 
 export class PektinClient {
@@ -83,29 +81,14 @@ export class PektinClient {
         await this.init();
         if (this.managerToken === null) throw Error(`Missing manager token`);
         if (!this.vaultEndpoint) throw Error(`Missing vault endpoint`);
-        const domainSignerPassword = randomString();
-        return await Promise.all([
-            createPektinSigner(
-                this.vaultEndpoint,
-                this.managerToken,
-                domainName,
-                domainSignerPassword
-            ),
-            updatePektinSharedPasswords(
-                this.vaultEndpoint,
-                this.managerToken,
-                `signer`,
-                domainSignerPassword,
-                domainName
-            ),
-        ]);
+        return await createDomainDnsKeys(this.vaultEndpoint, this.managerToken, domainName);
     };
 
     deletePektinSigner = async (domainName: string) => {
         await this.init();
         if (this.managerToken === null) throw Error(`Missing manager token`);
         if (!this.vaultEndpoint) throw Error(`Missing vault endpoint`);
-        return await deletePektinSigner(this.vaultEndpoint, this.managerToken, domainName);
+        return await deleteDomainDnsKeys(this.vaultEndpoint, this.managerToken, domainName);
     };
 
     // gets the pektin config from vault

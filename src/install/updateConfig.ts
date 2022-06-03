@@ -87,7 +87,11 @@ export const updateConfig = async (dir: string = `/pektin-compose/`) => {
                 $owner: user,
                 $perms: `700`,
             },
-            "stop.sh": { $file: await genStopScript(pektinConfig), $owner: user, $perms: `700` },
+            "stop.sh": {
+                $file: await genStopScript(pektinConfig),
+                $owner: user,
+                $perms: `700`,
+            },
             "update.sh": {
                 $file: await genUpdateScript(pektinConfig),
                 $owner: user,
@@ -96,15 +100,28 @@ export const updateConfig = async (dir: string = `/pektin-compose/`) => {
             secrets: {
                 traefik: {
                     dynamic: {
-                        "default.yml": { $file: traefikConfs.dynamic, $owner: user, $perms: `600` },
-                        ...(useTempDomain && { "tempDomain.yml": traefikConfs.tempDomain }),
+                        "default.yml": {
+                            $file: traefikConfs.dynamic,
+                            $owner: user,
+                            $perms: `600`,
+                        },
+                        ...(useTempDomain && {
+                            "tempDomain.yml": traefikConfs.tempDomain,
+                        }),
                     },
-                    "static.yml": { $file: traefikConfs.static, $owner: user, $perms: `600` },
+                    "static.yml": {
+                        $file: traefikConfs.static,
+                        $owner: user,
+                        $perms: `600`,
+                    },
                 },
                 $owner: user,
                 $perms: `700`,
             },
         },
-        { method: `node`, basePath: dir }
+        {
+            method: `node`,
+            basePath: dir,
+        }
     );
 };

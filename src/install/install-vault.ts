@@ -2,8 +2,7 @@ import { absoluteName, deAbsolute, getPektinEndpoint, isReady } from "../index.j
 import {
     createPektinVaultEngines,
     createPektinAuthVaultPolicies,
-    createPektinSigner,
-    updatePektinSharedPasswords,
+    createDomainDnsKeys,
     createPektinApiAccount,
     createPektinClient,
 } from "../auth.js";
@@ -85,21 +84,7 @@ export const installVault = async ({
                     );
                 }
 
-                const domainSignerPassword = nsPass ?? randomString();
-                await createPektinSigner(
-                    internalVaultUrl,
-                    vaultTokens.rootToken,
-                    ns.domain,
-                    domainSignerPassword
-                );
-
-                await updatePektinSharedPasswords(
-                    internalVaultUrl,
-                    vaultTokens.rootToken,
-                    `signer`,
-                    domainSignerPassword,
-                    ns.domain
-                );
+                await createDomainDnsKeys(internalVaultUrl, vaultTokens.rootToken, ns.domain);
             }
         });
     }

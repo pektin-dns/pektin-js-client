@@ -3,7 +3,6 @@ import {
     pektinApiPolicy,
     pektinConfidantPolicy,
     pektinServerAdminManagerPolicy,
-    pektinSignerPolicy,
 } from "./vault/pektinVaultPolicies.js";
 import { VaultAuthEngine, VaultSecretEngine } from "./vault/types.js";
 import {
@@ -27,38 +26,25 @@ import {
 import { deAbsolute, isOnlyLowercase } from "./utils/index.js";
 import { Client } from "./types.js";
 
-export const createPektinSigner = async (
-    endpoint: string,
-    token: string,
-    domainName: string,
-    password: string
-) => {
+export const createDomainDnsKeys = async (endpoint: string, token: string, domainName: string) => {
     domainName = toASCII(deAbsolute(domainName));
 
-    const name = `pektin-signer-${domainName}`;
-
-    const metadata = { domain: domainName };
-
     return await Promise.all([
-        createFullUserPass(endpoint, token, name, password, metadata, [`pektin-signer`]),
         createSigningKey(endpoint, token, `${domainName}-ksk`),
         createSigningKey(endpoint, token, `${domainName}-zsk`),
     ]);
 };
 
-export const deletePektinSigner = async (endpoint: string, token: string, domainName: string) => {
+export const deleteDomainDnsKeys = async (endpoint: string, token: string, domainName: string) => {
     domainName = toASCII(deAbsolute(domainName));
 
-    const name = `pektin-signer-${domainName}`;
     await Promise.all([
         allowKeyDeletion(endpoint, token, `${domainName}-zsk`),
         allowKeyDeletion(endpoint, token, `${domainName}-ksk`),
     ]);
     return await Promise.all([
-        deleteUserPass(endpoint, token, name),
         deleteSigningKey(endpoint, token, `${domainName}-zsk`),
         deleteSigningKey(endpoint, token, `${domainName}-ksk`),
-        deletePektinSharedPassword(endpoint, token, `signer`, domainName),
     ]);
 };
 
@@ -144,10 +130,7 @@ export const createPektinApiAccount = async (
 };
 
 export const createPektinAuthVaultPolicies = async (endpoint: string, token: string) => {
-    const policyPairs = [
-        { name: `pektin-signer`, policy: pektinSignerPolicy },
-        { name: `pektin-api`, policy: pektinApiPolicy },
-    ];
+    const policyPairs = [{ name: `pektin-api`, policy: pektinApiPolicy }];
 
     policyPairs.map(async (e) => {
         await createVaultPolicy(endpoint, token, e.name, e.policy);
@@ -183,32 +166,6 @@ export const deletePektinSharedPassword = async (
         await deleteKvValue(endpoint, token, domainName, `pektin-${type}-passwords-1`),
         await deleteKvValue(endpoint, token, domainName, `pektin-${type}-passwords-2`),
     ]);
-};
-
-export const updatePektinSharedPasswords = async (
-    endpoint: string,
-    token: string,
-    type: `signer`,
-    password: string,
-    domainName: DomainName
-) => {
-    domainName = toASCII(deAbsolute(domainName));
-    await updateKvValue(endpoint, token, domainName, { password }, `pektin-${type}-passwords`);
-
-    for (let i = 1; i < 3; i++) {
-        if (password.length % 2 !== 0) throw new Error(`Password must have an even length`);
-        const passwordHalf =
-            i === 1
-                ? password.substring(0, password.length / 2)
-                : password.substring(password.length / 2);
-        await updateKvValue(
-            endpoint,
-            token,
-            domainName,
-            { password: passwordHalf },
-            `pektin-${type}-passwords-${i}`
-        );
-    }
 };
 
 export const createFullUserPass = async (

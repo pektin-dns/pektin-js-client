@@ -191,12 +191,17 @@ export const installPektinCompose = async (
                     $file: JSON.stringify(pektinAdminConnectionConfig),
                 },
                 db: {
-                    "users.acl": { $file: dbPasswordHashes, $perms: `644` },
+                    "users.acl": {
+                        $file: dbPasswordHashes,
+                        $perms: `644`,
+                    },
                 },
                 traefik: {
                     dynamic: {
                         "default.yml": traefikConfs.dynamic,
-                        ...(useTempDomain && { "tempDomain.yml": traefikConfs.tempDomain }),
+                        ...(useTempDomain && {
+                            "tempDomain.yml": traefikConfs.tempDomain,
+                        }),
                     },
                     "static.yml": traefikConfs.static,
                 },

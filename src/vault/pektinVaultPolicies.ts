@@ -2,23 +2,6 @@ import { ClientCapabilities } from "../types.js";
 import { deAbsolute } from "../utils/index.js";
 import { VaultPolicy } from "./types.js";
 
-export const pektinSignerPolicy: VaultPolicy = `
-path "pektin-transit/sign/{{identity.entity.metadata.domain}}-zsk/sha2-256" {
-    capabilities = ["update"]
-}
-
-path "pektin-transit/keys/{{identity.entity.metadata.domain}}-zsk" {
-    capabilities = ["read"]
-}
-
-path "pektin-transit/sign/{{identity.entity.metadata.domain}}-ksk/sha2-256" {
-    capabilities = ["update"]
-}
-
-path "pektin-transit/keys/{{identity.entity.metadata.domain}}-ksk" {
-    capabilities = ["read"]
-}`;
-
 export const pektinServerAdminManagerPolicy: VaultPolicy = `
 path "auth/userpass/*" {
     capabilities = ["create", "read", "update", "delete", "list"]
@@ -35,16 +18,6 @@ path "identity/*" {
 path "sys/auth" {
     capabilities = ["create", "read", "update", "delete", "list"]
 }
-path "pektin-signer-passwords/*" {
-    capabilities = ["create", "read", "update", "delete", "list"]
-}
-path "pektin-signer-passwords-1/*" {
-    capabilities = ["create", "read", "update", "delete", "list"]
-}
-path "pektin-signer-passwords-2/*" {
-    capabilities = ["create", "read", "update", "delete", "list"]
-}
-
 `;
 
 export const pektinConfidantPolicy = (capabilities: ClientCapabilities): VaultPolicy => {
@@ -77,20 +50,12 @@ path "pektin-kv/data/proxy-auth" {
     }
     if (capabilities.allowAllSigningDomains) {
         policy += `
-path "pektin-signer-passwords-1/data/*" {
-    capabilities = ["read"]
-}
-
 path "pektin-transit/keys/*" {
     capabilities = ["read"]
 }
 `;
     } else if (capabilities.allowedSigningDomains) {
         capabilities.allowedSigningDomains.map((domain) => {
-            policy += `
-path "pektin-signer-passwords-1/data/${deAbsolute(domain)}" {
-    capabilities = ["read"]
-}`;
             policy += `
 path "pektin-transit/keys/${deAbsolute(domain)}-zsk" {
     capabilities = ["read"]
@@ -105,10 +70,10 @@ path "pektin-transit/keys/${deAbsolute(domain)}-ksk" {
     return policy as VaultPolicy;
 };
 export const pektinApiPolicy: VaultPolicy = `
-path "pektin-signer-passwords-2/data/*" {
+path "pektin-policies/data/*" {
     capabilities = ["read"]
 }
 
-path "pektin-policies/data/*" {
-    capabilities = ["read"]
+path "pektin-transit/*" {
+    capabilities = ["update","read"]
 }`;
