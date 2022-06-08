@@ -174,12 +174,22 @@ export interface PC3 {
     managerPassword?: ManagerPassword;
     internal?: boolean;
     override?: OverrideClientCredentials;
+    info?: PC3Info;
 }
 
 export interface OverrideClientCredentials {
     pektinApiEndpoint?: string;
     pektinConfig?: PektinConfig;
 }
+
+export interface PC3Info {
+    apiCredentials?: PC3InfoApiCredentials;
+}
+
+export interface PC3InfoApiCredentials {
+    [key: string]: ApiCredential[];
+}
+export interface ApiCredential {}
 
 export type ApiResponseBodyError =
     | SetResponseError
@@ -381,6 +391,7 @@ export type ApiRecord =
 export interface ApiRecordBase {
     name: string;
     ttl: number;
+    meta?: string;
 }
 export interface ApiRecordA extends ApiRecordBase {
     rr_type: PektinRRType.A;

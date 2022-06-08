@@ -44,18 +44,6 @@ export const installVault = async ({
                 options: { type: `kv`, options: { version: 2 } },
             },
             {
-                path: `pektin-signer-passwords-1`,
-                options: { type: `kv`, options: { version: 2 } },
-            },
-            {
-                path: `pektin-signer-passwords-2`,
-                options: { type: `kv`, options: { version: 2 } },
-            },
-            {
-                path: `pektin-signer-passwords`,
-                options: { type: `kv`, options: { version: 2 } },
-            },
-            {
                 path: `pektin-policies`,
                 options: { type: `kv`, options: { version: 2 } },
             },

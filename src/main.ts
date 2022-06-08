@@ -51,6 +51,7 @@ export class PektinClient {
     pektinConfig: PektinConfig | null;
     internal: boolean;
     perimeterAuth: BasicAuthString;
+    pc3: PC3;
 
     constructor(pc3: PC3, throwErrors?: boolean) {
         if (pc3 === undefined) throw Error(`Missing connectionConfig`);
@@ -69,6 +70,7 @@ export class PektinClient {
         this.throwErrors = throwErrors;
         this.internal = pc3.internal || false;
         this.perimeterAuth = pc3.perimeterAuth;
+        this.pc3 = pc3;
     }
 
     init = async () => {
