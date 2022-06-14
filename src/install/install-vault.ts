@@ -110,6 +110,7 @@ export const installVault = async ({
         managerPassword: `m.${randomString()}`,
         confidantPassword: `c.${randomString()}`,
         vaultEndpoint,
+        info: { apiCredentials: { gandi: [{ apiKey: `` }] } },
     } as PC3;
 
     const pektinAdminRibstonPolicy = await fs.readFile(
@@ -194,7 +195,7 @@ export const installVault = async ({
     const TNT_PASSWORD = secrets?.tntAuth?.password ?? randomString();
     const tntBasicAuthHashed = genBasicAuthHashed(TNT_USER, TNT_PASSWORD);
 
-    // create basic auth for tnt
+    // create auth for proxy
     const PROXY_USER = secrets?.proxyAuth?.username ?? randomString(20);
     const PROXY_PASSWORD = secrets?.proxyAuth?.password ?? randomString();
     const proxyBasicAuthHashed = genBasicAuthHashed(PROXY_USER, PROXY_PASSWORD);

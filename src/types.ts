@@ -169,7 +169,7 @@ export type BasicAuthString = `Basic ${string}`;
 export interface PC3 {
     vaultEndpoint?: string;
     username: string;
-    perimeterAuth: BasicAuthString;
+    perimeterAuth?: BasicAuthString;
     confidantPassword?: ConfidantPassword;
     managerPassword?: ManagerPassword;
     internal?: boolean;

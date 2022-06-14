@@ -66,7 +66,6 @@ export const updateConfig = async (dir: string = `/pektin-compose/`) => {
         node: getMainNode(pektinConfig),
         tntAuth: tntBasicAuthHashed,
         ...(tempDomain && { tempDomain }),
-        proxyAuth: proxyBasicAuthHashed,
         perimeterAuthHashed: process.env.PERIMETER_AUTH_HASHED,
     });
 

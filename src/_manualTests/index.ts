@@ -20,7 +20,7 @@ const serverAdminConfig = await fs.readFile(`../pektin-compose/secrets/server-ad
     encoding: `utf8`,
 });
 
-const acmeClientConfig = await fs.readFile(`../pektin-compose/secrets/acme-client.pc3.json`, {
+const acmeClientConfig = await fs.readFile(`../pektin-compose/secrets/certs/acme-client.pc3.json`, {
     encoding: `utf8`,
 });
 
@@ -39,7 +39,9 @@ MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE
 J9Ypg6fzHdiawUYehRQ/qBtof/1NnHtITmP1F3fNqLnw==
 -----END PUBLIC KEY-----`;
 
-console.log(JSON.stringify(await pc.walkZone(`y.gy.`, 100, `8.8.8.8`), null, 2));
+//console.log(JSON.stringify(await pc.walkZone(`y.gy.`, 100, `8.8.8.8`), null, 2));
+
+console.log(await pc.fetchProxy({ name: `crt` }));
 
 /*
 

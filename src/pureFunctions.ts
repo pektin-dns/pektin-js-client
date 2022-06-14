@@ -509,7 +509,7 @@ export const fetchProxy = ({
         _.merge(
             {
                 headers: {
-                    Authorization: proxyAuth || ``,
+                    ProxyBasicAuth: proxyAuth || ``,
                 },
             },
             fetchOptions

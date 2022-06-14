@@ -1,5 +1,5 @@
 import { PektinConfig } from "@pektin/config/src/config-types.js";
-import { Crt } from "./external/crt.js";
+import { Crt } from "./foreign-apis/crt/types.js";
 import {
     deleteRecords,
     duplicateZoneConversion,

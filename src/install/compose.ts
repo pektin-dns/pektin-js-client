@@ -137,7 +137,6 @@ export const installPektinCompose = async (
         node: getMainNode(pektinConfig),
         tntAuth: tntBasicAuthHashed,
         ...(tempDomain && { tempDomain }),
-        proxyAuth: proxyBasicAuthHashed,
         perimeterAuthHashed: PERIMETER_AUTH_HASHED,
     });
 
@@ -152,6 +151,7 @@ export const installPektinCompose = async (
         V_PEKTIN_API_USER_NAME,
         externalVaultUrl,
         pektinConfig,
+        proxyBasicAuthHashed,
         ...(tempDomain && { tempDomain }),
     });
 
@@ -411,6 +411,7 @@ export const genEnvValues = async (v: {
     V_PEKTIN_API_PASSWORD: string;
     V_PEKTIN_API_USER_NAME: string;
     externalVaultUrl: string;
+    proxyBasicAuthHashed: string;
     vaultTokens: {
         key: string;
         rootToken: string;
@@ -432,12 +433,19 @@ export const genEnvValues = async (v: {
 
         [`CSP_CONNECT_SRC`, createCspConnectSources(v.pektinConfig, v.tempDomain)],
 
+        [`PROXY_BASIC_AUTH_HASHED`, v.proxyBasicAuthHashed],
+
         [`UI_BUILD_PATH`, v.pektinConfig.services.ui.build.path],
         [`API_BUILD_PATH`, v.pektinConfig.services.api.build.path],
         [`SERVER_BUILD_PATH`, v.pektinConfig.services.server.build.path],
         [`TNT_BUILD_PATH`, v.pektinConfig.services.tnt.build.path],
         [`RIBSTON_BUILD_PATH`, v.pektinConfig.services.ribston.build.path],
         [`VAULT_BUILD_PATH`, v.pektinConfig.services.vault.build.path],
+        [`JAEGER_BUILD_PATH`, v.pektinConfig.services.jaeger.build.path],
+        [`PROM_BUILD_PATH`, v.pektinConfig.services.prometheus.build.path],
+        [`ALERT_BUILD_PATH`, v.pektinConfig.services.alert.build.path],
+        [`GRAFANA_BUILD_PATH`, v.pektinConfig.services.grafana.build.path],
+        [`PROXY_AUTH_BUILD_PATH`, v.pektinConfig.reverseProxy.external.build.path],
 
         [`UI_DOCKERFILE`, v.pektinConfig.services.ui.build.dockerfile],
         [`API_DOCKERFILE`, v.pektinConfig.services.api.build.dockerfile],
@@ -445,6 +453,11 @@ export const genEnvValues = async (v: {
         [`TNT_DOCKERFILE`, v.pektinConfig.services.tnt.build.dockerfile],
         [`RIBSTON_DOCKERFILE`, v.pektinConfig.services.ribston.build.dockerfile],
         [`VAULT_DOCKERFILE`, v.pektinConfig.services.vault.build.dockerfile],
+        [`JAEGER_BUILD_DOCKERFILE`, v.pektinConfig.services.jaeger.build.dockerfile],
+        [`PROM_BUILD_DOCKERFILE`, v.pektinConfig.services.prometheus.build.dockerfile],
+        [`ALERT_BUILD_DOCKERFILE`, v.pektinConfig.services.alert.build.dockerfile],
+        [`GRAFANA_BUILD_DOCKERFILE`, v.pektinConfig.services.grafana.build.dockerfile],
+        [`PROXY_AUTH_BUILD_DOCKERFILE`, v.pektinConfig.reverseProxy.external.build.dockerfile],
 
         [`API_LOGGING`, v.pektinConfig.services.api.logging],
         [`SERVER_LOGGING`, v.pektinConfig.services.server.logging],
@@ -527,6 +540,10 @@ export const activeComposeFiles = (pektinConfig: PektinConfig) => {
         composeCommand += ` -f pektin-compose/from-source/vault.yml`;
     }
 
+    if (pektinConfig.services.server.build.enabled) {
+        composeCommand += ` -f pektin-compose/from-source/server.yml`;
+    }
+
     if (pektinConfig.services.ui.enabled) {
         composeCommand += ` -f pektin-compose/services/ui.yml`;
         if (pektinConfig.services.ui.build.enabled) {
@@ -543,18 +560,37 @@ export const activeComposeFiles = (pektinConfig: PektinConfig) => {
 
     if (pektinConfig.services.opa.enabled) {
         composeCommand += ` -f pektin-compose/services/opa.yml`;
+        if (pektinConfig.services.opa.build.enabled) {
+            composeCommand += ` -f pektin-compose/from-source/opa.yml`;
+        }
     }
 
     if (pektinConfig.services.jaeger.enabled) {
         composeCommand += ` -f pektin-compose/services/jaeger.yml`;
+        if (pektinConfig.services.jaeger.build.enabled) {
+            composeCommand += ` -f pektin-compose/from-source/jaeger.yml`;
+        }
     }
 
     if (pektinConfig.services.prometheus.enabled) {
-        composeCommand += ` -f pektin-compose/services/prom.yml`;
+        composeCommand += ` -f pektin-compose/services/prometheus.yml`;
+        if (pektinConfig.services.prometheus.build.enabled) {
+            composeCommand += ` -f pektin-compose/from-source/prometheus.yml`;
+        }
     }
 
     if (pektinConfig.services.grafana.enabled) {
         composeCommand += ` -f pektin-compose/services/grafana.yml`;
+        if (pektinConfig.services.grafana.build.enabled) {
+            composeCommand += ` -f pektin-compose/from-source/grafana.yml`;
+        }
+    }
+
+    if (pektinConfig.services.alert.enabled) {
+        composeCommand += ` -f pektin-compose/services/alert.yml`;
+        if (pektinConfig.services.alert.build.enabled) {
+            composeCommand += ` -f pektin-compose/from-source/alert.yml`;
+        }
     }
 
     if (pektinConfig.services.tnt.enabled) {
@@ -564,8 +600,11 @@ export const activeComposeFiles = (pektinConfig: PektinConfig) => {
         }
     }
 
-    if (pektinConfig.services.server.build.enabled) {
-        composeCommand += ` -f pektin-compose/from-source/server.yml`;
+    if (pektinConfig.reverseProxy.external.enabled) {
+        composeCommand += ` -f pektin-compose/services/proxy-auth.yml`;
+        if (pektinConfig.reverseProxy.external.build.enabled) {
+            composeCommand += ` -f pektin-compose/from-source/proxy-auth.yml`;
+        }
     }
 
     if (pektinConfig.reverseProxy.createTraefik) {

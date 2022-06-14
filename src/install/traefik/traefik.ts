@@ -11,14 +11,12 @@ export const genTraefikConfs = ({
     node,
     tntAuth,
     tempDomain,
-    proxyAuth,
     perimeterAuthHashed,
 }: {
     readonly pektinConfig: PektinConfig;
     readonly node: PektinConfig[`nodes`][0];
     readonly tntAuth?: string;
     readonly tempDomain?: TempDomain;
-    readonly proxyAuth?: string;
     readonly perimeterAuthHashed?: string;
 }) => {
     const nodeNameServers = getNodesNameservers(pektinConfig, node.name);
@@ -53,7 +51,7 @@ export const genTraefikConfs = ({
         ...(node.main
             ? pektinConfig.reverseProxy.external.services
                   .filter((s) => s.enabled)
-                  .map((proxy) => proxyConf({ ...proxy, pektinConfig, proxyAuth }))
+                  .map((proxy) => proxyConf({ ...proxy, pektinConfig }))
             : []),
         tlsConfig(pektinConfig),
         node.main && pektinConfig.reverseProxy.traefikUi.enabled && traefikUiConf(pektinConfig),
@@ -280,15 +278,12 @@ export const proxyConf = ({
     name,
     domain,
     accessControlAllowMethods,
-    proxyAuth,
 }: {
     pektinConfig: PektinConfig;
     name: string;
     domain: string;
     accessControlAllowMethods: string[];
-    proxyAuth?: string;
 }) => {
-    if (!proxyAuth) return {};
     const rp = pektinConfig.reverseProxy;
     const internalDomain = toASCII(rp.external.domain);
     const subDomain = toASCII(rp.external.subDomain);
@@ -364,8 +359,8 @@ export const proxyConf = ({
                     },
                 },
                 "pektin-proxy-auth": {
-                    basicauth: {
-                        users: proxyAuth,
+                    forwardAuth: {
+                        address: `http://pektin-proxy-auth`,
                     },
                 },
             },
