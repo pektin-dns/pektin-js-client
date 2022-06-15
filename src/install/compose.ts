@@ -22,6 +22,7 @@ import { concatDomain, randomString } from "../utils/index.js";
 import { toASCII } from "../utils/puny.js";
 import { installVault } from "./install-vault.js";
 import { declareFs } from "@pektin/declare-fs";
+import { cloneDeep } from "lodash";
 
 export const installPektinCompose = async (
     dir: string = `/pektin-compose/`,
@@ -73,7 +74,7 @@ export const installPektinCompose = async (
         proxyBasicAuthHashed,
         V_PEKTIN_API_PASSWORD,
         pektinAdminConnectionConfig,
-        acmeClientConnectionConfig,
+        acmeClientConnectionConfig: acmeClientConnectionConfigExternal,
         V_PEKTIN_API_USER_NAME,
     } = await installVault({ pektinConfig });
 
@@ -89,14 +90,22 @@ export const installPektinCompose = async (
     */
 
     pektinAdminConnectionConfig.perimeterAuth = PERIMETER_AUTH;
-    if (typeof acmeClientConnectionConfig === `object`) {
-        acmeClientConnectionConfig.perimeterAuth = PERIMETER_AUTH;
+    if (typeof acmeClientConnectionConfigExternal === `object`) {
+        acmeClientConnectionConfigExternal.perimeterAuth = PERIMETER_AUTH;
     }
 
     // init db access control
     const DB_PEKTIN_API_PASSWORD = randomString();
     const DB_PEKTIN_SERVER_PASSWORD = randomString();
     const DB_PEKTIN_GEWERKSCHAFT_PASSWORD = randomString();
+
+    const acmeClientConnectionConfigInternal = cloneDeep(acmeClientConnectionConfigExternal);
+    if (
+        typeof acmeClientConnectionConfigInternal !== "boolean" &&
+        acmeClientConnectionConfigInternal?.override?.pektinApiEndpoint !== undefined
+    ) {
+        acmeClientConnectionConfigInternal.override.pektinApiEndpoint = "http://pektin-api";
+    }
 
     const dbPasswords = [
         [`DB_PEKTIN_API_PASSWORD`, DB_PEKTIN_API_PASSWORD],
@@ -172,14 +181,19 @@ export const installPektinCompose = async (
             "update.sh": await genUpdateScript(pektinConfig),
             secrets: {
                 ".env": envFile,
-                ...(acmeClientConnectionConfig && {
+                ...(acmeClientConnectionConfigExternal && {
                     certs: {
-                        "acme-client.pc3.json": JSON.stringify(acmeClientConnectionConfig),
+                        "acme-client-external.pc3.json": JSON.stringify(
+                            acmeClientConnectionConfigExternal
+                        ),
+                        "acme-client-internal.pc3.json": JSON.stringify(
+                            acmeClientConnectionConfigInternal
+                        ),
                         "certbot-acme-client-external.pc3.ini": configToCertbotIni(
-                            acmeClientConnectionConfig as PC3
+                            acmeClientConnectionConfigExternal as PC3
                         ),
                         "certbot-acme-client-internal.pc3.ini": configToCertbotIni(
-                            acmeClientConnectionConfig as PC3,
+                            acmeClientConnectionConfigExternal as PC3,
                             true
                         ),
                         "generate-certs-internal.sh": genCertsScript(pektinConfig, true),

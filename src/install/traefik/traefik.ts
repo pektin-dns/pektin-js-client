@@ -353,10 +353,10 @@ export const proxyConf = ({
                 },
                 [`pektin-proxy-cors-${name}`]: {
                     headers: {
-                        accessControlAllowMethods: accessControlAllowMethods.join(`,`),
+                        accessControlAllowMethods: accessControlAllowMethods.join(`, `),
                         accessControlAllowOriginList: `*`,
                         accessControlMaxAge: 86400,
-                        accessControlAllowHeaders: `ProxyBasicAuth`,
+                        accessControlAllowHeaders: `ProxyBasicAuth, content-type`,
                     },
                 },
                 "pektin-proxy-auth": {
