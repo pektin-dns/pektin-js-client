@@ -356,6 +356,7 @@ export const proxyConf = ({
                         accessControlAllowMethods: accessControlAllowMethods.join(`,`),
                         accessControlAllowOriginList: `*`,
                         accessControlMaxAge: 86400,
+                        accessControlAllowHeaders: `ProxyBasicAuth`,
                     },
                 },
                 "pektin-proxy-auth": {

@@ -305,8 +305,7 @@ export const getPektinConfig = async (vaultEndpoint: string, vaultToken: string)
 export const get = async (
     apiEndpoint: string,
     body: ApiGetRequestBody,
-    perimeterAuth: BasicAuthString,
-
+    perimeterAuth?: BasicAuthString,
     throwErrors?: boolean
 ): Promise<GetResponse> => {
     const res = await pektinApiRequest({
@@ -324,8 +323,7 @@ export const get = async (
 export const set = async (
     apiEndpoint: string,
     body: ApiSetRequestBody,
-    perimeterAuth: BasicAuthString,
-
+    perimeterAuth?: BasicAuthString,
     throwErrors?: boolean
 ): Promise<SetResponse> => {
     const res = await pektinApiRequest({
@@ -343,8 +341,7 @@ export const set = async (
 export const search = async (
     apiEndpoint: string,
     body: ApiSearchRequestBody,
-    perimeterAuth: BasicAuthString,
-
+    perimeterAuth?: BasicAuthString,
     throwErrors?: boolean
 ): Promise<SearchResponse> => {
     const res = await pektinApiRequest({
@@ -362,8 +359,7 @@ export const search = async (
 export const deleteRecords = async (
     apiEndpoint: string,
     body: ApiDeleteRequestBody,
-    perimeterAuth: BasicAuthString,
-
+    perimeterAuth?: BasicAuthString,
     throwErrors?: boolean
 ): Promise<DeleteResponse> => {
     const res = await pektinApiRequest({
@@ -381,8 +377,7 @@ export const deleteRecords = async (
 export const health = async (
     apiEndpoint: string,
     body: ApiHealthRequestBody,
-    perimeterAuth: BasicAuthString,
-
+    perimeterAuth?: BasicAuthString,
     throwErrors?: boolean
 ): Promise<HealthResponse> => {
     const res = await pektinApiRequest({
@@ -400,7 +395,7 @@ export const health = async (
 export const getZoneRecords = async (
     apiEndpoint: string,
     body: ApiGetZoneRecordsRequestBody,
-    perimeterAuth: BasicAuthString,
+    perimeterAuth?: BasicAuthString,
     throwErrors?: boolean
 ): Promise<GetZoneRecordsResponse> => {
     const res = await pektinApiRequest({
@@ -419,7 +414,7 @@ export const any = async (
     apiEndpoint: string,
     apiPath: string,
     body: any,
-    perimeterAuth: BasicAuthString,
+    perimeterAuth?: BasicAuthString,
     throwErrors?: boolean
 ): Promise<any> => {
     const res = await pektinApiRequest({
@@ -443,7 +438,7 @@ export const pektinApiRequest = async ({
     apiEndpoint: string;
     method: ApiMethod;
     body: ApiRequestBody;
-    perimeterAuth: BasicAuthString;
+    perimeterAuth?: BasicAuthString;
     throwErrors?: boolean;
 }): Promise<ApiResponseBody> => {
     if (!apiEndpoint) throw Error(`Pektin API details weren't obtained yet`);

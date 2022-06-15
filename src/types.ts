@@ -552,3 +552,9 @@ export const supportedPektinRrTypes = [
     `TLSA`,
     `TXT`,
 ];
+
+export interface ProxyOptions {
+    proxyEndpoint: string;
+    name: string;
+    proxyAuth: string;
+}

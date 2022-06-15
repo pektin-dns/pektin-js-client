@@ -50,7 +50,7 @@ export class PektinClient {
     pektinApiEndpoint: string | null;
     pektinConfig: PektinConfig | null;
     internal: boolean;
-    perimeterAuth: BasicAuthString;
+    perimeterAuth?: BasicAuthString;
     pc3: PC3;
 
     constructor(pc3: PC3, throwErrors?: boolean) {
@@ -346,7 +346,7 @@ export class PektinClient {
             throwErrors
         );
     };
-    getPektinEndpoint = async (type: `api` | `vault` | `ui` | `tnt`) => {
+    getPektinEndpoint = async (type: `api` | `vault` | `ui` | `tnt` | `proxy`) => {
         if (!this.pektinConfig) await this.getPektinConfig();
         if (!this.pektinConfig) throw Error(`Couldn't obtain pektin-config`);
         return getPektinEndpoint(this.pektinConfig, type, this.internal);
@@ -528,6 +528,14 @@ export class PektinClient {
         return insert;
     };
     // replaces a name in an rrset
+
+    getProxyOptions = async (name: string) => {
+        return {
+            proxyEndpoint: await this.getPektinEndpoint(`proxy`),
+            name,
+            proxyAuth: await this.getAuth(`proxy`),
+        };
+    };
 
     fetchProxy = async ({
         name,
