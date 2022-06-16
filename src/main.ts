@@ -536,32 +536,7 @@ export class PektinClient {
             proxyAuth: await this.getAuth(`proxy`),
         };
     };
-
-    fetchProxy = async ({
-        name,
-        path,
-        fetchOptions,
-    }: {
-        name: string;
-        path?: string;
-        fetchOptions?: any;
-    }) => {
-        if (!this.pektinConfig) {
-            await this.getPektinConfig();
-            if (!this.pektinConfig) {
-                throw Error(`Couldn't obtain pektinApiEndpoint`);
-            }
-        }
-        if (!this.proxyAuth) {
-            await this.getAuth(`proxy`);
-            if (!this.proxyAuth) {
-                throw Error(`Couldn't obtain proxyAuth`);
-            }
-        }
-        const proxyEndpoint = getPektinEndpoint(this.pektinConfig, `proxy`);
-        return fetchProxy({ name, path, fetchOptions, proxyAuth: this.proxyAuth, proxyEndpoint });
-    };
-
+    /*
     getCrtInfo = async (domain: string) => {
         const res = await this.fetchProxy({ name: `crt`, path: crtFormatQuery(domain) });
         const text = await res.text();
@@ -576,7 +551,7 @@ export class PektinClient {
             }
         }
         return j as Crt[];
-    };
+    };*/
 
     getPublicDnssecData = async (domainName: string) => {
         if (!this.vaultEndpoint) {

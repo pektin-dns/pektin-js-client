@@ -20,12 +20,14 @@ import {
     DeleteResponse,
     DeleteResponseSuccess,
     DomainName,
+    FetchType,
     GetResponse,
     GetResponseSuccess,
     GetZoneRecordsResponse,
     GetZoneRecordsResponseSuccess,
     HealthResponse,
     HealthResponseSuccess,
+    ProxyOptions,
     PublicDnssecData,
     SearchResponse,
     SearchResponseSuccess,
@@ -484,32 +486,43 @@ export const crtFormatQuery = (domain: string) => {
 };
 
 export const fetchProxy = ({
-    proxyEndpoint,
-    name,
-    path,
-    proxyAuth,
     fetchOptions,
+    fetchType,
+    proxyOptions,
 }: {
-    proxyEndpoint: string;
-    name: string;
-    path?: string;
-    proxyAuth: string;
-    fetchOptions: any;
+    fetchOptions: {
+        domain: string;
+        path: string;
+        options: any;
+    };
+    fetchType: FetchType;
+    proxyOptions?: ProxyOptions;
 }) => {
-    const fetchPath = `${proxyEndpoint}/proxy-${name}${path ?? `/`}`;
-    console.log(fetchPath);
+    if (fetchType === FetchType.direct) {
+        return f(`https://${fetchOptions.domain}${fetchOptions.path}`, fetchOptions.options);
+    } else {
+        if (
+            proxyOptions?.proxyEndpoint === undefined ||
+            proxyOptions.name === undefined ||
+            proxyOptions.proxyAuth === undefined
+        ) {
+            throw Error(`Missing Proxy Options`);
+        }
+        const fetchPath = `${proxyOptions.proxyEndpoint}/proxy-${proxyOptions.name}${
+            fetchOptions.path ?? `/`
+        }`;
 
-    return f(
-        fetchPath,
-        _.merge(
+        const mergedFetchOptions = _.merge(
             {
                 headers: {
-                    ProxyBasicAuth: proxyAuth || ``,
+                    ProxyBasicAuth: proxyOptions.proxyAuth || ``,
                 },
             },
-            fetchOptions
-        )
-    );
+            fetchOptions.options
+        );
+
+        return f(fetchPath, mergedFetchOptions);
+    }
 };
 
 export const err = ({
