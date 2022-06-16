@@ -22,7 +22,10 @@ import { concatDomain, randomString } from "../utils/index.js";
 import { toASCII } from "../utils/puny.js";
 import { installVault } from "./install-vault.js";
 import { declareFs } from "@pektin/declare-fs";
-import { cloneDeep } from "lodash";
+
+// this is for compat reasons
+import _ from "lodash";
+const { cloneDeep } = _;
 
 export const installPektinCompose = async (
     dir: string = `/pektin-compose/`,
@@ -101,10 +104,10 @@ export const installPektinCompose = async (
 
     const acmeClientConnectionConfigInternal = cloneDeep(acmeClientConnectionConfigExternal);
     if (
-        typeof acmeClientConnectionConfigInternal !== "boolean" &&
+        typeof acmeClientConnectionConfigInternal !== `boolean` &&
         acmeClientConnectionConfigInternal?.override?.pektinApiEndpoint !== undefined
     ) {
-        acmeClientConnectionConfigInternal.override.pektinApiEndpoint = "http://pektin-api";
+        acmeClientConnectionConfigInternal.override.pektinApiEndpoint = `http://pektin-api`;
     }
 
     const dbPasswords = [

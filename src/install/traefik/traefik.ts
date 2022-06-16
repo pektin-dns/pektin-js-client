@@ -278,11 +278,13 @@ export const proxyConf = ({
     name,
     domain,
     accessControlAllowMethods,
+    accessControlAllowHeaders,
 }: {
     pektinConfig: PektinConfig;
     name: string;
     domain: string;
     accessControlAllowMethods: string[];
+    accessControlAllowHeaders: string[];
 }) => {
     const rp = pektinConfig.reverseProxy;
     const internalDomain = toASCII(rp.external.domain);
@@ -356,7 +358,10 @@ export const proxyConf = ({
                         accessControlAllowMethods: accessControlAllowMethods.join(`, `),
                         accessControlAllowOriginList: `*`,
                         accessControlMaxAge: 86400,
-                        accessControlAllowHeaders: `ProxyBasicAuth, content-type`,
+                        accessControlAllowHeaders: [
+                            ...accessControlAllowHeaders,
+                            `ProxyBasicAuth`,
+                        ].join(`, `),
                     },
                 },
                 "pektin-proxy-auth": {
@@ -466,9 +471,9 @@ export const tntConf = ({
             middlewares: {
                 "pektin-tnt-cors": {
                     headers: {
-                        accessControlAllowMethods: `OPTIONS,POST`,
+                        accessControlAllowMethods: `OPTIONS, POST`,
                         accessControlAllowOriginList: `*`,
-                        accessControlAllowHeaders: `authorization,content-type`,
+                        accessControlAllowHeaders: `authorization, content-type`,
                         accessControlMaxAge: 86400,
                     },
                 },
