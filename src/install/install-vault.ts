@@ -110,7 +110,9 @@ export const installVault = async ({
         managerPassword: `m.${randomString()}`,
         confidantPassword: `c.${randomString()}`,
         vaultEndpoint,
-        info: { apiCredentials: { gandi: [{ apiKey: `` }] } },
+        info: {
+            apiCredentials: { gandi: [{ apiKey: `` }], mailcow: [{ apiKey: `` }] },
+        },
     } as PC3;
 
     const pektinAdminRibstonPolicy = await fs.readFile(
