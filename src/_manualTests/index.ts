@@ -41,7 +41,7 @@ J9Ypg6fzHdiawUYehRQ/qBtof/1NnHtITmP1F3fNqLnw==
 
 //console.log(JSON.stringify(await pc.walkZone(`y.gy.`, 100, `8.8.8.8`), null, 2));
 
-console.log(await pc.fetchProxy({ name: `crt` }));
+//console.log(await pc.fetchProxy({ name: `crt` }));
 
 /*
 
