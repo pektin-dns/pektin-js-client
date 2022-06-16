@@ -72,7 +72,7 @@
         "build": "tsc && yarn compile-cjs && yarn convert-deno && yarn bundle-policies",
         "dev": "tsc --watch",
         "before-publish": "yarn build ",
-        "manual-test": "RED='\u001b[1;91m' ; NO_COLOR='\u001b[0m' ; echo \"${RED}Don't forget to compile the TS files first with: yarn start ${NO_COLOR}\" ; node dist/js/_manualTests/index.js",
+        "manual-test": "RED='\u001b[1;91m' ; NO_COLOR='\u001b[0m' ; echo \"${RED}Don't forget to compile the TS files first with: yarn dev ${NO_COLOR}\" ; node dist/js/_manualTests/index.js",
         "upgrade-pektin": "yarn upgrade --latest @pektin/config @pektin/global-registrar @pektin/declare-fs",
         "convert-deno": "bash scripts/convert-deno.sh",
         "bundle-policies": "bash scripts/bundle-policies.sh",

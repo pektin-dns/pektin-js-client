@@ -558,3 +558,7 @@ export interface ProxyOptions {
     name: string;
     proxyAuth: string;
 }
+export enum FetchType {
+    direct,
+    proxy,
+}
