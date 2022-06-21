@@ -385,9 +385,11 @@ Address = 10.111.0.${i + 2}
 
 [Peer]
 PublicKey = ${main.pubkey}
-Endpoint = ${ips && ips.length > 0 && `[${ips[0]}]:51820`}${
-                legacyIps && legacyIps.length > 0 && `, ${legacyIps[0]}:51820`
-            }
+Endpoint = ${(() => {
+                if (ips && ips.length > 0) return `[${ips[0]}]`;
+                if (legacyIps && legacyIps.length > 0) return legacyIps[0];
+                throw Error("Neither a ip nor legacy ip address was found");
+            })()}:51820
 PersistentKeepalive = 25
 AllowedIPs = 10.111.0.1`
         );
