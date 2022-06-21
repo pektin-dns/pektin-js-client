@@ -142,13 +142,6 @@ export const installPektinCompose = async (
             },
             dir
         );
-
-        await chownRecursive(
-            path.join(dir, `arbeiter`),
-            process.env.UID || `600`,
-            process.env.GID || `600`
-        );
-        await chown(path.join(dir, `swarm.sh`), process.env.UID, process.env.GID);
     }
 
     const dbPasswordHashes = await genDbPasswordHashes(dbPasswords, pektinConfig, dir);
@@ -254,6 +247,11 @@ export const createArbeiterConfig = async (
     const nodes = v.pektinConfig.nodes.filter((n) => !n.main);
     for (let i = 0; i < nodes.length; i++) {
         const node = nodes[i];
+        await fs
+            .mkdir(path.join(dir, `arbeiter`, node.name), {
+                recursive: true,
+            })
+            .catch(() => {});
 
         const DB_PEKTIN_SERVER_PASSWORD = randomString();
         const dbAclFile = await genDbPasswordHashes(
