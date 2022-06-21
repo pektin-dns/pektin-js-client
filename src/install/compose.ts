@@ -142,8 +142,6 @@ export const installPektinCompose = async (
             },
             dir
         );
-        const swarmScript = await createSwarmScript(pektinConfig);
-        await fs.writeFile(path.join(dir, `swarm.sh`), swarmScript);
 
         await chownRecursive(
             path.join(dir, `arbeiter`),
@@ -402,29 +400,6 @@ export const genWgKeys = async () => {
     const privkey = (await exec(`wg genkey`)).stdout.replaceAll(`\n`, ``);
     const pubkey = (await exec(`echo "${privkey}" | wg pubkey `)).stdout.replaceAll(`\n`, ``);
     return { privkey, pubkey };
-};
-
-export const createSwarmScript = async (pektinConfig: PektinConfig) => {
-    const mainNode = getMainNode(pektinConfig);
-
-    if (!mainNode.legacyIps?.[0]) {
-        throw new Error(
-            `No legacy IPs found for main node. Due to https://github.com/moby/moby/issues/43643, this is required for swarm to work.`
-        );
-    }
-
-    const advertiseAddress =
-        mainNode.ips?.[0] || mainNode.legacyIps?.[0]
-            ? `--advertise-addr ${mainNode.legacyIps?.[0] ?? mainNode.ips?.[0]}` // TODO replace this again with ipv6 address once docker swarms connections get fixed for ipv6 networks; see: https://github.com/moby/moby/issues/43643
-            : ``;
-
-    let swarmScript = `docker swarm init ${advertiseAddress}\n`;
-    pektinConfig.nodes.forEach((node, i) => {
-        if (i === 0) return;
-        swarmScript += `docker swarm join-token worker | grep docker >> arbeiter/${node.name}/setup.sh\n`;
-    });
-
-    return swarmScript;
 };
 
 export const genDbPasswordHashes = async (
