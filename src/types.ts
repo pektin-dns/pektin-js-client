@@ -187,9 +187,13 @@ export interface PC3Info {
 }
 
 export interface PC3InfoApiCredentials {
-    [key: string]: ApiCredential[];
+    [key: string]: {
+        [key: string | number]: ApiCredential;
+    };
 }
-export interface ApiCredential {}
+export interface ApiCredential {
+    [key: string]: string | number | boolean;
+}
 
 export type ApiResponseBodyError =
     | SetResponseError

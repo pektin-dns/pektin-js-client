@@ -22,9 +22,13 @@ import { concatDomain, randomString } from "../utils/index.js";
 import { toASCII } from "../utils/puny.js";
 import { installVault } from "./install-vault.js";
 import { declareFs } from "@pektin/declare-fs";
+import { exec as exec_old } from "child_process";
+import util from "util";
+const exec = util.promisify(exec_old);
 
 // this is for compat reasons
 import _ from "lodash";
+import { readFile, writeFile } from "fs/promises";
 const { cloneDeep } = _;
 
 export const installPektinCompose = async (
@@ -97,6 +101,8 @@ export const installPektinCompose = async (
         acmeClientConnectionConfigExternal.perimeterAuth = PERIMETER_AUTH;
     }
 
+    const wgConfigs = await genWgConfigs(pektinConfig);
+
     // init db access control
     const DB_PEKTIN_API_PASSWORD = randomString();
     const DB_PEKTIN_SERVER_PASSWORD = randomString();
@@ -128,7 +134,12 @@ export const installPektinCompose = async (
 
     if (pektinConfig.nodes.length > 1) {
         await createArbeiterConfig(
-            { DB_PEKTIN_GEWERKSCHAFT_PASSWORD, pektinConfig, ...(tempDomain && { tempDomain }) },
+            {
+                DB_PEKTIN_GEWERKSCHAFT_PASSWORD,
+                pektinConfig,
+                ...(tempDomain && { tempDomain }),
+                arbeiterWgConfigs: wgConfigs?.arbeiterWgConfigs,
+            },
             dir
         );
         const swarmScript = await createSwarmScript(pektinConfig);
@@ -212,6 +223,10 @@ export const installPektinCompose = async (
                         $file: dbPasswordHashes,
                         $perms: `644`,
                     },
+                    "wg0.conf": {
+                        $file: wgConfigs?.direktorWgConfig,
+                        $perms: `644`,
+                    },
                 },
                 traefik: {
                     dynamic: {
@@ -234,108 +249,157 @@ export const createArbeiterConfig = async (
         pektinConfig: PektinConfig;
         DB_PEKTIN_GEWERKSCHAFT_PASSWORD: string;
         tempDomain?: TempDomain;
+        arbeiterWgConfigs?: string[];
     },
     dir: string
 ) => {
-    for (let i = 0; i < v.pektinConfig.nodes.length; i++) {
-        const node = v.pektinConfig.nodes[i];
+    const nodes = v.pektinConfig.nodes.filter((n) => !n.main);
+    for (let i = 0; i < nodes.length; i++) {
+        const node = nodes[i];
 
-        if (!node.main) {
-            await fs
-                .mkdir(path.join(dir, `arbeiter`, node.name, `secrets`, `db`), {
-                    recursive: true,
-                })
-                .catch(() => {});
-            const DB_PEKTIN_SERVER_PASSWORD = randomString();
-            const dbAclFile = await genDbPasswordHashes(
-                [[`DB_PEKTIN_SERVER_PASSWORD`, DB_PEKTIN_SERVER_PASSWORD]],
-                v.pektinConfig,
-                dir,
-                true
-            );
-            if (dbAclFile === undefined) {
-                throw new Error(`This should never happen: createArbeiterConfig > dbAclFile`);
-            }
+        const DB_PEKTIN_SERVER_PASSWORD = randomString();
+        const dbAclFile = await genDbPasswordHashes(
+            [[`DB_PEKTIN_SERVER_PASSWORD`, DB_PEKTIN_SERVER_PASSWORD]],
+            v.pektinConfig,
+            dir,
+            true
+        );
+        if (dbAclFile === undefined) {
+            throw new Error(`This should never happen: createArbeiterConfig > dbAclFile`);
+        }
 
-            const dbConf = await fs.readFile(
-                path.join(dir, `config`, `db`, `arbeiter`, `db.conf`),
-                { encoding: `utf8` }
-            );
+        const dbConf = await fs.readFile(path.join(dir, `config`, `db`, `arbeiter`, `db.conf`), {
+            encoding: `utf8`,
+        });
 
-            const repls = [
-                [`DB_PEKTIN_SERVER_PASSWORD`, DB_PEKTIN_SERVER_PASSWORD],
-                [`SERVER_LOGGING`, v.pektinConfig.services.server.logging],
-            ];
+        const repls = [
+            [`DB_PEKTIN_SERVER_PASSWORD`, DB_PEKTIN_SERVER_PASSWORD],
+            [`SERVER_LOGGING`, v.pektinConfig.services.server.logging],
+        ];
 
-            const traefikConfs = genTraefikConfs({
-                pektinConfig: v.pektinConfig,
-                node: node,
-                tempDomain: v.tempDomain,
-            });
+        const traefikConfs = genTraefikConfs({
+            pektinConfig: v.pektinConfig,
+            node: node,
+            tempDomain: v.tempDomain,
+        });
 
-            const useTempDomain =
-                v.pektinConfig.reverseProxy.tempZone.enabled &&
-                traefikConfs.tempDomain &&
-                v.pektinConfig.reverseProxy.routing === `domain`;
+        const useTempDomain =
+            v.pektinConfig.reverseProxy.tempZone.enabled &&
+            traefikConfs.tempDomain &&
+            v.pektinConfig.reverseProxy.routing === `domain`;
 
-            /*
+        /*
             traefik.tcp.routers.pektin-server-dot.tls.domains[0].main: "${SERVER_DOMAIN}"
             traefik.tcp.routers.pektin-server-dot.tls.domains[0].sans: "*.${SERVER_DOMAIN}"
             */
 
-            let envFile = `# DO NOT EDIT THESE VARIABLES MANUALLY \n`;
-            repls.forEach((repl) => {
-                envFile = envFile += `${repl[0]}="${repl[1]}"\n`;
-            });
-            envFile += `# Some commands for debugging\n`;
-            envFile += `# Logs into db (then try 'KEYS *' for example to get all record keys):\n`;
-            envFile += `# bash -c 'docker exec -it $(docker ps --filter name=pektin-db --format {{.ID}}) keydb-cli --pass ${DB_PEKTIN_SERVER_PASSWORD} --user db-pektin-server'`;
-            const composeCommand = `docker compose --env-file secrets/.env -f pektin-compose/arbeiter/base.yml -f pektin-compose/traefik.yml`;
+        let envFile = `# DO NOT EDIT THESE VARIABLES MANUALLY \n`;
+        repls.forEach((repl) => {
+            envFile = envFile += `${repl[0]}="${repl[1]}"\n`;
+        });
+        envFile += `# Some commands for debugging\n`;
+        envFile += `# Logs into db (then try 'KEYS *' for example to get all record keys):\n`;
+        envFile += `# bash -c 'docker exec -it $(docker ps --filter name=pektin-db --format {{.ID}}) keydb-cli --pass ${DB_PEKTIN_SERVER_PASSWORD} --user db-pektin-server'`;
+        const composeCommand = `docker compose --env-file secrets/.env -f pektin-compose/arbeiter/base.yml -f pektin-compose/traefik.yml`;
 
-            const resetScript = `${composeCommand} down --remove-orphans\ndocker swarm leave --force\ndocker volume rm pektin-compose_db\nrm -rf update.sh start.sh stop.sh secrets/ `;
+        const resetScript = `${composeCommand} down --remove-orphans\ndocker swarm leave --force\ndocker volume rm pektin-compose_db\nrm -rf update.sh start.sh stop.sh secrets/ `;
 
-            const user = `${process.env.UID}:${process.env.GID}`;
-            declareFs(
-                {
-                    $ownerR: user,
-                    $filePermsR: `600`,
-                    $folderPermsR: `700`,
-                    "start.sh": `${composeCommand} up -d`,
-                    "setup.sh": `docker swarm leave\n`,
-                    "stop.sh": `${composeCommand} down --remove-orphans`,
-                    "update.sh": `${composeCommand} pull\nsh start.sh`,
-                    "reset.sh": resetScript,
-                    secrets: {
-                        ".env": envFile,
-                        db: {
-                            "db.conf": {
-                                $file: dbConf.replace(
-                                    `#MASTERAUTH`,
-                                    v.DB_PEKTIN_GEWERKSCHAFT_PASSWORD
-                                ),
-                                $perms: `644`,
-                            },
-                            "users.acl": {
-                                $file: dbAclFile,
-                                $perms: `644`,
-                            },
+        const user = `${process.env.UID}:${process.env.GID}`;
+        declareFs(
+            {
+                $ownerR: user,
+                $filePermsR: `600`,
+                $folderPermsR: `700`,
+                "start.sh": `${composeCommand} up -d`,
+                "setup.sh": `docker swarm leave\n`,
+                "stop.sh": `${composeCommand} down --remove-orphans`,
+                "update.sh": `${composeCommand} pull\nsh start.sh`,
+                "reset.sh": resetScript,
+                secrets: {
+                    ".env": envFile,
+                    db: {
+                        "db.conf": {
+                            $file: dbConf.replace(`#MASTERAUTH`, v.DB_PEKTIN_GEWERKSCHAFT_PASSWORD),
+                            $perms: `644`,
                         },
-                        traefik: {
-                            "static.yml": traefikConfs.static,
-                            dynamic: {
-                                "default.yml": traefikConfs.dynamic,
-                                ...(useTempDomain && { "tempDomain.yml": traefikConfs.tempDomain }),
-                            },
+                        "users.acl": {
+                            $file: dbAclFile,
+                            $perms: `644`,
+                        },
+                        "wg0.conf": {
+                            $file: v.arbeiterWgConfigs?.[i],
+                            $perms: `644`,
+                        },
+                    },
+                    traefik: {
+                        "static.yml": traefikConfs.static,
+                        dynamic: {
+                            "default.yml": traefikConfs.dynamic,
+                            ...(useTempDomain && { "tempDomain.yml": traefikConfs.tempDomain }),
                         },
                     },
                 },
-                {
-                    basePath: path.join(dir, `arbeiter`, node.name),
-                    method: `node`,
-                }
-            );
-        }
+            },
+            {
+                basePath: path.join(dir, `arbeiter`, node.name),
+                method: `node`,
+            }
+        );
     }
+};
+
+export const genWgConfigs = async (pektinConfig: PektinConfig) => {
+    const nodes = [];
+    for (let i = 0; i < pektinConfig.nodes.length; i++) {
+        const node = pektinConfig.nodes[i];
+        const { privkey, pubkey } = await genWgKeys();
+        nodes.push({ main: node.main, privkey, pubkey });
+    }
+
+    const main = nodes.find((x) => x.main);
+    if (!main) return;
+
+    let direktorWgConfig = `[Interface]
+PrivateKey = ${main.privkey}
+ListenPort = 51820
+Address = 10.111.0.1
+`;
+    const arbeiterWgConfigs: string[] = [];
+    const arbeiterNodes = nodes.filter((x) => !x.main);
+
+    for (let i = 0; i < arbeiterNodes.length; i++) {
+        const node = arbeiterNodes[i];
+        direktorWgConfig += `
+[Peer]
+PublicKey = ${node.pubkey}
+AllowedIPs = 10.111.0.${i + 2}/32
+    `;
+
+        const ips = getMainNode(pektinConfig).ips;
+        const legacyIps = getMainNode(pektinConfig).legacyIps;
+        arbeiterWgConfigs.push(
+            `[Interface]
+PrivateKey = ${node.privkey}
+ListenPort = 51820
+Address = 10.111.0.${i + 2}
+
+[Peer]
+PublicKey = ${main.pubkey}
+Endpoint = ${ips && ips.length > 0 && `[${ips[0]}]:51820`}${
+                legacyIps && legacyIps.length > 0 && `, ${legacyIps[0]}:51820`
+            }
+PersistentKeepalive = 25
+AllowedIPs = 10.111.0.1`
+        );
+    }
+
+    return { direktorWgConfig, arbeiterWgConfigs };
+};
+
+export const genWgKeys = async () => {
+    const privkey = (await exec(`wg genkey`)).stdout.replaceAll(`\n`, ``);
+    const pubkey = (await exec(`echo "${privkey}" | wg pubkey `)).stdout.replaceAll(`\n`, ``);
+    return { privkey, pubkey };
 };
 
 export const createSwarmScript = async (pektinConfig: PektinConfig) => {

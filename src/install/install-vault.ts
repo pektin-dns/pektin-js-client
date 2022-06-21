@@ -111,7 +111,10 @@ export const installVault = async ({
         confidantPassword: `c.${randomString()}`,
         vaultEndpoint,
         info: {
-            apiCredentials: { gandi: [{ apiKey: `` }], mailcow: [{ apiKey: `` }] },
+            apiCredentials: {
+                gandi: { 0: { apiKey: `` } },
+                mailcow: { "mx.example.com": { apiKey: `` } },
+            },
         },
     } as PC3;
 
