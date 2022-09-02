@@ -20,6 +20,17 @@ path "sys/auth" {
 }
 `;
 
+export const pektinZertificatManagerPolicy: VaultPolicy = `path "pektin-zertificat/*" {
+    capabilities = ["create", "read", "update", "delete", "list"]
+}
+path "pektin-kv/data/pektin-config" {
+    capabilities = ["read"]
+}`;
+
+export const pektinZertificatConsumerPolicy: VaultPolicy = `path "pektin-zertificat/*" {
+    capabilities = ["read"]
+}`;
+
 export const pektinConfidantPolicy = (capabilities: ClientCapabilities): VaultPolicy => {
     let policy = ``;
     if (capabilities.allAccess) {

@@ -36,7 +36,7 @@ export const genTempDomainConfig = ({
               )
             : []),
         ...(node.main
-            ? pektinConfig.reverseProxy.external.services
+            ? pektinConfig.services.verkehr.external.services
                   .filter((s) => s.enabled)
                   .map((proxy) => genTempProxyConf({ ...proxy, pektinConfig }))
             : []),
@@ -60,13 +60,13 @@ export const genTempServerConf = ({
     pektinConfig: PektinConfig;
     tempDomain?: TempDomain;
 }) => {
-    const rp = pektinConfig.reverseProxy;
+    const rp = pektinConfig.services.verkehr;
 
     // whether or not to apply the temp domain
     const ut =
         tempDomain &&
-        pektinConfig.reverseProxy.tempZone.enabled &&
-        pektinConfig.reverseProxy.routing === `domain`;
+        pektinConfig.services.verkehr.tempZone.enabled &&
+        pektinConfig.services.verkehr.routing === `domain`;
     if (!ut) return {};
     const tls = rp.tls
         ? {
@@ -128,13 +128,13 @@ export const genTempTntConf = ({
     pektinConfig: PektinConfig;
     tempDomain?: TempDomain;
 }) => {
-    const rp = pektinConfig.reverseProxy;
+    const rp = pektinConfig.services.verkehr;
 
     // whether or not to apply the temp domain
     const ut =
         tempDomain &&
-        pektinConfig.reverseProxy.tempZone.enabled &&
-        pektinConfig.reverseProxy.routing === `domain`;
+        pektinConfig.services.verkehr.tempZone.enabled &&
+        pektinConfig.services.verkehr.routing === `domain`;
     if (!ut) return {};
     const tls = rp.tls
         ? {
@@ -181,13 +181,13 @@ export const genTempPektinServicesConfig = ({
     pektinConfig: PektinConfig;
     tempDomain?: TempDomain;
 }) => {
-    const rp = pektinConfig.reverseProxy;
+    const rp = pektinConfig.services.verkehr;
 
     // whether or not to apply the temp domain
     const ut =
         tempDomain &&
-        pektinConfig.reverseProxy.tempZone.enabled &&
-        pektinConfig.reverseProxy.routing === `domain`;
+        pektinConfig.services.verkehr.tempZone.enabled &&
+        pektinConfig.services.verkehr.routing === `domain`;
     if (!ut) return {};
     const tls = rp.tls
         ? {
@@ -234,13 +234,10 @@ export const genTempProxyConf = ({
     name: string;
     tempDomain?: TempDomain;
 }) => {
-    const rp = pektinConfig.reverseProxy;
+    const rp = pektinConfig.services.verkehr;
 
     // whether or not to apply the temp domain
-    const ut =
-        tempDomain &&
-        pektinConfig.reverseProxy.tempZone.enabled &&
-        pektinConfig.reverseProxy.routing === `domain`;
+    const ut = tempDomain && rp.tempZone.enabled && rp.routing === `domain`;
     if (!ut) return {};
     const tls = rp.tls
         ? {

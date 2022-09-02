@@ -1,4 +1,10 @@
-import { absoluteName, deAbsolute, getPektinEndpoint, isReady } from "../index.js";
+import {
+    absoluteName,
+    createFullUserPass,
+    deAbsolute,
+    getPektinEndpoint,
+    isReady,
+} from "../index.js";
 import {
     createPektinVaultEngines,
     createPektinAuthVaultPolicies,
@@ -6,14 +12,25 @@ import {
     createPektinApiAccount,
     createPektinClient,
 } from "../auth.js";
-import { initVault, unsealVault, enableVaultCors, updateKvValue } from "../vault/vault.js";
+import {
+    initVault,
+    unsealVault,
+    enableVaultCors,
+    updateKvValue,
+    createVaultPolicy,
+} from "../vault/vault.js";
 import { genBasicAuthHashed, genBasicAuthString } from "./utils.js";
 import { PektinConfig } from "@pektin/config/src/config-types";
 import { promises as fs } from "fs";
 import { K8sSecrets } from "./k8s.js";
-import { PC3 } from "../types.js";
+import { PC3, ZertificatConsumerAccount, ZertificatManagerAccount } from "../types.js";
 import path from "path";
 import { randomString } from "../utils/index.js";
+import { VaultSecretEngine } from "../vault/types.js";
+import {
+    pektinZertificatConsumerPolicy,
+    pektinZertificatManagerPolicy,
+} from "../vault/pektinVaultPolicies.js";
 
 export const installVault = async ({
     pektinConfig,
@@ -33,23 +50,29 @@ export const installVault = async ({
     const vaultTokens = await initVault(internalVaultUrl);
     await unsealVault(internalVaultUrl, vaultTokens.key);
 
+    const vaultSecretEngines: VaultSecretEngine[] = [
+        { path: `pektin-transit`, options: { type: `transit` } },
+        {
+            path: `pektin-kv`,
+            options: { type: `kv`, options: { version: 2 } },
+        },
+        {
+            path: `pektin-policies`,
+            options: { type: `kv`, options: { version: 2 } },
+        },
+    ];
+
+    if (pektinConfig.services.zertificat.enabled) {
+        vaultSecretEngines.push({
+            path: `pektin-zertificat`,
+            options: { type: `kv`, options: { version: 2 } },
+        });
+    }
+
     // create resources on vault
-    await createPektinVaultEngines(
-        internalVaultUrl,
-        vaultTokens.rootToken,
-        [
-            { path: `pektin-transit`, options: { type: `transit` } },
-            {
-                path: `pektin-kv`,
-                options: { type: `kv`, options: { version: 2 } },
-            },
-            {
-                path: `pektin-policies`,
-                options: { type: `kv`, options: { version: 2 } },
-            },
-        ],
-        [{ path: `userpass`, options: { type: `userpass` } }]
-    );
+    await createPektinVaultEngines(internalVaultUrl, vaultTokens.rootToken, vaultSecretEngines, [
+        { path: `userpass`, options: { type: `userpass` } },
+    ]);
 
     // create the 2 not domain or client related policies
     await createPektinAuthVaultPolicies(internalVaultUrl, vaultTokens.rootToken);
@@ -144,8 +167,26 @@ export const installVault = async ({
 
     let acmeClientConnectionConfig: false | PC3 = false;
 
+    const zertificatManagerAccount: ZertificatManagerAccount = {
+        username: `pektin-zertificat-manager-${randomString(10).toLowerCase()}`,
+        password: `zm.${randomString()}`,
+    };
+
+    const zertificatConsumerAccount: ZertificatConsumerAccount = {
+        username: `pektin-zertificat-consumer-${randomString(10).toLowerCase()}`,
+        password: `zc.${randomString()}`,
+    };
+
     // create acme client if enabled
-    if (pektinConfig.letsencrypt) {
+    if (pektinConfig.services.zertificat.enabled) {
+        createZertificatVaultResources(
+            internalVaultUrl,
+            vaultTokens.rootToken,
+            pektinConfig,
+            zertificatManagerAccount,
+            zertificatConsumerAccount
+        );
+
         if (k8s) {
             if (!secrets?.acmeClientInfo?.confidant || !secrets?.acmeClientInfo?.username) {
                 throw Error(`Trying to install vault for k8s but missing necessary acme passwords`);
@@ -188,7 +229,7 @@ export const installVault = async ({
                 throw Error(`Trying to install vault for k8s but missing necessary tntAuth info`);
             }
         }
-        if (pektinConfig.reverseProxy.external.enabled) {
+        if (pektinConfig.services.verkehr.external.enabled) {
             if (!secrets?.proxyAuth?.password || !secrets?.proxyAuth?.username) {
                 throw Error(`Trying to install vault for k8s but missing necessary tntAuth info`);
             }
@@ -248,5 +289,49 @@ export const installVault = async ({
         V_PEKTIN_API_PASSWORD,
         acmeClientConnectionConfig,
         V_PEKTIN_API_USER_NAME,
+        zertificatManagerAccount,
+        zertificatConsumerAccount,
     };
+};
+
+const createZertificatVaultResources = async (
+    internalVaultUrl: string,
+    rootToken: string,
+    pektinConfig: PektinConfig,
+    zertificatManagerAccount: ZertificatManagerAccount,
+    zertificatConsumerAccount: ZertificatConsumerAccount
+) => {
+    // create accounts for the reverse proxies to request certificates from vault
+    await createVaultPolicy(
+        internalVaultUrl,
+        rootToken,
+        `pektin-zertificat-consumer-policy`,
+        pektinZertificatConsumerPolicy
+    );
+
+    await createFullUserPass(
+        internalVaultUrl,
+        rootToken,
+        zertificatConsumerAccount.username,
+        zertificatConsumerAccount.password,
+        {},
+        [`pektin-zertificat-consumer-policy`]
+    );
+
+    // create account for zertificat to read config from vault and push/update certificates
+    await createVaultPolicy(
+        internalVaultUrl,
+        rootToken,
+        `pektin-zertificat-manager-policy`,
+        pektinZertificatManagerPolicy
+    );
+
+    await createFullUserPass(
+        internalVaultUrl,
+        rootToken,
+        zertificatManagerAccount.username,
+        zertificatManagerAccount.password,
+        {},
+        [`pektin-zertificat-manager-policy`]
+    );
 };

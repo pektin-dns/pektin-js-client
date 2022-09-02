@@ -49,13 +49,11 @@ export const genTraefikConfs = ({
               })
             : []),
         ...(node.main
-            ? pektinConfig.reverseProxy.external.services
+            ? pektinConfig.services.verkehr.external.services
                   .filter((s) => s.enabled)
                   .map((proxy) => proxyConf({ ...proxy, pektinConfig }))
             : []),
-        tlsConfig(pektinConfig),
-        node.main && pektinConfig.reverseProxy.traefikUi.enabled && traefikUiConf(pektinConfig),
-        pektinConfig.reverseProxy.tls ? redirectHttps() : {},
+        pektinConfig.services.verkehr.tls ? redirectHttps() : {},
         node.main && tntAuth
             ? tntConf({
                   pektinConfig,
@@ -93,7 +91,7 @@ export const serverConf = ({
     nodeNameServers: PektinConfig[`nameservers`];
     pektinConfig: PektinConfig;
 }) => {
-    const rp = pektinConfig.reverseProxy;
+    const rp = pektinConfig.services.verkehr;
 
     const tls = rp.tls
         ? {
@@ -200,7 +198,7 @@ export const pektinServicesConf = ({
     pektinConfig: PektinConfig;
     perimeterAuthHashed?: string;
 }) => {
-    const rp = pektinConfig.reverseProxy;
+    const rp = pektinConfig.services.verkehr;
 
     domain = toASCII(domain);
     subDomain = toASCII(subDomain);
@@ -286,7 +284,7 @@ export const proxyConf = ({
     accessControlAllowMethods: string[];
     accessControlAllowHeaders: string[];
 }) => {
-    const rp = pektinConfig.reverseProxy;
+    const rp = pektinConfig.services.verkehr;
     const internalDomain = toASCII(rp.external.domain);
     const subDomain = toASCII(rp.external.subDomain);
 
@@ -374,56 +372,6 @@ export const proxyConf = ({
     };
 };
 
-// TODO secure dashboard with basicauth
-
-export const traefikUiConf = (pektinConfig: PektinConfig) => {
-    const rp = pektinConfig.reverseProxy;
-    let domain = pektinConfig.reverseProxy.traefikUi.domain;
-    let subDomain = pektinConfig.reverseProxy.traefikUi.subDomain;
-
-    domain = toASCII(domain);
-    subDomain = toASCII(subDomain);
-    const tls = rp.tls
-        ? {
-              certResolver: `default`,
-              domains: [
-                  {
-                      main: domain,
-                      sans: [`*.${domain}`],
-                  },
-              ],
-          }
-        : false;
-    return {
-        http: {
-            routers: {
-                "traefik-api": {
-                    ...(tls && { tls }),
-                    rule: (() => {
-                        if (rp.routing === `domain`) {
-                            return `Host(\`${concatDomain(domain, subDomain)}\`)`;
-                        }
-                        if (rp.routing === `local`) {
-                            return `Host(\`${concatDomain(
-                                `localhost`,
-                                concatDomain(domain, subDomain)
-                            )}\`)`;
-                        }
-                        if (rp.routing === `minikube`) {
-                            return `Host(\`${concatDomain(
-                                `minikube`,
-                                concatDomain(domain, subDomain)
-                            )}\`)`;
-                        }
-                    })(),
-                    entrypoints: rp.tls ? `websecure` : `web`,
-                    service: `api@internal`,
-                },
-            },
-        },
-    };
-};
-
 export const tntConf = ({
     pektinConfig,
     tntAuth,
@@ -431,7 +379,7 @@ export const tntConf = ({
     pektinConfig: PektinConfig;
     tntAuth: string;
 }) => {
-    const rp = pektinConfig.reverseProxy;
+    const rp = pektinConfig.services.verkehr;
     const domain = toASCII(pektinConfig.services.tnt.domain);
     const fullDomain = toASCII(
         concatDomain(pektinConfig.services.tnt.domain, pektinConfig.services.tnt.subDomain)
@@ -522,7 +470,6 @@ export const redirectHttps = () => {
 
 export const genStaticConf = (pektinConfig: PektinConfig) => {
     return {
-        ...(pektinConfig.reverseProxy.traefikUi.enabled && { api: { dashboard: true } }),
         docker: {
             network: `rp`,
         },
@@ -546,7 +493,7 @@ export const genStaticConf = (pektinConfig: PektinConfig) => {
                 watch: true,
             },
         },
-        ...(pektinConfig.reverseProxy.tls && {
+        ...(pektinConfig.services.verkehr.tls && {
             experimental: {
                 http3: true,
             },
@@ -559,26 +506,26 @@ export const genStaticConf = (pektinConfig: PektinConfig) => {
             web: {
                 address: `:80/tcp`,
             },
-            ...(pektinConfig.reverseProxy.tls && {
+            ...(pektinConfig.services.verkehr.tls && {
                 websecure: {
                     address: `:443`,
                     http3: {},
                 },
             }),
         },
-        ...(pektinConfig.reverseProxy.tls && {
+        ...(pektinConfig.services.verkehr.tls && {
             certificatesresolvers: {
                 default: {
                     acme: {
                         dnschallenge: { provider: `pektin` },
-                        email: emailToASCII(pektinConfig.letsencrypt.letsencryptEmail),
+                        email: emailToASCII(pektinConfig.services.zertificat.acmeEmail),
                         storage: `/letsencrypt/default.json`,
                     },
                 },
-                ...(pektinConfig.reverseProxy.tempZone.enabled && {
+                ...(pektinConfig.services.verkehr.tempZone.enabled && {
                     tempDomain: {
                         acme: {
-                            email: emailToASCII(pektinConfig.letsencrypt.letsencryptEmail),
+                            email: emailToASCII(pektinConfig.services.zertificat.acmeEmail),
                             storage: `/letsencrypt/tempDomain.json`,
                             httpChallenge: {
                                 entryPoint: `web`,
@@ -589,34 +536,6 @@ export const genStaticConf = (pektinConfig: PektinConfig) => {
             },
         }),
     };
-};
-
-export const tlsConfig = (pektinConfig: PektinConfig) => {
-    return {
-        ...(pektinConfig.reverseProxy.tls && {
-            tls: {
-                options: {
-                    default: {
-                        minVersion: `VersionTLS12`,
-                        cipherSuites: [
-                            `TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256`,
-                            `TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384`,
-                            `TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256`,
-                        ],
-                    },
-                },
-            },
-        }),
-    };
-    /*
-    config.stores = {
-        default: {
-            defaultCertificate: {
-                certFile: `/letsencrypt/pem/cert.pem`,
-                keyFile: `/letsencrypt/pem/key.pem`,
-            },
-        },
-    };*/
 };
 
 export const getNsList = (

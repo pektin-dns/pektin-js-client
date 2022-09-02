@@ -149,21 +149,35 @@ export interface ClientCapabilities {
 export interface PektinZoneData {
     [domainName: string]: ApiRecord[];
 }
-
-export type RibstonPolicy = string; // A valid ribston policy
-export type OpaPolicy = string; // A valid opa policy
+/** A valid ribston policy*/
+export type RibstonPolicy = string;
+/** A valid opa policy*/
+export type OpaPolicy = string;
 export type ClientName = string;
 export type DomainName = string;
 export type ManagerName = `pektin-client-${ClientName}-manager`;
 export type ConfidantName = `pektin-client-${ClientName}-confidant`;
 export type SignerName = `pektin-signer-${DomainName}`;
-
+export type ZertificatManagerUsername = `pektin-zertificat-manager-${string}`;
+export type ZertificatConsumerUsername = `pektin-zertificat-consumer-${string}`;
 export type ManagerPassword = `m.${string}`;
 export type ConfidantPassword = `c.${string}`;
+export type ZertificatManagerPassword = `zm.${string}`;
+export type ZertificatConsumerPassword = `zc.${string}`;
 
 export type ClientVaultAccountType = `confidant` | `manager`;
 
 export type BasicAuthString = `Basic ${string}`;
+
+export interface ZertificatManagerAccount {
+    password: ZertificatManagerPassword;
+    username: ZertificatManagerUsername;
+}
+
+export interface ZertificatConsumerAccount {
+    password: ZertificatConsumerPassword;
+    username: ZertificatConsumerUsername;
+}
 
 // Pektin Client Connection Config
 export interface PC3 {

@@ -260,17 +260,20 @@ export const getPektinEndpoint = (
     let domain = ``;
 
     if (endpointType === `proxy`) {
-        domain = concatDomain(c.reverseProxy.external.domain, c.reverseProxy.external.subDomain);
+        domain = concatDomain(
+            c.services.verkehr.external.domain,
+            c.services.verkehr.external.subDomain
+        );
     } else {
         domain = concatDomain(c.services[endpointType].domain, c.services[endpointType].subDomain);
     }
-    const protocol = c.reverseProxy.tls ? `https` : `http`;
+    const protocol = c.services.verkehr.tls ? `https` : `http`;
     let host = ``;
-    if (c.reverseProxy.routing === `local`) {
+    if (c.services.verkehr.routing === `local`) {
         host = concatDomain(`localhost`, domain);
-    } else if (c.reverseProxy.routing === `minikube`) {
+    } else if (c.services.verkehr.routing === `minikube`) {
         host = concatDomain(`minikube`, domain);
-    } else if (c.reverseProxy.routing === `domain`) {
+    } else if (c.services.verkehr.routing === `domain`) {
         host = domain;
     }
 

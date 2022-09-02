@@ -129,13 +129,13 @@ export const genCertsScript = (pektinConfig: PektinConfig, internal = false) => 
     -d '${domain},*.${domain}' \\
     --agree-tos \\
     --no-eff-email \\
-    -m ${pektinConfig.letsencrypt.letsencryptEmail} \\
+    -m ${pektinConfig.services.zertificat.acmeEmail} \\
     --dns-pektin-credentials /certbot-acme-client.pc3.ini`;
 };
 
 export const requestPektinDomain = async (config: PektinConfig): Promise<TempDomain | false> => {
-    const tempDomainProvider = config.reverseProxy.tempZone.provider;
-    const routing = config.reverseProxy.tempZone.routing;
+    const tempDomainProvider = config.services.verkehr.tempZone.provider;
+    const routing = config.services.verkehr.tempZone.routing;
     const protcol = routing === `local` ? `http` : `https`;
 
     const address =

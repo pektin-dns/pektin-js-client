@@ -1,8 +1,6 @@
 import { promises as fs } from "fs";
 import path from "path";
 import {
-    chownRecursive,
-    chown,
     requestPektinDomain,
     configToCertbotIni,
     generatePerimeterAuth,
@@ -17,8 +15,8 @@ import { PektinConfig } from "@pektin/config/src/config-types.js";
 
 import { genTraefikConfs } from "./traefik/traefik.js";
 import { getMainNode, getPektinEndpoint } from "../pureFunctions.js";
-import { PC3, TempDomain } from "../types.js";
-import { concatDomain, randomString } from "../utils/index.js";
+import { PC3, TempDomain, ZertificatConsumerAccount, ZertificatManagerAccount } from "../types.js";
+import { concatDomain, randomString, toBase64 } from "../utils/index.js";
 import { toASCII } from "../utils/puny.js";
 import { installVault } from "./install-vault.js";
 import { declareFs } from "@pektin/declare-fs";
@@ -28,7 +26,6 @@ const exec = util.promisify(exec_old);
 
 // this is for compat reasons
 import _ from "lodash";
-import { readFile, writeFile } from "fs/promises";
 const { cloneDeep } = _;
 
 export const installPektinCompose = async (
@@ -72,7 +69,7 @@ export const installPektinCompose = async (
               $$ |                                           
               $$ |                                           
               \__|
-    */
+*/
     const [PERIMETER_AUTH, PERIMETER_AUTH_HASHED] = generatePerimeterAuth();
 
     const {
@@ -83,6 +80,8 @@ export const installPektinCompose = async (
         pektinAdminConnectionConfig,
         acmeClientConnectionConfig: acmeClientConnectionConfigExternal,
         V_PEKTIN_API_USER_NAME,
+        zertificatManagerAccount,
+        zertificatConsumerAccount,
     } = await installVault({ pektinConfig });
 
     /*
@@ -94,7 +93,7 @@ export const installPektinCompose = async (
     $$ |  $$ |$$  __$$ |$$ |      $$ |  $$ |      $$ |  $$ |$$ |      $$ |  \$$$  /  $$   ____|
     $$ |  $$ |\$$$$$$$ |$$ |      \$$$$$$$ |      \$$$$$$$ |$$ |      $$ |   \$  /   \$$$$$$$\ 
     \__|  \__| \_______|\__|       \_______|       \_______|\__|      \__|    \_/     \_______|
-    */
+*/
 
     pektinAdminConnectionConfig.perimeterAuth = PERIMETER_AUTH;
     if (typeof acmeClientConnectionConfigExternal === `object`) {
@@ -166,13 +165,16 @@ export const installPektinCompose = async (
         externalVaultUrl,
         pektinConfig,
         proxyBasicAuthHashed,
+        acmeClientConnectionConfigInternal,
+        zertificatManagerAccount,
+        zertificatConsumerAccount,
         ...(tempDomain && { tempDomain }),
     });
 
     const useTempDomain =
-        pektinConfig.reverseProxy.tempZone.enabled &&
+        pektinConfig.services.verkehr.tempZone.enabled &&
         traefikConfs.tempDomain &&
-        pektinConfig.reverseProxy.routing === `domain`;
+        pektinConfig.services.verkehr.routing === `domain`;
 
     const user = `${process.env.UID}:${process.env.GID}`;
 
@@ -280,9 +282,9 @@ export const createArbeiterConfig = async (
         });
 
         const useTempDomain =
-            v.pektinConfig.reverseProxy.tempZone.enabled &&
+            v.pektinConfig.services.verkehr.tempZone.enabled &&
             traefikConfs.tempDomain &&
-            v.pektinConfig.reverseProxy.routing === `domain`;
+            v.pektinConfig.services.verkehr.routing === `domain`;
 
         /*
             traefik.tcp.routers.pektin-server-dot.tls.domains[0].main: "${SERVER_DOMAIN}"
@@ -384,7 +386,7 @@ PublicKey = ${main.pubkey}
 Endpoint = ${(() => {
                 if (ips && ips.length > 0) return `[${ips[0]}]`;
                 if (legacyIps && legacyIps.length > 0) return legacyIps[0];
-                throw Error("Neither a ip nor legacy ip address was found");
+                throw Error(`Neither a ip nor legacy ip address was found`);
             })()}:51820
 PersistentKeepalive = 25
 AllowedIPs = 10.111.0.1`
@@ -439,11 +441,11 @@ const createCspConnectSources = (c: PektinConfig, tempDomain?: TempDomain) => {
         if (service.enabled !== false && service.domain) {
             /*@ts-ignore*/
             const fd = concatDomain(service.domain, service.subDomain);
-            if (c.reverseProxy.routing === `local`) {
+            if (c.services.verkehr.routing === `local`) {
                 sources.push(concatDomain(`localhost`, fd));
-            } else if (c.reverseProxy.routing === `domain`) {
+            } else if (c.services.verkehr.routing === `domain`) {
                 sources.push(fd);
-                if (c.reverseProxy.tempZone && tempDomain) {
+                if (c.services.verkehr.tempZone && tempDomain) {
                     sources.push(
                         concatDomain(
                             concatDomain(tempDomain.zoneDomain, tempDomain.domain),
@@ -468,10 +470,13 @@ export const genEnvValues = async (v: {
     V_PEKTIN_API_USER_NAME: string;
     externalVaultUrl: string;
     proxyBasicAuthHashed: string;
+    zertificatManagerAccount: ZertificatManagerAccount;
+    zertificatConsumerAccount: ZertificatConsumerAccount;
     vaultTokens: {
         key: string;
         rootToken: string;
     };
+    acmeClientConnectionConfigInternal: PC3 | boolean;
     tempDomain?: TempDomain;
 }) => {
     const repls = [
@@ -485,7 +490,7 @@ export const genEnvValues = async (v: {
         [`V_KEY`, v.vaultTokens.key],
         [`V_ROOT_TOKEN`, v.vaultTokens.rootToken],
 
-        [`LETSENCRYPT_EMAIL`, v.pektinConfig.letsencrypt.letsencryptEmail],
+        [`LETSENCRYPT_EMAIL`, v.pektinConfig.services.zertificat.acmeEmail],
 
         [`CSP_CONNECT_SRC`, createCspConnectSources(v.pektinConfig, v.tempDomain)],
 
@@ -498,10 +503,10 @@ export const genEnvValues = async (v: {
         [`RIBSTON_BUILD_PATH`, v.pektinConfig.services.ribston.build.path],
         [`VAULT_BUILD_PATH`, v.pektinConfig.services.vault.build.path],
         [`JAEGER_BUILD_PATH`, v.pektinConfig.services.jaeger.build.path],
-        [`PROM_BUILD_PATH`, v.pektinConfig.services.prometheus.build.path],
+        [`PROMETHEUS_BUILD_PATH`, v.pektinConfig.services.prometheus.build.path],
         [`ALERT_BUILD_PATH`, v.pektinConfig.services.alert.build.path],
         [`GRAFANA_BUILD_PATH`, v.pektinConfig.services.grafana.build.path],
-        [`PROXY_AUTH_BUILD_PATH`, v.pektinConfig.reverseProxy.external.build.path],
+        [`ZERTIFICAT_BUILD_PATH`, v.pektinConfig.services.zertificat.build.path],
 
         [`UI_DOCKERFILE`, v.pektinConfig.services.ui.build.dockerfile],
         [`API_DOCKERFILE`, v.pektinConfig.services.api.build.dockerfile],
@@ -509,11 +514,21 @@ export const genEnvValues = async (v: {
         [`TNT_DOCKERFILE`, v.pektinConfig.services.tnt.build.dockerfile],
         [`RIBSTON_DOCKERFILE`, v.pektinConfig.services.ribston.build.dockerfile],
         [`VAULT_DOCKERFILE`, v.pektinConfig.services.vault.build.dockerfile],
-        [`JAEGER_BUILD_DOCKERFILE`, v.pektinConfig.services.jaeger.build.dockerfile],
-        [`PROM_BUILD_DOCKERFILE`, v.pektinConfig.services.prometheus.build.dockerfile],
-        [`ALERT_BUILD_DOCKERFILE`, v.pektinConfig.services.alert.build.dockerfile],
-        [`GRAFANA_BUILD_DOCKERFILE`, v.pektinConfig.services.grafana.build.dockerfile],
-        [`PROXY_AUTH_BUILD_DOCKERFILE`, v.pektinConfig.reverseProxy.external.build.dockerfile],
+        [`JAEGER_DOCKERFILE`, v.pektinConfig.services.jaeger.build.dockerfile],
+        [`PROMETHEUS_DOCKERFILE`, v.pektinConfig.services.prometheus.build.dockerfile],
+        [`ALERT_DOCKERFILE`, v.pektinConfig.services.alert.build.dockerfile],
+        [`GRAFANA_DOCKERFILE`, v.pektinConfig.services.grafana.build.dockerfile],
+        [`ZERTIFICAT_DOCKERFILE`, v.pektinConfig.services.zertificat.build.dockerfile],
+
+        [
+            `ZERTIFICAT_PEKTIN_ACME_AUTH_INTERNAL`,
+            toBase64(JSON.stringify(v.acmeClientConnectionConfigInternal)),
+        ],
+        [`ZERTIFICAT_MANAGER_VAULT_USERNAME`, v.zertificatManagerAccount.username],
+        [`ZERTIFICAT_MANAGER_VAULT_PASSWORD`, v.zertificatManagerAccount.password],
+
+        [`ZERTIFICAT_CONSUMER_VAULT_USERNAME`, v.zertificatConsumerAccount.username],
+        [`ZERTIFICAT_CONSUMER_VAULT_PASSWORD`, v.zertificatConsumerAccount.password],
 
         [`API_LOGGING`, v.pektinConfig.services.api.logging],
         [`SERVER_LOGGING`, v.pektinConfig.services.server.logging],
@@ -656,15 +671,21 @@ export const activeComposeFiles = (pektinConfig: PektinConfig) => {
         }
     }
 
-    if (pektinConfig.reverseProxy.external.enabled) {
-        composeCommand += ` -f pektin-compose/services/proxy-auth.yml`;
-        if (pektinConfig.reverseProxy.external.build.enabled) {
-            composeCommand += ` -f pektin-compose/from-source/proxy-auth.yml`;
+    if (pektinConfig.services.zertificat.enabled) {
+        composeCommand += ` -f pektin-compose/services/zertificat.yml`;
+        if (pektinConfig.services.zertificat.build.enabled) {
+            composeCommand += ` -f pektin-compose/from-source/zertificat.yml`;
+        }
+        if (pektinConfig.services.zertificat.usePebble) {
+            composeCommand += ` -f pektin-compose/dev/zertificat-pebble.yml`;
         }
     }
 
-    if (pektinConfig.reverseProxy.createTraefik) {
-        composeCommand += ` -f pektin-compose/traefik.yml`;
+    if (pektinConfig.services.verkehr.enabled) {
+        composeCommand += ` -f pektin-compose/services/verkehr.yml`;
+        if (pektinConfig.services.verkehr.build.enabled) {
+            composeCommand += ` -f pektin-compose/from-source/verkehr.yml`;
+        }
     }
 
     return composeCommand;

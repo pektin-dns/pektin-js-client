@@ -25,6 +25,7 @@ if (input.api_method === `get`) {
     const allRecordsValid = input.request_body.Get.records.every((record) => {
         return record.name.startsWith(`_acme-challenge`) && record.rr_type === PektinRRType.TXT;
     });
+
     if (allRecordsValid) {
         allow(output);
     } else {
@@ -40,6 +41,15 @@ if (input.api_method === `get`) {
         allow(output);
     } else {
         deny(output, `Name not allowed`);
+    }
+} else if (input.api_method === `search`) {
+    const allRecordsValid = input.request_body.Search.globs.every((record) => {
+        return record.rr_type_glob === PektinRRType.SOA;
+    });
+    if (allRecordsValid) {
+        allow(output);
+    } else {
+        deny(output, `rr_type_glob not allowed`);
     }
 } else {
     deny(output, `API method '${input.api_method}' not allowed`);

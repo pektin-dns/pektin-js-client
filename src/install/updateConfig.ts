@@ -76,9 +76,9 @@ export const updateConfig = async (dir: string = `/pektin-compose/`) => {
     const user = `${process.env.UID}:${process.env.GID}`;
 
     const useTempDomain =
-        pektinConfig.reverseProxy.tempZone.enabled &&
+        pektinConfig.services.verkehr.tempZone.enabled &&
         traefikConfs.tempDomain &&
-        pektinConfig.reverseProxy.routing === `domain`;
+        pektinConfig.services.verkehr.routing === `domain`;
     await declareFs(
         {
             "start.sh": {
