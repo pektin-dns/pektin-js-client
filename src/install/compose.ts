@@ -151,6 +151,7 @@ export const installPektinCompose = async (
         tntAuth: tntBasicAuthHashed,
         ...(tempDomain && { tempDomain }),
         perimeterAuthHashed: PERIMETER_AUTH_HASHED,
+        proxyBasicAuthHashed,
     });
 
     const externalVaultUrl = getPektinEndpoint(pektinConfig, `vault`);
@@ -183,9 +184,18 @@ export const installPektinCompose = async (
             $ownerR: user,
             $filePermsR: `600`,
             $folderPermsR: `700`,
-            "start.sh": await genStartScript(pektinConfig),
-            "stop.sh": await genStopScript(pektinConfig),
-            "update.sh": await genUpdateScript(pektinConfig),
+            "start.sh": {
+                $file: await genStartScript(pektinConfig),
+                $perms: `700`,
+            },
+            "stop.sh": {
+                $file: await genStopScript(pektinConfig),
+                $perms: `700`,
+            },
+            "update.sh": {
+                $file: await genUpdateScript(pektinConfig),
+                $perms: `700`,
+            },
             secrets: {
                 ".env": envFile,
                 ...(acmeClientConnectionConfigExternal && {
@@ -223,12 +233,16 @@ export const installPektinCompose = async (
                 },
                 verkehr: {
                     dynamic: {
-                        "routing.yml": traefikConfs.dynamic,
+                        $perms: `777`,
+                        "routing.yml": { $file: traefikConfs.dynamic, $perms: `644` },
                         ...(useTempDomain && {
-                            "tempDomainRouting.yml": traefikConfs.tempDomain,
+                            "tempDomainRouting.yml": {
+                                $file: traefikConfs.tempDomain,
+                                $perms: `644`,
+                            },
                         }),
                     },
-                    "verkehr.yml": traefikConfs.static,
+                    "verkehr.yml": { $file: traefikConfs.static, $perms: `644` },
                 },
             },
             "overrides.yml": { $fileNoOverwrite: `version: "3.7"` },
@@ -459,6 +473,27 @@ const createCspConnectSources = (c: PektinConfig, tempDomain?: TempDomain) => {
             }
         }
     });
+    // add external verkehr proxy
+    if (c.services.verkehr.enabled && c.services.verkehr.external.enabled) {
+        const fd = concatDomain(
+            c.services.verkehr.external.domain,
+            c.services.verkehr.external.subDomain
+        );
+        if (c.services.verkehr.routing === `local`) {
+            sources.push(concatDomain(`localhost`, fd));
+        } else if (c.services.verkehr.routing === `domain`) {
+            sources.push(fd);
+            if (c.services.verkehr.tempZone && tempDomain) {
+                sources.push(
+                    concatDomain(
+                        concatDomain(tempDomain.zoneDomain, tempDomain.domain),
+                        /*@ts-ignore*/
+                        service.subDomain
+                    )
+                );
+            }
+        }
+    }
 
     if (sources.length) sources.forEach((e) => (connectSources += ` ` + toASCII(e)));
     return connectSources;

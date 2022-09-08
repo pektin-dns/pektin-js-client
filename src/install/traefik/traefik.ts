@@ -12,12 +12,14 @@ export const genTraefikConfs = ({
     tntAuth,
     tempDomain,
     perimeterAuthHashed,
+    proxyBasicAuthHashed,
 }: {
     readonly pektinConfig: PektinConfig;
     readonly node: PektinConfig[`nodes`][0];
     readonly tntAuth?: string;
     readonly tempDomain?: TempDomain;
     readonly perimeterAuthHashed?: string;
+    readonly proxyBasicAuthHashed?: string;
 }) => {
     const nodeNameServers = getNodesNameservers(pektinConfig, node.name);
     if (!nodeNameServers) throw Error(`Could not get NS for node`);
@@ -51,7 +53,7 @@ export const genTraefikConfs = ({
         ...(node.main
             ? pektinConfig.services.verkehr.external.services
                   .filter((s) => s.enabled)
-                  .map((proxy) => proxyConf({ ...proxy, pektinConfig }))
+                  .map((proxy) => proxyConf({ ...proxy, pektinConfig, proxyBasicAuthHashed }))
             : []),
         pektinConfig.services.verkehr.tls ? redirectHttps() : {},
         node.main && tntAuth
@@ -274,12 +276,14 @@ export const proxyConf = ({
     domain,
     accessControlAllowMethods,
     accessControlAllowHeaders,
+    proxyBasicAuthHashed,
 }: {
     pektinConfig: PektinConfig;
     name: string;
     domain: string;
     accessControlAllowMethods: string[];
     accessControlAllowHeaders: string[];
+    proxyBasicAuthHashed?: string;
 }) => {
     const rp = pektinConfig.services.verkehr;
     const internalDomain = toASCII(rp.external.domain);
@@ -320,7 +324,7 @@ export const proxyConf = ({
             },
             services: {
                 [`pektin-proxy-${name}`]: {
-                    loadBalancer: {
+                    loadbalancer: {
                         passHostHeader: false,
                         servers: [
                             {
@@ -345,8 +349,9 @@ export const proxyConf = ({
                     },
                 },
                 "pektin-proxy-auth": {
-                    forwardAuth: {
-                        address: `http://pektin-proxy-auth`,
+                    basicAuth: {
+                        customAuthField: `ProxyBasicAuth`,
+                        users: [proxyBasicAuthHashed],
                     },
                 },
             },

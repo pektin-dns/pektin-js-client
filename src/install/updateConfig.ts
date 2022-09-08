@@ -67,6 +67,7 @@ export const updateConfig = async (dir: string = `/pektin-compose/`) => {
         tntAuth: tntBasicAuthHashed,
         ...(tempDomain && { tempDomain }),
         perimeterAuthHashed: process.env.PERIMETER_AUTH_HASHED,
+        proxyBasicAuthHashed,
     });
 
     // impl compose.compose-scripts
@@ -81,40 +82,39 @@ export const updateConfig = async (dir: string = `/pektin-compose/`) => {
         pektinConfig.services.verkehr.routing === `domain`;
     await declareFs(
         {
+            $ownerR: user,
             "start.sh": {
                 $file: await genStartScript(pektinConfig),
-                $owner: user,
                 $perms: `700`,
             },
             "stop.sh": {
                 $file: await genStopScript(pektinConfig),
-                $owner: user,
                 $perms: `700`,
             },
             "update.sh": {
                 $file: await genUpdateScript(pektinConfig),
-                $owner: user,
                 $perms: `700`,
             },
             secrets: {
                 verkehr: {
                     dynamic: {
+                        $perms: `777`,
                         "routing.yml": {
                             $file: traefikConfs.dynamic,
-                            $owner: user,
-                            $perms: `600`,
+                            $perms: `644`,
                         },
                         ...(useTempDomain && {
-                            "tempDomainRouting.yml": traefikConfs.tempDomain,
+                            "tempDomainRouting.yml": {
+                                $file: traefikConfs.tempDomain,
+                                $perms: `644`,
+                            },
                         }),
                     },
                     "verkehr.yml": {
                         $file: traefikConfs.static,
-                        $owner: user,
-                        $perms: `600`,
+                        $perms: `644`,
                     },
                 },
-                $owner: user,
                 $perms: `700`,
             },
         },
