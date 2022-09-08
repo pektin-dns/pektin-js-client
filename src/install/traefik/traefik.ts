@@ -93,24 +93,12 @@ export const serverConf = ({
 }) => {
     const rp = pektinConfig.services.verkehr;
 
-    const tls = rp.tls
-        ? {
-              certResolver: `default`,
-              domains: nodeNameServers.map((ns) => {
-                  return {
-                      main: toASCII(ns.domain),
-                      sans: [`*.${toASCII(ns.domain)}`],
-                  };
-              }),
-          }
-        : false;
     return {
         tcp: {
             routers: {
                 "pektin-server-tcp": {
-                    ...(tls && { tls }),
                     rule: `HostSNI(${getNsList(nodeNameServers, `domain`)})`,
-                    entrypoints: `pektin-server-tcp`,
+                    entrypoints: [`pektin-server-tcp`],
                     service: `pektin-server-tcp`,
                 },
             },
@@ -145,7 +133,6 @@ export const serverConf = ({
         http: {
             routers: {
                 "pektin-server-http": {
-                    ...(tls && { tls }),
                     rule: (() => {
                         if (rp.routing === `domain`) {
                             return `Host(${getNsList(
@@ -166,7 +153,7 @@ export const serverConf = ({
                             )}) && Path(\`/dns-query\`)`;
                         }
                     })(),
-                    entrypoints: rp.tls ? `websecure` : `web`,
+                    entrypoints: [rp.tls ? `websecure` : `web`],
                     service: `pektin-server-http`,
                 },
             },
@@ -202,23 +189,33 @@ export const pektinServicesConf = ({
 
     domain = toASCII(domain);
     subDomain = toASCII(subDomain);
-    const tls = rp.tls
-        ? {
-              certResolver: `default`,
-              domains: [
-                  {
-                      main: domain,
-                      sans: [`*.${domain}`],
-                  },
-              ],
-          }
-        : false;
 
     return {
         http: {
+            ...(rp.tls
+                ? {
+                      entrypoints: {
+                          websecure: {
+                              address: `:443`,
+                              certResolver: {
+                                  fallbackDomain: domain,
+                                  resolverType: `zertificat`,
+                              },
+                          },
+                          web: {
+                              address: `:80`,
+                          },
+                      },
+                  }
+                : {
+                      entrypoints: {
+                          web: {
+                              address: `:80`,
+                          },
+                      },
+                  }),
             routers: {
                 [`pektin-${service}`]: {
-                    ...(tls && { tls }),
                     rule: (() => {
                         if (rp.routing === `domain`) {
                             return `Host(\`${concatDomain(domain, subDomain)}\`)`;
@@ -242,7 +239,7 @@ export const pektinServicesConf = ({
                         perimeterAuthHashed && {
                             middlewares: [`pektin-perimeter-auth`],
                         }),
-                    entrypoints: rp.tls ? `websecure` : `web`,
+                    entrypoints: [rp.tls ? `websecure` : `web`],
                 },
             },
             services: {
@@ -261,8 +258,8 @@ export const pektinServicesConf = ({
                 perimeterAuthHashed && {
                     middlewares: {
                         "pektin-perimeter-auth": {
-                            basicauth: {
-                                users: perimeterAuthHashed,
+                            basicAuth: {
+                                users: [perimeterAuthHashed],
                             },
                         },
                     },
@@ -288,23 +285,11 @@ export const proxyConf = ({
     const internalDomain = toASCII(rp.external.domain);
     const subDomain = toASCII(rp.external.subDomain);
 
-    const tls = rp.tls
-        ? {
-              certResolver: `default`,
-              domains: [
-                  {
-                      main: internalDomain,
-                      sans: [`*.${internalDomain}`],
-                  },
-              ],
-          }
-        : false;
     return {
         http: {
             routers: {
                 [`pektin-proxy-${name}`]: {
-                    ...(tls && { tls }),
-                    entrypoints: rp.tls ? `websecure` : `web`,
+                    entrypoints: [rp.tls ? `websecure` : `web`],
                     middlewares: [
                         `pektin-proxy-strip-proxy`,
                         `pektin-proxy-cors-${name}`,
@@ -348,18 +333,15 @@ export const proxyConf = ({
             middlewares: {
                 "pektin-proxy-strip-proxy": {
                     stripPrefixRegex: {
-                        regex: [`^\/proxy-[^/]+`],
+                        regex: `^\/proxy-[^/]+`,
                     },
                 },
                 [`pektin-proxy-cors-${name}`]: {
-                    headers: {
-                        accessControlAllowMethods: accessControlAllowMethods.join(`, `),
-                        accessControlAllowOriginList: `*`,
-                        accessControlMaxAge: 86400,
-                        accessControlAllowHeaders: [
-                            ...accessControlAllowHeaders,
-                            `ProxyBasicAuth`,
-                        ].join(`, `),
+                    cors: {
+                        methods: accessControlAllowMethods.join(`, `),
+                        origin: `*`,
+                        age: 86400,
+                        headers: [...accessControlAllowHeaders, `ProxyBasicAuth`].join(`, `),
                     },
                 },
                 "pektin-proxy-auth": {
@@ -384,22 +366,11 @@ export const tntConf = ({
     const fullDomain = toASCII(
         concatDomain(pektinConfig.services.tnt.domain, pektinConfig.services.tnt.subDomain)
     );
-    const tls = rp.tls
-        ? {
-              certResolver: `default`,
-              domains: [
-                  {
-                      main: domain,
-                      sans: [`*.${domain}`],
-                  },
-              ],
-          }
-        : false;
+
     return {
         http: {
             routers: {
                 "pektin-tnt": {
-                    ...(tls && { tls }),
                     rule: (() => {
                         if (rp.routing === `domain`) {
                             return `Host(\`${fullDomain}\`)`;
@@ -412,22 +383,22 @@ export const tntConf = ({
                         }
                     })(),
                     service: `pektin-tnt`,
-                    entrypoints: rp.tls ? `websecure` : `web`,
+                    entrypoints: [rp.tls ? `websecure` : `web`],
                     middlewares: [`pektin-tnt-cors`, `pektin-tnt-auth`],
                 },
             },
             middlewares: {
                 "pektin-tnt-cors": {
-                    headers: {
-                        accessControlAllowMethods: `OPTIONS, POST`,
-                        accessControlAllowOriginList: `*`,
-                        accessControlAllowHeaders: `authorization, content-type`,
-                        accessControlMaxAge: 86400,
+                    cors: {
+                        methods: `OPTIONS, POST`,
+                        origin: `*`,
+                        headers: `authorization, content-type`,
+                        age: 86400,
                     },
                 },
                 "pektin-tnt-auth": {
-                    basicauth: {
-                        users: tntAuth,
+                    basicAuth: {
+                        users: [tntAuth],
                     },
                 },
             },
@@ -451,14 +422,14 @@ export const redirectHttps = () => {
         http: {
             routers: {
                 "http-catchall": {
-                    rule: `hostregexp(\`{host:.+}\`)`,
-                    entrypoints: `web`,
-                    middlewares: `redirect-to-https`,
+                    rule: `hostregexp(\`.+\`)`,
+                    entrypoints: [`web`],
+                    middlewares: [`redirect-to-https`],
                 },
             },
             middlewares: {
                 "redirect-to-https": {
-                    redirectscheme: {
+                    redirectScheme: {
                         scheme: `https`,
                         permanent: true,
                     },
@@ -489,52 +460,10 @@ export const genStaticConf = (pektinConfig: PektinConfig) => {
                 exposedbydefault: false,
             },
             file: {
-                directory: `/traefik/dynamic/`,
+                directory: `/verkehr/dynamic/`,
                 watch: true,
             },
         },
-        ...(pektinConfig.services.verkehr.tls && {
-            experimental: {
-                http3: true,
-            },
-        }),
-        entryPoints: {
-            "pektin-server-tcp": {
-                address: `:853/tcp`,
-            },
-            // "pektin-server-udp": { address: `:853/udp` },
-            web: {
-                address: `:80/tcp`,
-            },
-            ...(pektinConfig.services.verkehr.tls && {
-                websecure: {
-                    address: `:443`,
-                    http3: {},
-                },
-            }),
-        },
-        ...(pektinConfig.services.verkehr.tls && {
-            certificatesresolvers: {
-                default: {
-                    acme: {
-                        dnschallenge: { provider: `pektin` },
-                        email: emailToASCII(pektinConfig.services.zertificat.acmeEmail),
-                        storage: `/letsencrypt/default.json`,
-                    },
-                },
-                ...(pektinConfig.services.verkehr.tempZone.enabled && {
-                    tempDomain: {
-                        acme: {
-                            email: emailToASCII(pektinConfig.services.zertificat.acmeEmail),
-                            storage: `/letsencrypt/tempDomain.json`,
-                            httpChallenge: {
-                                entryPoint: `web`,
-                            },
-                        },
-                    },
-                }),
-            },
-        }),
     };
 };
 

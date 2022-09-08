@@ -221,14 +221,14 @@ export const installPektinCompose = async (
                         $perms: `644`,
                     },
                 },
-                traefik: {
+                verkehr: {
                     dynamic: {
-                        "default.yml": traefikConfs.dynamic,
+                        "routing.yml": traefikConfs.dynamic,
                         ...(useTempDomain && {
-                            "tempDomain.yml": traefikConfs.tempDomain,
+                            "tempDomainRouting.yml": traefikConfs.tempDomain,
                         }),
                     },
-                    "static.yml": traefikConfs.static,
+                    "verkehr.yml": traefikConfs.static,
                 },
             },
             "overrides.yml": { $fileNoOverwrite: `version: "3.7"` },
@@ -298,7 +298,7 @@ export const createArbeiterConfig = async (
         envFile += `# Some commands for debugging\n`;
         envFile += `# Logs into db (then try 'KEYS *' for example to get all record keys):\n`;
         envFile += `# bash -c 'docker exec -it $(docker ps --filter name=pektin-db --format {{.ID}}) keydb-cli --pass ${DB_PEKTIN_SERVER_PASSWORD} --user db-pektin-server'`;
-        const composeCommand = `docker compose --env-file secrets/.env -f pektin-compose/arbeiter/base.yml -f pektin-compose/traefik.yml`;
+        const composeCommand = `docker compose --env-file secrets/.env -f pektin-compose/arbeiter/base.yml -f pektin-compose/services/verkehr.yml`;
 
         const resetScript = `${composeCommand} down --remove-orphans\ndocker swarm leave --force\ndocker volume rm pektin-compose_db\nrm -rf update.sh start.sh stop.sh secrets/ `;
 
@@ -329,11 +329,13 @@ export const createArbeiterConfig = async (
                             $perms: `644`,
                         },
                     },
-                    traefik: {
-                        "static.yml": traefikConfs.static,
+                    verkehr: {
+                        "verkehr.yml": traefikConfs.static,
                         dynamic: {
-                            "default.yml": traefikConfs.dynamic,
-                            ...(useTempDomain && { "tempDomain.yml": traefikConfs.tempDomain }),
+                            "routing.yml": traefikConfs.dynamic,
+                            ...(useTempDomain && {
+                                "tempDomainRouting.yml": traefikConfs.tempDomain,
+                            }),
                         },
                     },
                 },
@@ -507,6 +509,7 @@ export const genEnvValues = async (v: {
         [`ALERT_BUILD_PATH`, v.pektinConfig.services.alert.build.path],
         [`GRAFANA_BUILD_PATH`, v.pektinConfig.services.grafana.build.path],
         [`ZERTIFICAT_BUILD_PATH`, v.pektinConfig.services.zertificat.build.path],
+        [`VERKEHR_BUILD_PATH`, v.pektinConfig.services.verkehr.build.path],
 
         [`UI_DOCKERFILE`, v.pektinConfig.services.ui.build.dockerfile],
         [`API_DOCKERFILE`, v.pektinConfig.services.api.build.dockerfile],
@@ -519,6 +522,7 @@ export const genEnvValues = async (v: {
         [`ALERT_DOCKERFILE`, v.pektinConfig.services.alert.build.dockerfile],
         [`GRAFANA_DOCKERFILE`, v.pektinConfig.services.grafana.build.dockerfile],
         [`ZERTIFICAT_DOCKERFILE`, v.pektinConfig.services.zertificat.build.dockerfile],
+        [`VERKEHR_DOCKERFILE`, v.pektinConfig.services.verkehr.build.dockerfile],
 
         [
             `ZERTIFICAT_PEKTIN_ACME_AUTH_INTERNAL`,

@@ -97,18 +97,18 @@ export const updateConfig = async (dir: string = `/pektin-compose/`) => {
                 $perms: `700`,
             },
             secrets: {
-                traefik: {
+                verkehr: {
                     dynamic: {
-                        "default.yml": {
+                        "routing.yml": {
                             $file: traefikConfs.dynamic,
                             $owner: user,
                             $perms: `600`,
                         },
                         ...(useTempDomain && {
-                            "tempDomain.yml": traefikConfs.tempDomain,
+                            "tempDomainRouting.yml": traefikConfs.tempDomain,
                         }),
                     },
-                    "static.yml": {
+                    "verkehr.yml": {
                         $file: traefikConfs.static,
                         $owner: user,
                         $perms: `600`,

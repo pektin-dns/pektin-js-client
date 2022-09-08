@@ -28,7 +28,7 @@ path "pektin-kv/data/pektin-config" {
 }`;
 
 export const pektinZertificatConsumerPolicy: VaultPolicy = `path "pektin-zertificat/*" {
-    capabilities = ["read"]
+    capabilities = ["read", "list"]
 }`;
 
 export const pektinConfidantPolicy = (capabilities: ClientCapabilities): VaultPolicy => {
