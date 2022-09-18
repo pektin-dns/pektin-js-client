@@ -80,10 +80,17 @@ export const getInfos = (pektinConfig: PektinConfig, setupType: `k8s` | `compose
 🤖 ${c.bold(`API`)}: ${c.bold.cyan(getPektinEndpoint(pektinConfig, `api`))}
 You can find the admin credentials at ${c.bold.cyan(`./secrets/server-admin.pc3.json`)}
 
+
 🔐 ${c.bold(`Vault`)}: ${c.bold.cyan(getPektinEndpoint(pektinConfig, `vault`))}
 Vault key and root token can be found here: ${c.bold.cyan(
         setupType === `compose` ? `./secrets/.env` : `./secrets/vault-tokens.json`
     )}
+If Vault is sealed because of a restart or some other reason, you can unseal it with the following command:
+
+docker exec -t pektin-vault vault operator unseal -address="http://127.0.0.1:80"
+
+Then paste the V_KEY from ./secrets/.env and hit Enter.
+
 
 🌳 ${c.bold(`Tnt`)}: ${c.bold.cyan(getPektinEndpoint(pektinConfig, `tnt`))}
 The tnt basic auth username and password can be found in Vault at\n${c.bold.cyan(
