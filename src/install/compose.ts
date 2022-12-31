@@ -494,10 +494,10 @@ const createCspConnectSources = (c: PektinConfig, tempDomain?: TempDomain) => {
         }
     }
     let connectSources = ``;
-    const tls = c.services.verkehr.tls;
+    const protocol = c.services.verkehr.tls ? `https://` : `http://`;
 
     if (sources.length) {
-        sources.forEach((e) => (connectSources += ` ` + tls ? `https://` : `http://` + toASCII(e)));
+        sources.forEach((e) => (connectSources += ` ` + protocol + toASCII(e)));
     }
     return connectSources.substring(1);
 };
