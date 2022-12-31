@@ -451,7 +451,6 @@ export const genDbPasswordHashes = async (
 
 const createCspConnectSources = (c: PektinConfig, tempDomain?: TempDomain) => {
     const sources: string[] = [];
-    let connectSources = ``;
     Object.values(c.services).forEach((service) => {
         /*@ts-ignore*/
         if (service.enabled !== false && service.domain) {
@@ -494,9 +493,13 @@ const createCspConnectSources = (c: PektinConfig, tempDomain?: TempDomain) => {
             }
         }
     }
+    let connectSources = ``;
+    const tls = c.services.verkehr.tls;
 
-    if (sources.length) sources.forEach((e) => (connectSources += ` ` + toASCII(e)));
-    return connectSources;
+    if (sources.length) {
+        sources.forEach((e) => (connectSources += ` ` + tls ? `https://` : `http://` + toASCII(e)));
+    }
+    return connectSources.substring(1);
 };
 
 export const genEnvValues = async (v: {
