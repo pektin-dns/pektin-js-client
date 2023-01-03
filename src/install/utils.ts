@@ -14,6 +14,34 @@ import { getMainNameServers } from "../pureFunctions.js";
 
 const exec = promisify(execDefault);
 
+export const serializeEnvFile = (content: string) => {
+    const obj: Record<string, string> = {};
+    const lines = content.split(`\n`);
+    for (const line of lines) {
+        if (!line.startsWith(`#`)) {
+            const [key, value] = line.split(`=`);
+            obj[key] = replaceRight(value.replace(`"`, ``), `"`, ``);
+        }
+    }
+    return obj;
+};
+
+const replaceRight = (str: string, search: string, replace: string) => {
+    const pos = str.lastIndexOf(search);
+    if (pos === -1) {
+        return str;
+    }
+    return str.substring(0, pos) + replace + str.substring(pos + search.length);
+};
+
+export const deserializeEnvFile = (obj: Record<string, string>) => {
+    const lines = [];
+    for (const key in obj) {
+        lines.push(`${key}="${obj[key]}"`);
+    }
+    return lines.join(`\n`);
+};
+
 export const genBasicAuthHashed = (username: string, password: string) => {
     const hash = (a: string) =>
         crypto.createHash(`sha1`).update(a, `utf8`).digest().toString(`base64`);

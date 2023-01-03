@@ -449,7 +449,7 @@ export const genDbPasswordHashes = async (
     //crypto.create;
 };
 
-const createCspConnectSources = (c: PektinConfig, tempDomain?: TempDomain) => {
+export const createCspConnectSources = (c: PektinConfig, tempDomain?: TempDomain) => {
     const sources: string[] = [];
     Object.values(c.services).forEach((service) => {
         /*@ts-ignore*/
@@ -577,13 +577,13 @@ export const genEnvValues = async (v: {
 
         [`USE_POLICIES`, v.pektinConfig.usePolicies],
     ];
-    let file = `# DO NOT EDIT THESE VARIABLES MANUALLY  \n`;
+    let file = ``;
     repls.forEach((repl) => {
         file = file += `${repl[0]}="${repl[1]}"\n`;
     });
-    file += `# Some commands for debugging\n`;
-    file += `# Logs into db (then try 'KEYS *' for example to get all record keys):\n`;
-    file += `# bash -c 'docker exec -it $(docker ps --filter name=pektin-db --format {{.ID}}) keydb-cli --pass ${v.DB_PEKTIN_API_PASSWORD} --user db-pektin-api'`;
+    file += `# Some commands for debugging
+# Logs into db (then try 'KEYS *' for example to get all record keys):
+# bash -c 'docker exec -it $(docker ps --filter name=pektin-db --format {{.ID}}) keydb-cli --pass ${v.DB_PEKTIN_API_PASSWORD} --user db-pektin-api'`;
     return file;
 };
 

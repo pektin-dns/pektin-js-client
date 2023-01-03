@@ -6,10 +6,16 @@ import { PektinConfig } from "@pektin/config/src/config-types.js";
 import { config } from "dotenv";
 import { genTraefikConfs } from "./traefik/traefik.js";
 import { getMainNode } from "../pureFunctions.js";
-import { genStartScript, genStopScript, genUpdateScript } from "./compose.js";
+import {
+    createCspConnectSources,
+    genStartScript,
+    genStopScript,
+    genUpdateScript,
+} from "./compose.js";
 import { TempDomain } from "../types.js";
 import { PektinSetupClient } from "./first-start.js";
 import { declareFs } from "@pektin/declare-fs";
+import { deserializeEnvFile, serializeEnvFile } from "./utils.js";
 
 config({ path: `/pektin-compose/secrets/.env` });
 
@@ -80,6 +86,48 @@ export const updateConfig = async (dir: string = `/pektin-compose/`) => {
         pektinConfig.services.verkehr.tempZone.enabled &&
         traefikConfs.tempDomain &&
         pektinConfig.services.verkehr.routing === `domain`;
+
+    const env = serializeEnvFile(
+        await fs.readFile(path.join(dir, `secrets`, `.env`), {
+            encoding: `utf-8`,
+        })
+    );
+    env.LETSENCRYPT_EMAIL = pektinConfig.services.zertificat.acmeEmail;
+
+    env.CSP_CONNECT_SRC = createCspConnectSources(pektinConfig, tempDomain);
+    env.UI_BUILD_PATH = pektinConfig.services.ui.build.path;
+    env.API_BUILD_PATH = pektinConfig.services.api.build.path;
+    env.SERVER_BUILD_PATH = pektinConfig.services.server.build.path;
+    env.TNT_BUILD_PATH = pektinConfig.services.tnt.build.path;
+    env.RIBSTON_BUILD_PATH = pektinConfig.services.ribston.build.path;
+    env.VAULT_BUILD_PATH = pektinConfig.services.vault.build.path;
+    env.JAEGER_BUILD_PATH = pektinConfig.services.jaeger.build.path;
+    env.PROMETHEUS_BUILD_PATH = pektinConfig.services.prometheus.build.path;
+    env.ALERT_BUILD_PATH = pektinConfig.services.alert.build.path;
+    env.GRAFANA_BUILD_PATH = pektinConfig.services.grafana.build.path;
+    env.ZERTIFICAT_BUILD_PATH = pektinConfig.services.zertificat.build.path;
+    env.VERKEHR_BUILD_PATH = pektinConfig.services.verkehr.build.path;
+    env.UI_DOCKERFILE = pektinConfig.services.ui.build.dockerfile;
+    env.API_DOCKERFILE = pektinConfig.services.api.build.dockerfile;
+    env.SERVER_DOCKERFILE = pektinConfig.services.server.build.dockerfile;
+    env.TNT_DOCKERFILE = pektinConfig.services.tnt.build.dockerfile;
+    env.RIBSTON_DOCKERFILE = pektinConfig.services.ribston.build.dockerfile;
+    env.VAULT_DOCKERFILE = pektinConfig.services.vault.build.dockerfile;
+    env.JAEGER_DOCKERFILE = pektinConfig.services.jaeger.build.dockerfile;
+    env.PROMETHEUS_DOCKERFILE = pektinConfig.services.prometheus.build.dockerfile;
+    env.ALERT_DOCKERFILE = pektinConfig.services.alert.build.dockerfile;
+    env.GRAFANA_DOCKERFILE = pektinConfig.services.grafana.build.dockerfile;
+    env.ZERTIFICAT_DOCKERFILE = pektinConfig.services.zertificat.build.dockerfile;
+    env.VERKEHR_DOCKERFILE = pektinConfig.services.verkehr.build.dockerfile;
+    env.API_LOGGING = pektinConfig.services.api.logging;
+    env.SERVER_LOGGING = pektinConfig.services.server.logging;
+    env.USE_POLICIES = pektinConfig.usePolicies === false ? `false` : pektinConfig.usePolicies;
+
+    let newEnvFile = deserializeEnvFile(env);
+    newEnvFile += `# Some commands for debugging
+# Logs into db (then try 'KEYS *' for example to get all record keys):
+# bash -c 'docker exec -it $(docker ps --filter name=pektin-db --format {{.ID}}) keydb-cli --pass ${env.DB_PEKTIN_API_PASSWORD} --user db-pektin-api'`;
+
     await declareFs(
         {
             $ownerR: user,
@@ -96,6 +144,7 @@ export const updateConfig = async (dir: string = `/pektin-compose/`) => {
                 $perms: `700`,
             },
             secrets: {
+                ".env": newEnvFile,
                 verkehr: {
                     dynamic: {
                         $perms: `777`,
