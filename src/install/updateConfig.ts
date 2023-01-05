@@ -2,7 +2,6 @@ import { promises as fs } from "fs";
 import path from "path";
 import { unsealVault } from "../vault/vault.js";
 import { PC3 } from "../index.js";
-import { PektinConfig } from "@pektin/config/src/config-types.js";
 import { config } from "dotenv";
 import { genTraefikConfs } from "./traefik/traefik.js";
 import { getMainNode } from "../pureFunctions.js";
@@ -15,7 +14,7 @@ import {
 import { TempDomain } from "../types.js";
 import { PektinSetupClient } from "./first-start.js";
 import { declareFs } from "@pektin/declare-fs";
-import { deserializeEnvFile, serializeEnvFile } from "./utils.js";
+import { deserializeEnvFile, readPektinConfig, serializeEnvFile } from "./utils.js";
 
 config({ path: `/pektin-compose/secrets/.env` });
 
@@ -30,11 +29,7 @@ export const updateConfig = async (dir: string = `/pektin-compose/`) => {
                 process.env.GID
         );
     }
-    const pektinConfig: PektinConfig = JSON.parse(
-        await fs.readFile(path.join(dir, `pektin-config.json`), {
-            encoding: `utf-8`,
-        })
-    );
+    const pektinConfig = await readPektinConfig(path.join(dir, `pektin-config.yml`));
 
     const adminPC3: PC3 = JSON.parse(
         await fs.readFile(path.join(dir, `secrets`, `server-admin.pc3.json`), {

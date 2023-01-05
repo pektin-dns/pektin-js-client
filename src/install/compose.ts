@@ -5,6 +5,7 @@ import {
     configToCertbotIni,
     generatePerimeterAuth,
     genCertsScript,
+    readPektinConfig,
 } from "./utils.js";
 import crypto from "crypto";
 /*@ts-ignore*/
@@ -48,11 +49,7 @@ export const installPektinCompose = async (
         );
     }
 
-    const pektinConfig: PektinConfig = JSON.parse(
-        await fs.readFile(path.join(dir, `pektin-config.json`), {
-            encoding: `utf-8`,
-        })
-    );
+    const pektinConfig = await readPektinConfig(path.join(dir, `pektin-config.yml`));
 
     // creates secrets directory
     await fs.mkdir(path.join(dir, `secrets`), { recursive: true }).catch(() => {});

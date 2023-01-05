@@ -16,9 +16,8 @@ const script = argv[2];
     switch (script) {
         case `compose-install`: {
             await checkConfig(
-                `/pektin-compose/pektin-config.json`,
+                `/pektin-compose/pektin-config.yml`,
                 `node_modules/@pektin/config/pektin-config.schema.yml`,
-                `json`,
                 false
             );
             await installPektinCompose();
@@ -28,7 +27,7 @@ const script = argv[2];
             if (!process.env.V_KEY) throw Error(`Could not get key from .env file to unlock vault`);
             await unsealVault(`http://pektin-vault`, process.env.V_KEY);
             await checkConfig(
-                `/pektin-compose/pektin-config.json`,
+                `/pektin-compose/pektin-config.yml`,
                 `node_modules/@pektin/config/pektin-config.schema.yml`
             );
             await updateConfig();
@@ -51,7 +50,6 @@ const script = argv[2];
             await checkConfig(
                 `/base/pektin-config.yml`,
                 `node_modules/@pektin/config/pektin-config.schema.yml`,
-                `yaml`,
                 false
             );
             await createSecrets();

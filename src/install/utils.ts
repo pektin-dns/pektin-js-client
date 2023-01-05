@@ -11,8 +11,14 @@ import c from "chalk";
 import { toASCII } from "../index.js";
 import { deAbsolute, randomString } from "../utils/index.js";
 import { getMainNameServers } from "../pureFunctions.js";
+import yaml from "yaml";
 
 const exec = promisify(execDefault);
+
+export const readPektinConfig = async (path: string) => {
+    const config = yaml.parse(await fs.readFile(path, `utf-8`));
+    return config as PektinConfig;
+};
 
 export const serializeEnvFile = (content: string) => {
     const obj: Record<string, string> = {};

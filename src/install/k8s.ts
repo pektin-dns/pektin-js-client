@@ -6,11 +6,11 @@ import {
     configToCertbotIni,
     genBasicAuthHashed,
     generatePerimeterAuth,
+    readPektinConfig,
 } from "./utils.js";
 import { promises as fs } from "fs";
 import path from "path";
 import { chmod } from "./utils.js";
-import { PektinConfig } from "@pektin/config/src/config-types";
 import { PektinSetupClient } from "./first-start.js";
 
 import { declareFs } from "@pektin/declare-fs";
@@ -30,11 +30,7 @@ export const installK8s = async (dir: string = `/base/`) => {
             encoding: `utf-8`,
         })
     );
-    const pektinConfig = yaml.parse(
-        await fs.readFile(path.join(dir, `pektin-config.yml`), {
-            encoding: `utf-8`,
-        })
-    );
+    const pektinConfig = await readPektinConfig(path.join(dir, `pektin-config.yml`));
 
     const { pektinAdminConnectionConfig, vaultTokens, acmeClientConnectionConfig } =
         await installVault({
@@ -91,11 +87,7 @@ export const createSecrets = async (dir: string = `/base/`) => {
                 process.env.GID
         );
     }
-    const pektinConfig: PektinConfig = yaml.parse(
-        await fs.readFile(path.join(dir, `pektin-config.yml`), {
-            encoding: `utf-8`,
-        })
-    );
+    const pektinConfig = await readPektinConfig(path.join(dir, `pektin-config.yml`));
 
     const [PERIMETER_AUTH, PERIMETER_AUTH_HASHED] = generatePerimeterAuth();
 

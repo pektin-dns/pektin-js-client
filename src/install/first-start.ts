@@ -3,11 +3,10 @@ import fs from "fs/promises";
 import path from "path";
 import { PektinClient, PC3 } from "../index.js";
 import { ApiRecord, PektinRRType } from "../index.js";
-import { chmod, chown, createSingleScript } from "./utils.js";
+import { chmod, chown, createSingleScript, readPektinConfig } from "./utils.js";
 import { absoluteName, concatDomain } from "../index.js";
 import { getMainNameServers, getMainNode, getPektinEndpoint } from "../pureFunctions.js";
 import Chalk from "chalk";
-import yaml from "yaml";
 
 const c = new Chalk.Instance({ level: 3 });
 
@@ -23,12 +22,7 @@ export const pektinComposeFirstStart = async (
                 process.env.GID
         );
     }
-    const pektinConfig =
-        setupType === `compose`
-            ? (JSON.parse(
-                  await fs.readFile(path.join(dir, `pektin-config.json`), `utf-8`)
-              ) as PektinConfig)
-            : yaml.parse(await fs.readFile(path.join(dir, `pektin-config.yml`), `utf-8`));
+    const pektinConfig = await readPektinConfig(path.join(dir, `pektin-config.yml`));
 
     const adminCreds: PC3 = JSON.parse(
         await fs.readFile(path.join(dir, `secrets`, `server-admin.pc3.json`), `utf-8`)
